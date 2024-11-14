@@ -5,6 +5,8 @@ import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 import type { Browser } from "puppeteer-core";
 
+export const maxDuration = 45;
+
 // Only import full Puppeteer in development
 let puppeteerModule: any = puppeteer;
 if (process.env.NODE_ENV === "development") {
