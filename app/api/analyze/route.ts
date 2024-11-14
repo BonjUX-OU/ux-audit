@@ -29,8 +29,9 @@ export async function POST(request: Request) {
       1. Evaluate the webpage based on Nielsen's 10 heuristics.
       2. For each heuristic, provide:
         - A score from 1 to 5 (1 being poor, 5 being excellent).
-        - Specific suggestions for improvement, if any.
+        - Specific comments for improvement, if any.
       For each heuristic, be specific on what the webpage does well and what can be improved.
+      Please be super specific and detailed in your analysis, pointing out specific elements on the webpage that are good or bad.
 
       The JSON output should follow this format:
       {
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
           {
             "name": "Visibility of system status",
             "score": 4,
-            "suggestions": "Provide real-time feedback on user actions. For example, show a loading spinner when submitting a form."
+            "comments": "Provide real-time feedback on user actions. For example, show a loading spinner when submitting a form."
           },
           // ... include all 10 heuristics
         ]
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
           ],
         },
       ],
-      temperature: 0.3,
+      temperature: 0.7,
       max_tokens: 16384,
       top_p: 1.0,
       frequency_penalty: 0.0,

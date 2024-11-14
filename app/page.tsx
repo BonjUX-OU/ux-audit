@@ -11,7 +11,7 @@ import axios from "axios";
 interface Heuristic {
   name: string;
   score: number;
-  suggestions: string;
+  comments: string;
 }
 
 interface AnalysisResult {
@@ -106,7 +106,7 @@ export default function Home() {
                   <li key={index} className="p-4 border rounded-lg">
                     <h3 className="font-semibold">{heuristic.name}</h3>
                     <p>Score: {heuristic.score}/5</p>
-                    <p>Suggestions: {heuristic.suggestions}</p>
+                    <p>Comments: {heuristic.comments}</p>
                   </li>
                 ))}
               </ul>
