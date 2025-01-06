@@ -23,7 +23,6 @@ export async function POST(request: Request) {
     if (!url || !/^https?:\/\/.+/.test(url)) {
       return new NextResponse("Invalid URL", { status: 400 });
     }
-
     browser = await puppeteerModule.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
@@ -31,7 +30,7 @@ export async function POST(request: Request) {
         process.env.NODE_ENV === "development"
           ? undefined
           : await chromium.executablePath(),
-      headless: true,
+      headless: chromium.headless,
       ignoreHTTPSErrors: true,
     });
 
