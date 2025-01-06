@@ -63,9 +63,8 @@ export async function POST(request: Request) {
         process.env.NODE_ENV === "development"
           ? undefined
           : await chromium.executablePath(),
-      headless: true,
+      headless: chromium.headless,
     });
-
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle2" });
 

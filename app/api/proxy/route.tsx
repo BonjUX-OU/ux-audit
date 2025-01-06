@@ -93,7 +93,7 @@ export async function GET(request: Request) {
         process.env.NODE_ENV === "development"
           ? undefined
           : await chromium.executablePath(),
-      headless: true,
+      headless: chromium.headless,
       ignoreHTTPSErrors: true,
     });
 

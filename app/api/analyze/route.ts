@@ -57,9 +57,9 @@ export async function POST(request: Request) {
       defaultViewport: chromium.defaultViewport,
       executablePath:
         process.env.NODE_ENV === "development"
-          ? undefined // Use puppeteer's default executable in dev
-          : await chromium.executablePath(), // Use packaged chromium in production
-      headless: true,
+          ? undefined
+          : await chromium.executablePath(),
+      headless: chromium.headless,
       ignoreHTTPSErrors: true,
     });
 
