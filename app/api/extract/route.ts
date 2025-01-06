@@ -1,5 +1,4 @@
-// app/api/snapshot/route.ts
-
+// app/api/extract/route.ts
 import { NextResponse } from "next/server";
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
@@ -7,7 +6,6 @@ import type { Browser } from "puppeteer-core";
 
 export const maxDuration = 45;
 
-// Only import full Puppeteer in development
 let puppeteerModule: any = puppeteer;
 if (process.env.NODE_ENV === "development") {
   puppeteerModule = require("puppeteer");
@@ -22,19 +20,17 @@ export async function POST(request: Request) {
   try {
     const { url } = await request.json();
 
-    // Validate URL
     if (!url || !/^https?:\/\/.+/.test(url)) {
       return new NextResponse("Invalid URL", { status: 400 });
     }
 
-    // Launch Puppeteer with appropriate settings
     browser = await puppeteerModule.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath:
         process.env.NODE_ENV === "development"
-          ? undefined // Use puppeteer's default executable in dev
-          : await chromium.executablePath(), // Use packaged chromium in production
+          ? undefined
+          : await chromium.executablePath(),
       headless: true,
       ignoreHTTPSErrors: true,
     });
@@ -42,25 +38,18 @@ export async function POST(request: Request) {
     if (!browser) {
       return new NextResponse("Failed to launch browser", { status: 500 });
     }
-
     const page = await browser.newPage();
-
-    // Set viewport size
-    await page.setViewport({ width: 1280, height: 800 });
-
-    // Navigate to the URL
+    // Could adjust timeouts, emulate devices, etc.
     await page.goto(url, { waitUntil: "networkidle2" });
 
-    // Capture screenshot
-    const screenshotBuffer = await page.screenshot({ fullPage: true });
-    const screenshotBase64 = Buffer.from(screenshotBuffer).toString("base64");
+    // Extract fully rendered HTML
+    const rawHTML = await page.content();
 
-    // Return the screenshot
-    return NextResponse.json({ screenshot: screenshotBase64 });
+    return NextResponse.json({ html: rawHTML });
   } catch (error: any) {
     return new NextResponse(error.message, { status: 500 });
   } finally {
-    if (browser !== null) {
+    if (browser) {
       await browser.close();
     }
   }
