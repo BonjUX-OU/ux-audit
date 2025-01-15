@@ -265,7 +265,7 @@ function SignupPage() {
         </form>
         <p className="text-base text-center mb-3 mt-6">
           If you have an existing account,{" "}
-          <a href="/login" className="font-bold text-indigo-500">
+          <a href="/signin" className="font-bold text-indigo-500">
             Log in
           </a>
         </p>

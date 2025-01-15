@@ -19,14 +19,14 @@ function AccountMenu() {
 
   useEffect(() => {
     if (!session) {
-      redirect("/login");
+      redirect("/signin");
     }
     console.log("session", session);
   }, [session]);
 
   const handleProfileClick = () => {
     if (typeof window !== "undefined") {
-      window.location.href = "/information";
+      window.location.href = "/";
     }
   };
 
