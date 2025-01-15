@@ -1,4 +1,4 @@
-// app/api/combinedAnalyze/route.ts
+// app/api/analyze/route.ts
 
 import { NextResponse } from "next/server";
 import chromium from "@sparticuz/chromium";
@@ -82,6 +82,7 @@ export async function POST(request: Request) {
     const rawHTML = await page.content();
     // For GPT, we may want to truncate if the HTML is huge
     const truncatedHTML = rawHTML.substring(0, 15000); // e.g. 15k chars
+    const fullSnapshot = rawHTML;
 
     // 3. Prepare GPT prompt
     /**
@@ -191,6 +192,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       screenshot: screenshotBase64, // So the front-end can show the snapshot
       analysis: aiContent, // The raw GPT JSON string
+      snapshotHtml: fullSnapshot,
     });
   } catch (error: any) {
     console.error(error);
