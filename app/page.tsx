@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { ChevronDown, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -32,7 +33,9 @@ export default function Home() {
             FAQ
           </a>
         </nav>
-        <Button>Login/Register</Button>
+        <Link href="/login">
+          <Button>Login/Register</Button>
+        </Link>
       </header>
 
       {/* Hero Section */}
