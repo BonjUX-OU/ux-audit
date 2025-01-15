@@ -33,7 +33,7 @@ export default function Home() {
             FAQ
           </a>
         </nav>
-        <Link href="//signin">
+        <Link href="/signin">
           <Button>Login/Register</Button>
         </Link>
       </header>
