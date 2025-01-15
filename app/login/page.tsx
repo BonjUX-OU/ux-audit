@@ -13,7 +13,7 @@ function LoginPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/la");
+      router.replace("/dashboard");
     }
   }, [status, router]);
 

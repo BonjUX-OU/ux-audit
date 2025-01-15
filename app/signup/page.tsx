@@ -23,7 +23,7 @@ function SignupPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/information");
+      router.replace("/analysis");
     }
   }, [status, router]);
 
