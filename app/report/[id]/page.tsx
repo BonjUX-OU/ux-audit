@@ -1,5 +1,5 @@
 "use client";
-
+import { use } from "react";
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -30,13 +30,12 @@ type AnalysisReport = {
   screenshot?: string;
   heuristics: Heuristic[];
 };
-
-export default async function AnalysisView({
+export default function AnalysisView({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = use(params);
   const router = useRouter();
 
   const [analysis, setAnalysis] = useState<AnalysisReport | null>(null);
