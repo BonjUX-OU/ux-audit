@@ -36,8 +36,17 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await dbConnect();
-    const { project, url, screenshot, heuristics, snapshotHtml } =
-      await request.json();
+    const {
+      owner,
+      project,
+      url,
+      heuristics,
+      score,
+      overallScore,
+      snapshotHtml,
+      sector,
+      pageType,
+    } = await request.json();
 
     if (!project || !url || !heuristics || !snapshotHtml) {
       return NextResponse.json(
@@ -47,9 +56,13 @@ export async function POST(request: Request) {
     }
 
     const newReport = await Report.create({
+      owner,
       project,
       url,
-      screenshot,
+      sector,
+      pageType,
+      score,
+      overallScore,
       heuristics,
       snapshotHtml,
     });
