@@ -112,6 +112,7 @@ export async function POST(request: Request) {
       7. Results should be the same for the same unaltered webpage.
       8. The analysis should be based on evaluations that can be done from the screenshot and HTML snippet provided. For example, you can't evaluate the loading speed of the page.
       9. Make sure the anysis covers the entirety of the webpage.
+      10. You are also supposed to give scores for each heuristic out of 10 based on the analysis done.
 
 
       OUTPUT must be valid JSON with this structure:
@@ -143,6 +144,19 @@ export async function POST(request: Request) {
             "issues": []
           }
         ]
+        score:[
+          {
+            "id": 1,
+            "name": "Visibility of System Status",
+            "score": 0.0
+          },
+          ...
+          {
+            "id": 10,
+            "name": "Help and Documentation",
+            "score": 0.0
+          }
+        ]  
       }
 
       - For each issue, try to provide a CSS selector in the "selector" field if relevant.

@@ -13,6 +13,11 @@ const HeuristicSchema = new mongoose.Schema({
   issues: [IssueSchema],
 });
 
+const ScoreSchema = new mongoose.Schema({
+  id: Number,
+  name: String,
+  score: String,
+});
 const ReportSchema = new mongoose.Schema(
   {
     project: {
@@ -20,11 +25,26 @@ const ReportSchema = new mongoose.Schema(
       ref: "Project",
       required: true,
     },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     url: {
       type: String,
       required: true,
     },
-    screenshot: String, // base64 string
+    sector: {
+      type: String,
+    },
+    pageType: {
+      type: String,
+    },
+    score: [ScoreSchema],
+    overallScore: {
+      type: Number,
+      required: true,
+    },
     heuristics: [HeuristicSchema],
     snapshotHtml: {
       type: String, // store the entire HTML string

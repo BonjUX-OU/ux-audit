@@ -1,10 +1,9 @@
-// app/dashboard/page.tsx
 "use client";
 
-import { useEffect, useState, useRef, FormEvent } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useState, FormEvent } from "react";
 import AppBar from "@/components/layout/AppBar";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -21,120 +20,137 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
-import {
-  HoverCard,
-  HoverCardTrigger,
-  HoverCardContent,
-} from "@/components/ui/hover-card";
+import { useSession } from "next-auth/react";
 
-// Types
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+// If you have a user session from next-auth, you can import and use useSession
+// import { useSession } from "next-auth/react";
+
 type Project = {
   _id: string;
-  owner?: string;
+  owner?: string; // or { _id: string, name: string } if you populated
   name: string;
   description?: string;
-};
-
-type Issue = {
-  issue_id: string;
-  description: string;
-  solution: string;
-  selector?: string;
-};
-
-type Heuristic = {
-  id: number;
-  name: string;
-  issues: Issue[];
+  createdAt?: string;
 };
 
 type AnalysisReport = {
   _id: string;
-  project: string;
   url: string;
-  screenshot?: string;
-  heuristics: Heuristic[];
-  snapshotHtml?: string;
+  sector?: string;
+  overallScore: number;
+  heuristics: any[];
+  createdAt?: string;
+  project: Project;
+  pageType?: string;
 };
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  // const { data: session, status } = useSession();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [analysisMap, setAnalysisMap] = useState<{
-    [projId: string]: AnalysisReport[];
-  }>({});
-  const [selectedAnalysis, setSelectedAnalysis] =
-    useState<AnalysisReport | null>(null);
-
-  // For "New Analysis"
-  const [dialogProjectId, setDialogProjectId] = useState<string | null>(null);
+  const [openDialog, setOpenDialog] = useState(false); // If your session user ID is needed, you'd set it from session
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [currentProject, setCurrentProject] = useState<Project | null>(null);
+  const { data: session }: any = useSession();
   const [url, setUrl] = useState("");
+  const [selectedSector, setSelectedSector] = useState("");
+  const [selectedPageType, setSelectedPageType] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [reports, setReports] = useState<AnalysisReport[]>([]);
 
-  // iFrame + Hover states
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [hoveredIssue, setHoveredIssue] = useState<Issue | null>(null);
-
-  // 1) Fetch all projects
+  // Fetch projects from our new route
   async function fetchProjects() {
     try {
-      const res = await fetch("/api/projects");
-      if (!res.ok) throw new Error("Failed to fetch projects");
-      const data = await res.json();
+      const response = await fetch(
+        `/api/user/projects?userId=${session?.user.id}`,
+        {
+          method: "GET",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch projects");
+      }
+      const data = await response.json();
       setProjects(data);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  // 2) For a project, fetch all analysis
-  async function fetchAnalysisForProject(projectId: string) {
-    try {
-      const res = await fetch(`/api/report?projectId=${projectId}`);
-      if (!res.ok) throw new Error("Failed to fetch analysis");
-      const data = await res.json();
-      setAnalysisMap((prev) => ({ ...prev, [projectId]: data }));
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  // 3) Fetch single analysis by ID
-  async function fetchSingleAnalysis(analysisId: string) {
-    try {
-      const res = await fetch(`/api/report?id=${analysisId}`);
-      if (!res.ok) throw new Error("Failed to fetch single analysis");
-      const data = await res.json();
-      setSelectedAnalysis(data);
+      setCurrentProject(data[0]);
     } catch (err) {
       console.error(err);
     }
   }
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  // Called when user expands a Project
-  function handleProjectAccordionChange(projectId: string | undefined) {
-    if (projectId && !analysisMap[projectId]) {
-      fetchAnalysisForProject(projectId);
+    if (session) {
+      fetchProjects();
+      fetchUserReports();
     }
-  }
+  }, [session]);
 
-  // Called when user expands an Analysis
-  function handleAnalysisAccordionChange(analysisId: string | undefined) {
-    if (analysisId) {
-      fetchSingleAnalysis(analysisId);
-    } else {
-      setSelectedAnalysis(null);
+  // Handle create project
+  async function handleCreateProject(e: FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    try {
+      const response = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ owner: session.user.id, name, description }),
+      });
+      if (!response.ok) {
+        throw new Error("Error creating project");
+      }
+      // Clear inputs
+      setName("");
+      setDescription("");
+      setOpenDialog(false);
+      // Refetch
+      fetchProjects();
+    } catch (error) {
+      console.error(error);
     }
   }
 
   // 4) Create new analysis
   async function handleCreateAnalysis(e: FormEvent) {
     e.preventDefault();
-    if (!dialogProjectId || !url.trim()) return;
+    //if no project is there create untitled project
+    if (!currentProject) {
+      try {
+        const response = await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ owner: session.user.id, name: "Untitled" }),
+        });
+        if (!response.ok) {
+          throw new Error("Error creating project");
+        }
+        // Refetch
+        fetchProjects();
+      } catch (error) {
+        console.error(error);
+      }
+    }
 
     setIsAnalyzing(true);
 
@@ -154,16 +170,28 @@ export default function DashboardPage() {
         .replace(/```/g, "")
         .trim();
       const analysisObj = JSON.parse(cleanedAnalysis);
+      //convert all the scores to number and add them to overall score
+      let overallScore = 0;
+      analysisObj.score.forEach((score: any) => {
+        overallScore += Number(score.score);
+      });
+
+      console.log("Overall Score", overallScore);
 
       // Step 2: store in DB
       const storeRes = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          project: dialogProjectId,
+          owner: session.user.id,
+          project: currentProject?._id,
           url,
           screenshot,
+          sector: selectedSector,
+          pageType: selectedPageType,
           heuristics: analysisObj.heuristics,
+          score: analysisObj.score,
+          overallScore: overallScore || 0,
           snapshotHtml,
         }),
       });
@@ -171,10 +199,6 @@ export default function DashboardPage() {
 
       // Clear
       setUrl("");
-      setDialogProjectId(null);
-
-      // Refresh project
-      fetchAnalysisForProject(dialogProjectId);
     } catch (error) {
       console.error(error);
       alert((error as Error).message);
@@ -183,245 +207,210 @@ export default function DashboardPage() {
     }
   }
 
-  // 5) Once we have selectedAnalysis, postMessage highlights
-  useEffect(() => {
-    if (!selectedAnalysis || !iframeRef.current) return;
-
-    const highlights: { selector: string; label: string }[] = [];
-    selectedAnalysis.heuristics.forEach((h) => {
-      h.issues.forEach((issue) => {
-        if (issue.selector) {
-          highlights.push({ selector: issue.selector, label: issue.issue_id });
-        }
-      });
-    });
-    if (highlights.length === 0) return;
-
-    const iframe = iframeRef.current;
-    function handleLoad() {
-      iframe.contentWindow?.postMessage({ type: "HIGHLIGHT", highlights }, "*");
+  // 2) For a project, fetch all analysis
+  async function fetchUserReports() {
+    try {
+      const res = await fetch(`/api/user/reports?userId=${session?.user.id}`);
+      if (!res.ok) throw new Error("Failed to fetch analysis");
+      const data = await res.json();
+      setReports(data);
+    } catch (err) {
+      console.error(err);
     }
-
-    // wait for load
-    iframe.addEventListener("load", handleLoad, { once: true });
-    return () => {
-      iframe.removeEventListener("load", handleLoad);
-    };
-  }, [selectedAnalysis]);
-
-  // 6) Listen for hover events
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (!event.data) return;
-      if (event.data.type === "ISSUE_MOUSEENTER") {
-        const { issueId } = event.data;
-        if (selectedAnalysis) {
-          for (const h of selectedAnalysis.heuristics) {
-            for (const issue of h.issues) {
-              if (issue.issue_id === issueId) {
-                setHoveredIssue(issue);
-                return;
-              }
-            }
-          }
-        }
-      } else if (event.data.type === "ISSUE_MOUSELEAVE") {
-        setHoveredIssue(null);
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
-  }, [selectedAnalysis]);
-
+  }
   return (
     <div className="flex flex-col min-h-screen">
       <AppBar />
       <div className="flex flex-1">
-        {/* Sidebar: Projects + Analysis */}
-        <aside className="w-64 border-r p-4 bg-gray-50 overflow-y-auto">
+        {/* Sidebar */}
+        <aside className="w-64 border-r p-4 bg-gray-50">
           <h2 className="text-xl font-semibold mb-4">Projects</h2>
-
-          <Accordion
-            type="single"
-            collapsible
-            onValueChange={handleProjectAccordionChange}
-          >
-            {projects.map((proj) => (
-              <AccordionItem key={proj._id} value={proj._id}>
-                <AccordionTrigger>{proj.name}</AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-sm mb-2">
-                    {proj.description || "No description."}
-                  </p>
-                  <Accordion
-                    type="single"
-                    collapsible
-                    onValueChange={handleAnalysisAccordionChange}
-                    className="ml-2 border-l pl-2 space-y-1"
-                  >
-                    {(analysisMap[proj._id] || []).map((report) => (
-                      <AccordionItem key={report._id} value={report._id}>
-                        <AccordionTrigger>{report.url}</AccordionTrigger>
-                        <AccordionContent>
-                          <p className="text-xs text-gray-600">
-                            Expand to load analysis on the right.
-                          </p>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-
-                  {/* New Analysis */}
-                  <Dialog
-                    open={dialogProjectId === proj._id}
-                    onOpenChange={(open) =>
-                      setDialogProjectId(open ? proj._id : null)
-                    }
-                  >
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="mt-2">
-                        + New Analysis
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>New UI Analysis</DialogTitle>
-                        <DialogDescription>
-                          Enter the page URL to analyze
-                        </DialogDescription>
-                      </DialogHeader>
-                      <form
-                        onSubmit={handleCreateAnalysis}
-                        className="space-y-4 mt-4"
-                      >
-                        <div>
-                          <label className="block text-sm font-medium mb-1">
-                            URL
-                          </label>
-                          <Input
-                            type="text"
-                            placeholder="https://example.com"
-                            value={url}
-                            onChange={(e) => setUrl(e.target.value)}
-                            required
-                          />
-                        </div>
-                        <DialogFooter>
-                          <Button
-                            variant="outline"
-                            onClick={() => setDialogProjectId(null)}
-                            type="button"
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            variant="default"
-                            type="submit"
-                            disabled={isAnalyzing}
-                          >
-                            {isAnalyzing ? "Analyzing..." : "Analyze"}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </aside>
-
-        {/* Main content: selectedAnalysis snapshot + highlights */}
-        <main className="flex-1 p-4 space-y-4 overflow-auto">
-          {!session && <p>Please log in to see your projects.</p>}
-
-          {selectedAnalysis ? (
-            <div className="space-y-4">
-              <h1 className="text-xl font-bold">
-                Analysis: {selectedAnalysis.url}
-              </h1>
-
-              {/* Iframe: load snapshot at /api/snapshot/[analysisId] */}
-              <div className="relative border rounded">
-                <iframe
-                  ref={iframeRef}
-                  src={`/api/snapshot/${selectedAnalysis._id}`}
-                  style={{ width: "100%", height: "500px", border: "none" }}
-                />
-
-                {/* HoverCard for hoveredIssue */}
-                <HoverCard open={!!hoveredIssue}>
-                  <HoverCardTrigger asChild>
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: 1,
-                        height: 1,
-                      }}
-                    />
-                  </HoverCardTrigger>
-                  <HoverCardContent className="max-w-sm">
-                    {hoveredIssue ? (
-                      <div className="space-y-2">
-                        <p className="font-bold text-red-600">
-                          Issue: {hoveredIssue.issue_id}
-                        </p>
-                        <p>
-                          <strong>Description:</strong>{" "}
-                          {hoveredIssue.description}
-                        </p>
-                        <p>
-                          <strong>Solution:</strong> {hoveredIssue.solution}
-                        </p>
-                      </div>
-                    ) : (
-                      <p>No issue hovered</p>
-                    )}
-                  </HoverCardContent>
-                </HoverCard>
-              </div>
-
-              {/* Heuristics list */}
-              <div className="border p-2 rounded">
-                <h2 className="font-semibold mb-2">Heuristics & Issues</h2>
-                {selectedAnalysis.heuristics.map((h) => (
-                  <div key={h.id} className="border-b pb-2 mb-2">
-                    <p className="font-bold text-sm">
-                      {h.id}. {h.name}
-                    </p>
-                    {h.issues.length > 0 ? (
-                      <ul className="list-disc list-inside text-xs mt-1 space-y-1">
-                        {h.issues.map((issue) => (
-                          <li key={issue.issue_id}>
-                            <strong>{issue.issue_id}:</strong>{" "}
-                            {issue.description}
-                            <br />
-                            <em>Solution:</em> {issue.solution}
-                            {issue.selector && (
-                              <div className="text-blue-500">
-                                Selector: <code>{issue.selector}</code>
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-gray-600">No issues found.</p>
-                    )}
-                  </div>
-                ))}
-              </div>
+          <div className="flex justify-between items-center mt-6">
+            <div className="flex items-center">
+              <p className="text-sm font-semibold">My Projects</p>
             </div>
-          ) : (
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+              <DialogTrigger asChild>
+                <Button variant="ghost">+ Create</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create a new Project</DialogTitle>
+                  <DialogDescription>
+                    Enter details for your new project.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleCreateProject} className="space-y-4 mt-4">
+                  {/* If you need the owner field or if the server sets it automatically from session */}
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Name
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Project Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Description
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Optional"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setOpenDialog(false)}
+                      type="button"
+                    >
+                      Cancel
+                    </Button>
+                    <Button variant="default" type="submit">
+                      Create
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+          {projects && (
             <div>
-              <h1 className="text-xl font-bold">Dashboard</h1>
-              <p>Select a project and expand an analysis to see it here.</p>
+              {projects.map((project) => (
+                <div key={project._id}>
+                  <Link href={`/dashboard`}>
+                    <p className="block py-2">{project.name}</p>
+                  </Link>
+                </div>
+              ))}
             </div>
           )}
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 p-8 mt-12">
+          <h2 className="text-2xl font-base mb-4">
+            Welcome {session?.user?.name?.split(" ")[0]}{" "}
+            {session?.user?.name?.split(" ")[1]} 👋
+          </h2>
+          <p className="text-lg font-semibold">
+            Generate your Heuristic Report
+          </p>
+          <div className="mt-6">
+            <form
+              onSubmit={handleCreateAnalysis}
+              className="grid grid-cols-12 gap-1 items-center"
+            >
+              <div className="col-span-4">
+                <label className="block text-sm font-semibold mb-1 ">
+                  Page's URL
+                </label>
+                <Input
+                  type="text"
+                  placeholder="https://example.com"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="col-span-3">
+                <label className="block text-sm font-semibold mb-1">
+                  Sector
+                </label>
+                <Select
+                  value={selectedSector}
+                  onValueChange={(value) => setSelectedSector(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue>
+                      {selectedSector || "Select Sector"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="healthcare">Healthcare</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="education">Education</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-3">
+                <label className="block text-sm font-semibold mb-1">
+                  PageType
+                </label>
+                <Select
+                  value={selectedPageType}
+                  onValueChange={(value) => setSelectedPageType(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue>
+                      {selectedPageType || "Select Page Type"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="landing">Landing Page</SelectItem>
+                      <SelectItem value="dashboard">Dashboard</SelectItem>
+                      <SelectItem value="pricing">Pricing</SelectItem>
+                      <SelectItem value="checkout">Checkout</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2">
+                <Button
+                  type="submit"
+                  variant="default"
+                  disabled={isAnalyzing}
+                  className="mt-6 w-full"
+                >
+                  {isAnalyzing ? "Generating..." : "Generate"}
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          <div className="mt-6">
+            <h3 className="font-semibold mb-4">Recent Reports</h3>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Report</TableHead>
+                  <TableHead>Date Created</TableHead>
+                  <TableHead>Score</TableHead>
+                  <TableHead>Project</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reports.map((report) => (
+                  <TableRow key={report._id}>
+                    <TableCell>
+                      {" "}
+                      <Link href={`/report/${report._id}`}>{report.url}</Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/report/${report._id}`}>
+                        {new Date(report.createdAt!).toLocaleString()}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{report.overallScore}</TableCell>
+
+                    <TableCell>{report.project.name}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </main>
       </div>
     </div>

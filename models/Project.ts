@@ -1,12 +1,11 @@
 // models/Projects.ts
 import mongoose from "mongoose";
-import User from "@/models/User";
 
 const ProjectSchema = new mongoose.Schema(
   {
     owner: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: User,
+      ref: "User",
       required: true,
     },
     name: {
