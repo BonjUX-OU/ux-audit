@@ -32,12 +32,8 @@ type AnalysisReport = {
   heuristics: Heuristic[];
 };
 
-export default function AnalysisView({
-  params,
-}: {
-  params: Record<string, string>;
-}) {
-  const { analysisId } = params;
+export default function AnalysisView({ params }: { params: { id: string } }) {
+  const { id } = params;
   const router = useRouter();
 
   const [analysis, setAnalysis] = useState<AnalysisReport | null>(null);
@@ -47,7 +43,7 @@ export default function AnalysisView({
   // 1) Fetch the analysis
   async function fetchAnalysis() {
     try {
-      const res = await fetch(`/api/report?id=${analysisId}`);
+      const res = await fetch(`/api/report?id=${id}`);
       if (!res.ok) throw new Error("Failed to fetch analysis");
       const data = await res.json();
       setAnalysis(data);
@@ -58,7 +54,7 @@ export default function AnalysisView({
 
   useEffect(() => {
     fetchAnalysis();
-  }, [analysisId]);
+  }, [id]);
 
   // 2) Once we have the analysis, we send highlight instructions to the iframe
   useEffect(() => {
