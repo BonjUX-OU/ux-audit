@@ -82,9 +82,12 @@ export default function DashboardPage() {
   // Fetch projects from our new route
   async function fetchProjects() {
     try {
-      const response = await fetch("/api/projects", {
-        method: "GET",
-      });
+      const response = await fetch(
+        `/api/user/projects?userId=${session.user.id}`,
+        {
+          method: "GET",
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
       }
