@@ -35,9 +35,9 @@ type AnalysisReport = {
 export default function AnalysisView({
   params,
 }: {
-  params: { projectId: string; analysisId: string };
+  params: { analysisId: string };
 }) {
-  const { projectId, analysisId } = params;
+  const { analysisId } = params;
   const router = useRouter();
 
   const [analysis, setAnalysis] = useState<AnalysisReport | null>(null);
