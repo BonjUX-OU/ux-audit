@@ -1,4 +1,3 @@
-// app/dashboard/[projectId]/analysis/[analysisId]/page.tsx
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
@@ -32,7 +31,11 @@ type AnalysisReport = {
   heuristics: Heuristic[];
 };
 
-export default function AnalysisView({ params }: { params: { id: string } }) {
+export default async function AnalysisView({
+  params,
+}: {
+  params: { id: string };
+}) {
   const { id } = params;
   const router = useRouter();
 
