@@ -83,7 +83,7 @@ export default function DashboardPage() {
   async function fetchProjects() {
     try {
       const response = await fetch(
-        `/api/user/projects?userId=${session.user.id}`,
+        `/api/user/projects?userId=${session?.user.id}`,
         {
           method: "GET",
         }
@@ -100,9 +100,11 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    fetchProjects();
-    fetchUserReports();
-  }, []);
+    if (session) {
+      fetchProjects();
+      fetchUserReports();
+    }
+  }, [session]);
 
   // Handle create project
   async function handleCreateProject(e: FormEvent) {
@@ -208,7 +210,7 @@ export default function DashboardPage() {
   // 2) For a project, fetch all analysis
   async function fetchUserReports() {
     try {
-      const res = await fetch(`/api/user/reports?userId=${session.user.id}`);
+      const res = await fetch(`/api/user/reports?userId=${session?.user.id}`);
       if (!res.ok) throw new Error("Failed to fetch analysis");
       const data = await res.json();
       setReports(data);
@@ -280,25 +282,17 @@ export default function DashboardPage() {
               </DialogContent>
             </Dialog>
           </div>
-          <Accordion type="single" collapsible>
-            {projects.map((proj) => (
-              <AccordionItem key={proj._id} value={proj._id}>
-                <AccordionTrigger>{proj.name}</AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-sm">
-                    {proj.description || "No description."}
-                  </p>
-                  {/* 
-                    Here you could display each project's "reports" or other details.
-                    E.g.: 
-                    <ul>
-                      {proj.reports?.map(r => <li key={r._id}>{r.title}</li>)}
-                    </ul>
-                  */}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          {projects && (
+            <div>
+              {projects.map((project) => (
+                <div key={project._id}>
+                  <Link href={`/dashboard`}>
+                    <p className="block py-2">{project.name}</p>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
         </aside>
 
         {/* Main content */}
