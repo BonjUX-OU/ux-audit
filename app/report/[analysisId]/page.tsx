@@ -35,7 +35,7 @@ type AnalysisReport = {
 export default function AnalysisView({
   params,
 }: {
-  params: { analysisId: string };
+  params: Record<string, string>;
 }) {
   const { analysisId } = params;
   const router = useRouter();
