@@ -31,27 +31,30 @@ type AnalysisReport = {
   heuristics: Heuristic[];
 };
 
-// ADDED: Functions to compute score & label
-function calculateScore(analysis: AnalysisReport) {
+function calculateScore(analysis: AnalysisReport): number {
+  // Example logic: the more total issues per heuristic, the lower the score
   const totalHeuristics = analysis.heuristics.length;
   const totalIssues = analysis.heuristics.reduce(
     (acc, h) => acc + h.issues.length,
     0
   );
 
+  // Edge case: if no heuristics, treat as best possible score
   if (totalHeuristics === 0) {
-    // Edge case (or choose to treat as 100 or 0 as you prefer)
     return 100;
   }
 
   const issuesPerHeuristic = totalIssues / totalHeuristics;
-  const worstCaseThreshold = 5;
+  const worstCaseThreshold = 5; // e.g. 5+ issues/heuristic is "very poor"
+
+  // Map that ratio into a 0–100 range (clamping to min 0, max 100)
   const rawScore = 100 - (issuesPerHeuristic / worstCaseThreshold) * 100;
-  const score = Math.max(0, Math.min(100, rawScore));
-  return Math.round(score);
+  const clampedScore = Math.max(0, Math.min(100, rawScore));
+  return Math.round(clampedScore);
 }
 
-function getQualityLabel(score: number) {
+function getQualityLabel(score: number): string {
+  // Simple mapping from score range to text label
   if (score <= 20) return "very poor";
   if (score <= 40) return "poor";
   if (score <= 60) return "mediocre";
@@ -59,21 +62,45 @@ function getQualityLabel(score: number) {
   return "very good";
 }
 
-function getRatingColor(label: string) {
-  switch (label) {
-    case "very poor":
-      return "bg-red-600";
-    case "poor":
-      return "bg-orange-500";
-    case "mediocre":
-      return "bg-yellow-500";
-    case "good":
-      return "bg-green-500";
-    case "very good":
-      return "bg-blue-500";
-    default:
-      return "bg-gray-300";
-  }
+function RatingBar({
+  score,
+  ratingLabel,
+}: {
+  score: number;
+  ratingLabel?: string;
+}) {
+  // Ensure `score` is between 0 and 100
+  const clampedScore = Math.max(0, Math.min(100, score));
+
+  return (
+    <div className="mb-4">
+      {/* Top labels (left = Very Poor, center = Mediocre, right = Very Good).
+          Adjust to your preference. */}
+      <div className="flex justify-between text-sm mb-1">
+        <span>Very Poor</span>
+        <span>Mediocre</span>
+        <span>Good</span>
+        <span>Very Good</span>
+      </div>
+
+      {/* Outer bar */}
+      <div className="relative h-4 bg-gray-200 rounded-full">
+        {/* Filled portion based on score */}
+        <div
+          className="absolute left-0 top-0 h-4 bg-gray-400 rounded-full transition-all duration-300"
+          style={{ width: `${clampedScore}%` }}
+        />
+        {/* Centered label showing the bracketed rating */}
+        <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+          {ratingLabel && (
+            <span className="text-xs font-bold text-black">
+              [{ratingLabel}]
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function AnalysisView({
@@ -104,7 +131,7 @@ export default function AnalysisView({
     fetchAnalysis();
   }, [id]);
 
-  // 2) Once we have the analysis, we send highlight instructions to the iframe
+  // 2) Once we have the analysis, send highlight instructions to the iframe
   useEffect(() => {
     if (!analysis || !iframeRef.current) return;
 
@@ -167,22 +194,17 @@ export default function AnalysisView({
     );
   }
 
-  // ADDED: Get a score & label from the analysis data
+  // Compute numeric score and textual rating
   const score = calculateScore(analysis);
   const ratingLabel = getQualityLabel(score);
-  const colorClass = getRatingColor(ratingLabel);
 
   return (
     <div className="p-4 space-y-4">
-      {/* ADDED: The top bar with the rating */}
-      <div className={`text-white text-center py-2 rounded ${colorClass}`}>
-        {/* You could also show the numerical score if you want */}
-        Overall User Experience: <strong>{ratingLabel}</strong>
-      </div>
-
       <Button variant="outline" onClick={() => router.push(`/dashboard`)}>
         Back to Dashboard
       </Button>
+
+      <RatingBar score={score} />
 
       <main className="flex-1 p-4 space-y-4 overflow-auto">
         {analysis ? (
