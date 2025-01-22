@@ -30,6 +30,52 @@ type AnalysisReport = {
   screenshot?: string;
   heuristics: Heuristic[];
 };
+
+// ADDED: Functions to compute score & label
+function calculateScore(analysis: AnalysisReport) {
+  const totalHeuristics = analysis.heuristics.length;
+  const totalIssues = analysis.heuristics.reduce(
+    (acc, h) => acc + h.issues.length,
+    0
+  );
+
+  if (totalHeuristics === 0) {
+    // Edge case (or choose to treat as 100 or 0 as you prefer)
+    return 100;
+  }
+
+  const issuesPerHeuristic = totalIssues / totalHeuristics;
+  const worstCaseThreshold = 5;
+  const rawScore = 100 - (issuesPerHeuristic / worstCaseThreshold) * 100;
+  const score = Math.max(0, Math.min(100, rawScore));
+  return Math.round(score);
+}
+
+function getQualityLabel(score: number) {
+  if (score <= 20) return "very poor";
+  if (score <= 40) return "poor";
+  if (score <= 60) return "mediocre";
+  if (score <= 80) return "good";
+  return "very good";
+}
+
+function getRatingColor(label: string) {
+  switch (label) {
+    case "very poor":
+      return "bg-red-600";
+    case "poor":
+      return "bg-orange-500";
+    case "mediocre":
+      return "bg-yellow-500";
+    case "good":
+      return "bg-green-500";
+    case "very good":
+      return "bg-blue-500";
+    default:
+      return "bg-gray-300";
+  }
+}
+
 export default function AnalysisView({
   params,
 }: {
@@ -121,11 +167,23 @@ export default function AnalysisView({
     );
   }
 
+  // ADDED: Get a score & label from the analysis data
+  const score = calculateScore(analysis);
+  const ratingLabel = getQualityLabel(score);
+  const colorClass = getRatingColor(ratingLabel);
+
   return (
     <div className="p-4 space-y-4">
+      {/* ADDED: The top bar with the rating */}
+      <div className={`text-white text-center py-2 rounded ${colorClass}`}>
+        {/* You could also show the numerical score if you want */}
+        Overall User Experience: <strong>{ratingLabel}</strong>
+      </div>
+
       <Button variant="outline" onClick={() => router.push(`/dashboard`)}>
         Back to Dashboard
       </Button>
+
       <main className="flex-1 p-4 space-y-4 overflow-auto">
         {analysis ? (
           <div className="space-y-4">
