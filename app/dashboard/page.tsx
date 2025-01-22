@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Loader2Icon } from "lucide-react";
 
 // If you have a user session from next-auth, you can import and use useSession
 // import { useSession } from "next-auth/react";
@@ -78,6 +79,7 @@ export default function DashboardPage() {
   const [selectedPageType, setSelectedPageType] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [reports, setReports] = useState<AnalysisReport[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
 
   // Fetch projects from our new route
   async function fetchProjects() {
@@ -209,6 +211,7 @@ export default function DashboardPage() {
 
   // 2) For a project, fetch all analysis
   async function fetchUserReports() {
+    setLoadingReports(true);
     try {
       const res = await fetch(`/api/user/reports?userId=${session?.user.id}`);
       if (!res.ok) throw new Error("Failed to fetch analysis");
@@ -217,6 +220,7 @@ export default function DashboardPage() {
     } catch (err) {
       console.error(err);
     }
+    setLoadingReports(false);
   }
   return (
     <div className="flex flex-col min-h-screen">
@@ -382,6 +386,7 @@ export default function DashboardPage() {
 
           <div className="mt-6">
             <h3 className="font-semibold mb-4">Recent Reports</h3>
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -410,6 +415,11 @@ export default function DashboardPage() {
                 ))}
               </TableBody>
             </Table>
+            {loadingReports && (
+              <div className="flex justify-center items-center mt-2">
+                <Loader2Icon className="animate-spin" />
+              </div>
+            )}
           </div>
         </main>
       </div>
