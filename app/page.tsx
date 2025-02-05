@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +10,6 @@ import {
 } from "@/components/ui/accordion";
 import {
   BarChart3,
-  LineChart,
   Settings,
   GitCompare,
   FileSpreadsheet,
@@ -18,11 +18,88 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
+// A reusable JoinForm component to handle email submissions and feedback.
+function JoinForm() {
+  const [email, setEmail] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleJoin = async () => {
+    if (!email) {
+      setFeedback("Please enter your email.");
+      return;
+    }
+    if (!validateEmail(email)) {
+      setFeedback("Please enter a valid email address.");
+      return;
+    }
+    setIsLoading(true);
+    setFeedback("");
+
+    try {
+      const res = await fetch("/api/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+
+      if (res.status === 200) {
+        setFeedback("Email already subscribed ✅");
+      } else if (res.status === 201) {
+        setFeedback("You're In! 🎉");
+      } else {
+        setFeedback("Something went wrong 😥");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setFeedback("An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+      setEmail("");
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="flex max-w-md mx-auto gap-2">
+        <Input
+          type="email"
+          placeholder="Enter your email"
+          className="bg-white w-96"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <div className="px-2">
+          <Button
+            className="bg-[#B04E34] hover:bg-[#963F28] text-white -ml-36 w-28"
+            onClick={handleJoin}
+            disabled={isLoading}
+          >
+            {isLoading ? "Joining..." : "Join"}
+          </Button>
+        </div>
+      </div>
+      {feedback && (
+        <p className="mt-2 text-sm text-gray-500 font-semibold">{feedback}</p>
+      )}
+    </div>
+  );
+}
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#FFF1E0]">
       {/* Header */}
-      <header className="mx-auto px-4 py-3 bg-white flex justify-center items-center text-center ">
+      <header className="mx-auto px-4 py-3 bg-white flex justify-center items-center text-center">
         <Image
           src="/images/logo.png"
           alt="UXMust Logo"
@@ -42,19 +119,8 @@ export default function LandingPage() {
           improving with actionable insights for your website. UXMust provides
           you ways to design user-friendly solutions.
         </p>
-        <div className="flex max-w-md mx-auto gap-2 mb-16">
-          <Input
-            type="email"
-            placeholder="Enter your email"
-            className="bg-white"
-          />
-          <div className="px-2">
-            <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white -ml-36 w-28">
-              Join
-            </Button>
-          </div>
-        </div>
-        <div className="relative w-full max-w-5xl mx-auto -mb-32">
+        <JoinForm />
+        <div className="relative w-full max-w-5xl mx-auto -mb-32 mt-12">
           <div className="relative flex justify-center items-center space-x-[-30px]">
             <Image
               src="/images/image1.jpeg"
@@ -82,7 +148,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="  bg-slate-50">
+      <section className="bg-slate-50">
         <div className="container mx-auto px-4 py-24">
           <div className="text-center mb-16 mt-28">
             <h2 className="text-[#2D3648] text-2xl md:text-3xl font-bold mb-4">
@@ -119,22 +185,11 @@ export default function LandingPage() {
         <p className="text-gray-600 mb-8">
           Join our list and be the first to know.
         </p>
-        <div className="flex max-w-md mx-auto gap-2">
-          <Input
-            type="email"
-            placeholder="Enter your email"
-            className="bg-white"
-          />
-          <div className="px-2">
-            <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white -ml-36 w-28">
-              Join
-            </Button>
-          </div>
-        </div>
+        <JoinForm />
       </section>
 
       {/* FAQ Section */}
-      <section className="  bg-slate-50">
+      <section className="bg-slate-50">
         <div className="container mx-auto px-4 py-24">
           <h2 className="text-[#2D3648] text-3xl md:text-4xl font-bold text-center mb-4">
             Frequently Asked Questions
@@ -229,6 +284,6 @@ const features = [
     icon: Radar,
     title: "Track Evolution",
     description:
-      "Design is a continous process. Keep track on how your design iterations evolve throughout time.",
+      "Design is a continuous process. Keep track on how your design iterations evolve throughout time.",
   },
 ];
