@@ -73,7 +73,7 @@ function JoinForm() {
         <Input
           type="email"
           placeholder="Enter your email"
-          className="bg-white w-96"
+          className="bg-white w-80 md:w-96"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -121,34 +121,34 @@ export default function LandingPage() {
         </p>
         <JoinForm />
         <div className="relative w-full max-w-5xl mx-auto -mb-32 mt-12">
-          <div className="relative flex justify-center items-center space-x-[-30px]">
+          <div className="flex justify-center items-center md:space-x-[-30px]">
             <Image
               src="/images/image1.jpeg"
               alt="UXMust Dashboard View 1"
               width={390}
               height={175}
-              className="rounded-lg shadow-xl relative z-10"
+              className="hidden md:flex rounded-lg shadow-xl relative z-10"
             />
             <Image
               src="/images/image2.png"
               alt="UXMust Dashboard View 2"
               width={580}
               height={325}
-              className="rounded-lg shadow-xl relative z-20 -ml-24"
+              className="rounded-lg shadow-xl relative z-20 md:-ml-24"
             />
             <Image
               src="/images/image3.jpeg"
               alt="UXMust Dashboard View 3"
               width={390}
               height={175}
-              className="rounded-lg shadow-xl relative z-10 -ml-24"
+              className="hidden md:flex rounded-lg shadow-xl relative z-10 -ml-24"
             />
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="bg-slate-50">
+      <section className="bg-stone-100">
         <div className="container mx-auto px-4 py-24">
           <div className="text-center mb-16 mt-28">
             <h2 className="text-[#2D3648] text-2xl md:text-3xl font-bold mb-4">
@@ -189,7 +189,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-slate-50">
+      <section className="bg-stone-100">
         <div className="container mx-auto px-4 py-24">
           <h2 className="text-[#2D3648] text-3xl md:text-4xl font-bold text-center mb-4">
             Frequently Asked Questions
