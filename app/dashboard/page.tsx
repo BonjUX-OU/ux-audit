@@ -222,6 +222,34 @@ export default function DashboardPage() {
     }
     setLoadingReports(false);
   }
+
+  function handleProjectClick(proj: Project) {
+    setCurrentProject(proj);
+    setSelectedPageType("All");
+  }
+
+  // -------------------------
+  // Derived data in memory
+  // -------------------------
+  // If a project is selected, we gather only that project's reports
+  const projectReports = currentProject
+    ? reports.filter((report) => report.project?._id === currentProject._id)
+    : [];
+
+  // Distinct pageTypes for the selected project
+  const distinctPageTypes = Array.from(
+    new Set(projectReports.map((r) => r.pageType || "Other"))
+  );
+  // Always keep an "All" tab
+  const pageTypeTabs = ["All", ...distinctPageTypes];
+
+  // If the user has chosen a pageType in the tab, we filter again
+  const filteredReports =
+    selectedPageType && selectedPageType !== "All"
+      ? projectReports.filter(
+          (r) => (r.pageType || "Other") === selectedPageType
+        )
+      : projectReports;
   return (
     <div className="flex flex-col min-h-screen">
       <AppBar />

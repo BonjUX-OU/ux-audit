@@ -3,12 +3,21 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { getServerSession } from "next-auth";
 import SessionProvider from "@/utils/SessionProvider";
+import { Work_Sans } from "next/font/google";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
+
+const workSans = Work_Sans({
+  weight: ["300", "400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  fallback: ["Helvetica", "Arial", "sans-serif"],
+});
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
@@ -30,7 +39,7 @@ export default async function RootLayout({
     <html lang="en">
       <SessionProvider session={session}>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${workSans.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           {children}
         </body>
