@@ -209,7 +209,7 @@ export default function LandingPage() {
                 <AccordionContent>
                   We try our best to ensure a good quality report which can take
                   some time to generate. However, you can expect to receive your
-                  report in less than 7 minutes!
+                  report in less than 2 minutes!
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem
