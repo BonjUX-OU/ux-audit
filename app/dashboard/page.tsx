@@ -166,15 +166,10 @@ export default function DashboardPage() {
       if (!analyzeRes.ok) throw new Error("Error analyzing page");
       const { screenshot, analysis, snapshotHtml } = await analyzeRes.json();
 
-      // parse GPT JSON
-      const cleanedAnalysis = analysis
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-      const analysisObj = JSON.parse(cleanedAnalysis);
+      const analysisObj = analysis;
       //convert all the scores to number and add them to overall score
       let overallScore = 0;
-      analysisObj.score.forEach((score: any) => {
+      analysisObj.scores.forEach((score: any) => {
         overallScore += Number(score.score);
       });
 

@@ -4,7 +4,12 @@ const IssueSchema = new mongoose.Schema({
   issue_id: String,
   description: String,
   solution: String,
-  selector: String,
+  occurrences: [
+    {
+      id: String,
+      selector: String,
+    },
+  ],
 });
 
 const HeuristicSchema = new mongoose.Schema({

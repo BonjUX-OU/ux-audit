@@ -1,6 +1,5 @@
 "use client";
-import { use } from "react";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import {
   HoverCard,
@@ -10,11 +9,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+// ------------------------------------------------------------------------
+// 1. Data Structures
+// ------------------------------------------------------------------------
+
+// Each occurrence has an ID and a CSS selector
+type Occurrence = {
+  id: string;
+  selector: string;
+};
+
+// Issues now include an array of occurrences
 type Issue = {
   issue_id: string;
   description: string;
   solution: string;
-  selector?: string;
+  occurrences: Occurrence[];
 };
 
 type Heuristic = {
@@ -23,38 +33,48 @@ type Heuristic = {
   issues: Issue[];
 };
 
-type AnalysisReport = {
-  _id: string;
-  project: string;
-  url: string;
-  screenshot?: string;
-  heuristics: Heuristic[];
+// Each heuristic has a numeric score
+type HeuristicScore = {
+  id: number;
+  name: string;
+  score: number;
 };
 
+// Full server response shape
+type AnalysisReport = {
+  _id: string; // e.g. DB or project ID
+  project?: string; // optional project name
+  url: string; // the URL that was analyzed
+  screenshot?: string; // base64 screenshot (optional)
+  heuristics: Heuristic[]; // list of heuristics and issues
+  overallScore: number; // overall numeric score
+  scores: HeuristicScore[]; // per-heuristic numeric scores
+};
+
+// ------------------------------------------------------------------------
+// 2. (Optional) Utility Functions
+// ------------------------------------------------------------------------
+
+// Example scoring logic that doesn't actually use the scores array;
+// it calculates an overall rating based on the total number of issues.
 function calculateScore(analysis: AnalysisReport): number {
-  // Example logic: the more total issues per heuristic, the lower the score
   const totalHeuristics = analysis.heuristics.length;
+  if (totalHeuristics === 0) return 100; // Edge case: no heuristics => perfect
+
   const totalIssues = analysis.heuristics.reduce(
     (acc, h) => acc + h.issues.length,
     0
   );
-
-  // Edge case: if no heuristics, treat as best possible score
-  if (totalHeuristics === 0) {
-    return 100;
-  }
-
   const issuesPerHeuristic = totalIssues / totalHeuristics;
-  const worstCaseThreshold = 5; // e.g. 5+ issues/heuristic is "very poor"
 
-  // Map that ratio into a 0–100 range (clamping to min 0, max 100)
+  // Example: 5+ issues/heuristic => 0 score
+  const worstCaseThreshold = 5;
   const rawScore = 100 - (issuesPerHeuristic / worstCaseThreshold) * 100;
   const clampedScore = Math.max(0, Math.min(100, rawScore));
   return Math.round(clampedScore);
 }
 
 function getQualityLabel(score: number): string {
-  // Simple mapping from score range to text label
   if (score <= 20) return "very poor";
   if (score <= 40) return "poor";
   if (score <= 60) return "mediocre";
@@ -62,6 +82,7 @@ function getQualityLabel(score: number): string {
   return "very good";
 }
 
+// Simple rating bar to display a single numeric score
 function RatingBar({
   score,
   ratingLabel,
@@ -69,28 +90,20 @@ function RatingBar({
   score: number;
   ratingLabel?: string;
 }) {
-  // Ensure `score` is between 0 and 100
   const clampedScore = Math.max(0, Math.min(100, score));
-
   return (
     <div className="mb-4">
-      {/* Top labels (left = Very Poor, center = Mediocre, right = Very Good).
-          Adjust to your preference. */}
       <div className="flex justify-between text-sm mb-1">
         <span>Very Poor</span>
         <span>Mediocre</span>
         <span>Good</span>
         <span>Very Good</span>
       </div>
-
-      {/* Outer bar */}
       <div className="relative h-4 bg-gray-200 rounded-full">
-        {/* Filled portion based on score */}
         <div
           className="absolute left-0 top-0 h-4 bg-gray-400 rounded-full transition-all duration-300"
           style={{ width: `${clampedScore}%` }}
         />
-        {/* Centered label showing the bracketed rating */}
         <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
           {ratingLabel && (
             <span className="text-xs font-bold text-black">
@@ -103,44 +116,62 @@ function RatingBar({
   );
 }
 
+// ------------------------------------------------------------------------
+// 3. Main Component
+// ------------------------------------------------------------------------
 export default function AnalysisView({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  // The ID from the route params
   const { id } = use(params);
   const router = useRouter();
 
+  // Store the entire analysis from /api/report
   const [analysis, setAnalysis] = useState<AnalysisReport | null>(null);
+
+  // Which issue the user is currently hovering over (from the <iframe>)
   const [hoveredIssue, setHoveredIssue] = useState<Issue | null>(null);
+
+  // Reference to the <iframe>, so we can communicate with it via postMessage
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // 1) Fetch the analysis
+  // Fetch the analysis from your /api/report route
   async function fetchAnalysis() {
     try {
       const res = await fetch(`/api/report?id=${id}`);
       if (!res.ok) throw new Error("Failed to fetch analysis");
       const data = await res.json();
+      // data is presumably shaped like { _id, url, screenshot, heuristics, scores }
+      console.log("Analysis data:", data);
       setAnalysis(data);
     } catch (err) {
       console.error(err);
     }
   }
 
+  // Run once on mount
   useEffect(() => {
     fetchAnalysis();
   }, [id]);
 
-  // 2) Once we have the analysis, send highlight instructions to the iframe
+  // 2) Once we have the analysis, we highlight elements in the iframe
   useEffect(() => {
     if (!analysis || !iframeRef.current) return;
 
+    // Build an array of all (selector, label) we want to highlight
     const highlights: { selector: string; label: string }[] = [];
     analysis.heuristics.forEach((h) => {
       h.issues.forEach((issue) => {
-        if (issue.selector) {
-          highlights.push({ selector: issue.selector, label: issue.issue_id });
-        }
+        // Each issue may have multiple occurrences
+        issue.occurrences &&
+          issue.occurrences.forEach((occ) => {
+            highlights.push({
+              selector: occ.selector,
+              label: occ.id,
+            });
+          });
       });
     });
 
@@ -148,13 +179,10 @@ export default function AnalysisView({
 
     const iframe = iframeRef.current;
     function handleIframeLoad() {
-      // postMessage to the proxied page
       iframe.contentWindow?.postMessage({ type: "HIGHLIGHT", highlights }, "*");
     }
 
-    // wait for the iframe to load
     iframe.addEventListener("load", handleIframeLoad, { once: true });
-
     return () => {
       iframe.removeEventListener("load", handleIframeLoad);
     };
@@ -162,11 +190,12 @@ export default function AnalysisView({
 
   // 3) Listen for hover events from the proxied page
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    function handleMessage(event: MessageEvent) {
       if (!event.data) return;
+
       if (event.data.type === "ISSUE_MOUSEENTER") {
         const issueId = event.data.issueId;
-        // find the matching issue
+        // find the matching issue in analysis
         let found: Issue | null = null;
         analysis?.heuristics.forEach((h) => {
           h.issues.forEach((issue) => {
@@ -179,13 +208,14 @@ export default function AnalysisView({
       } else if (event.data.type === "ISSUE_MOUSELEAVE") {
         setHoveredIssue(null);
       }
-    };
+    }
     window.addEventListener("message", handleMessage);
     return () => {
       window.removeEventListener("message", handleMessage);
     };
   }, [analysis]);
 
+  // If loading or data not yet present
   if (!analysis) {
     return (
       <div className="p-6">
@@ -194,9 +224,9 @@ export default function AnalysisView({
     );
   }
 
-  // Compute numeric score and textual rating
-  const score = calculateScore(analysis);
-  const ratingLabel = getQualityLabel(score);
+  // Example: overall rating using the # of issues
+  const overallScore = analysis.overallScore;
+  const ratingLabel = getQualityLabel(overallScore);
 
   return (
     <div className="p-4 space-y-4">
@@ -204,100 +234,118 @@ export default function AnalysisView({
         Back to Dashboard
       </Button>
 
-      <RatingBar score={score} />
+      {/* Overall rating bar across all heuristics */}
+      <RatingBar score={overallScore} ratingLabel={ratingLabel} />
 
       <main className="flex-1 p-4 space-y-4 overflow-auto">
-        {analysis ? (
-          <div className="space-y-4">
-            <h1 className="text-xl font-bold">Analysis: {analysis.url}</h1>
+        <div className="space-y-4">
+          <h1 className="text-xl font-bold">Analysis: {analysis.url}</h1>
 
-            {/* Iframe: load snapshot at /api/snapshot/[analysisId] */}
-            <div className="grid grid-cols-12 gap-1">
-              <div className="col-span-10 w-full">
-                <div className="relative border rounded w-full">
-                  <iframe
-                    ref={iframeRef}
-                    src={`/api/snapshot/${analysis._id}`}
-                    style={{ width: "100%", height: "500px", border: "none" }}
-                  />
-
-                  {/* HoverCard for hoveredIssue */}
-                  <HoverCard open={!!hoveredIssue}>
-                    <HoverCardTrigger asChild>
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: 1,
-                          height: 1,
-                        }}
-                      />
-                    </HoverCardTrigger>
-                    <HoverCardContent className="max-w-sm">
-                      {hoveredIssue ? (
-                        <div className="space-y-2">
-                          <p className="font-bold text-red-600">
-                            Issue: {hoveredIssue.issue_id}
-                          </p>
-                          <p>
-                            <strong>Description:</strong>{" "}
-                            {hoveredIssue.description}
-                          </p>
-                          <p>
-                            <strong>Solution:</strong> {hoveredIssue.solution}
-                          </p>
-                        </div>
-                      ) : (
-                        <p>No issue hovered</p>
-                      )}
-                    </HoverCardContent>
-                  </HoverCard>
-                </div>
+          {/* If you store an HTML snapshot at /api/snapshot/[analysisId], load it in an iframe */}
+          <div className="grid grid-cols-12 gap-1">
+            <div className="col-span-10 w-full">
+              <div className="relative border rounded w-full">
+                <iframe
+                  ref={iframeRef}
+                  src={`/api/snapshot/${analysis._id}`}
+                  style={{ width: "100%", height: "500px", border: "none" }}
+                />
+                {/* Hover card for the hovered issue */}
+                <HoverCard open={!!hoveredIssue}>
+                  <HoverCardTrigger asChild>
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: 1,
+                        height: 1,
+                      }}
+                    />
+                  </HoverCardTrigger>
+                  <HoverCardContent className="max-w-sm">
+                    {hoveredIssue ? (
+                      <div className="space-y-2">
+                        <p className="font-bold text-red-600">
+                          Issue: {hoveredIssue.issue_id}
+                        </p>
+                        <p>
+                          <strong>Description:</strong>{" "}
+                          {hoveredIssue.description}
+                        </p>
+                        <p>
+                          <strong>Solution:</strong> {hoveredIssue.solution}
+                        </p>
+                      </div>
+                    ) : (
+                      <p>No issue hovered</p>
+                    )}
+                  </HoverCardContent>
+                </HoverCard>
               </div>
+            </div>
 
-              {/* Heuristics list */}
-              <ScrollArea className="col-span-2 h-[500px]">
-                <div className="col-span-2 p-2 rounded">
-                  <h2 className="font-semibold mb-2">Heuristics & Issues</h2>
-                  {analysis.heuristics.map((h) => (
-                    <div key={h.id} className="border-b pb-2 mb-2">
-                      <p className="font-bold text-sm">
-                        {h.id}. {h.name}
-                      </p>
-                      {h.issues.length > 0 ? (
-                        <ul className="list-disc list-inside text-xs mt-1 space-y-1">
-                          {h.issues.map((issue) => (
-                            <li key={issue.issue_id}>
-                              <strong>{issue.issue_id}:</strong>{" "}
-                              {issue.description}
-                              <br />
-                              <em>Solution:</em> {issue.solution}
-                              {issue.selector && (
-                                <div className="text-blue-500">
-                                  Selector: <code>{issue.selector}</code>
+            {/* Side panel: heuristics & issues */}
+            <ScrollArea className="col-span-2 h-[500px]">
+              <div className="col-span-2 p-2 rounded">
+                <h2 className="font-semibold mb-2">Heuristics & Issues</h2>
+                {analysis.heuristics.map((h) => (
+                  <div key={h.id} className="border-b pb-2 mb-2">
+                    <p className="font-bold text-sm">
+                      {h.id}. {h.name}
+                    </p>
+                    {h.issues.length > 0 ? (
+                      <ul className="list-disc list-inside text-xs mt-1 space-y-1">
+                        {h.issues.map((issue) => (
+                          <li key={issue.issue_id}>
+                            <strong>{issue.issue_id}:</strong>{" "}
+                            {issue.description}
+                            <br />
+                            <em>Solution:</em> {issue.solution}
+                            {/* Show ALL occurrences (selector + occurrence ID) */}
+                            {issue.occurrences &&
+                              issue.occurrences.length > 0 && (
+                                <div className="text-blue-500 mt-1">
+                                  {issue.occurrences &&
+                                    issue.occurrences.map((occ) => (
+                                      <div key={occ.id}>
+                                        <strong>Occurrence {occ.id}:</strong>{" "}
+                                        <code>{occ.selector}</code>
+                                      </div>
+                                    ))}
                                 </div>
                               )}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-xs text-gray-600">
-                          No issues found.
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-gray-600">No issues found.</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
-        ) : (
-          <div>
-            <h1 className="text-xl font-bold">Dashboard</h1>
-            <p>Select a project and expand an analysis to see it here.</p>
+
+          {/* (Optional) Display the per-heuristic numeric scores from the 'scores' array */}
+          <div className="mt-4 p-2 border rounded">
+            <h2 className="font-semibold mb-2">Heuristic Scores</h2>
+            {analysis.scores && analysis.scores.length > 0 ? (
+              <ul className="list-none pl-0 space-y-1 text-sm">
+                {analysis.scores.map((score) => (
+                  <li key={score.id}>
+                    <strong>
+                      {score.id}. {score.name}
+                    </strong>
+                    : {score.score}/10
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-gray-600">No scores available.</p>
+            )}
           </div>
-        )}
+        </div>
       </main>
     </div>
   );
