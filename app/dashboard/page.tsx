@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+
 import AppBar from "@/components/layout/AppBar";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -15,19 +17,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
-import { useSession } from "next-auth/react";
-
-import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -35,21 +28,23 @@ import {
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+// ⬅️ Import the shadcn UI Tabs
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
 import { Loader2Icon } from "lucide-react";
 
-// If you have a user session from next-auth, you can import and use useSession
-// import { useSession } from "next-auth/react";
-
+// ------------------------------------
+// Types
+// ------------------------------------
 type Project = {
   _id: string;
-  owner?: string; // or { _id: string, name: string } if you populated
+  owner?: string;
   name: string;
   description?: string;
   createdAt?: string;
@@ -59,105 +54,187 @@ type AnalysisReport = {
   _id: string;
   url: string;
   sector?: string;
-  overallScore: number;
-  heuristics: any[];
+  overallScore: number; // numeric, e.g. 0–100
   createdAt?: string;
+  heuristics?: any[];
   project: Project;
-  pageType?: string;
+  pageType?: string; // e.g. "Homepage", "AboutUs", etc.
 };
 
+// ------------------------------------
+// Rating Helpers
+// ------------------------------------
+const ratingLabels = [
+  { threshold: 20, label: "Very Poor" },
+  { threshold: 40, label: "Poor" },
+  { threshold: 60, label: "Mediocre" },
+  { threshold: 80, label: "Good" },
+  { threshold: 100, label: "Very Good" },
+];
+
+/**
+ * Given 0–100 overallScore, returns a textual label (e.g., "Good").
+ */
+function getRatingLabel(score: number): string {
+  for (const rating of ratingLabels) {
+    if (score <= rating.threshold) return rating.label;
+  }
+  return "Unknown";
+}
+
+/**
+ * Convert a 0–100 score to a left offset like "45%" for a positioning style.
+ */
+function getLeftPercent(score: number) {
+  const clamped = Math.min(100, Math.max(0, score));
+  return `${clamped}%`;
+}
+
+// ------------------------------------
+// ComparisonScale Component
+// ------------------------------------
+function ComparisonScale({ reports }: { reports: AnalysisReport[] }) {
+  if (!reports || !reports.length) return null;
+
+  // Sort reports oldest → newest
+  const sortedByDate = [...reports].sort(
+    (a, b) =>
+      new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime()
+  );
+
+  return (
+    <div className="mt-4 p-4 border rounded bg-white">
+      {/* Scale header labels */}
+      <div className="flex justify-between mb-2 text-gray-600 text-sm">
+        <span>Very Poor</span>
+        <span>Poor</span>
+        <span>Mediocre</span>
+        <span>Good</span>
+        <span>Very Good</span>
+      </div>
+
+      {/* Horizontal track */}
+      <div className="relative h-2 bg-gray-200 rounded mb-6">
+        {sortedByDate.map((report, i) => {
+          const left = getLeftPercent(report.overallScore);
+          return (
+            <div key={report._id} className="absolute -top-2" style={{ left }}>
+              <div className="w-6 h-6 bg-gray-500 text-white text-xs rounded-full flex items-center justify-center">
+                {i + 1}
+              </div>
+              <div className="text-xs text-center mt-1 whitespace-nowrap">
+                {getRatingLabel(report.overallScore)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ------------------------------------
+// Main Dashboard Page
+// ------------------------------------
 export default function DashboardPage() {
-  // const { data: session, status } = useSession();
+  const { data: session }: any = useSession();
+
+  // Projects
   const [projects, setProjects] = useState<Project[]>([]);
-  const [openDialog, setOpenDialog] = useState(false); // If your session user ID is needed, you'd set it from session
+  const [currentProject, setCurrentProject] = useState<Project | null>(null);
+
+  // Dialog for creating a new Project
+  const [openDialog, setOpenDialog] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [currentProject, setCurrentProject] = useState<Project | null>(null);
-  const { data: session }: any = useSession();
+
+  // Create a new report
   const [url, setUrl] = useState("");
   const [selectedSector, setSelectedSector] = useState("");
   const [selectedPageType, setSelectedPageType] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Reports
   const [reports, setReports] = useState<AnalysisReport[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
 
-  // Fetch projects from our new route
+  // -----------------------------
+  // Data fetching
+  // -----------------------------
   async function fetchProjects() {
+    if (!session?.user?.id) return;
     try {
       const response = await fetch(
-        `/api/user/projects?userId=${session?.user.id}`,
-        {
-          method: "GET",
-        }
+        `/api/user/projects?userId=${session.user.id}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
       }
       const data = await response.json();
       setProjects(data);
-      setCurrentProject(data[0]);
+      if (data.length) setCurrentProject(data[0]); // optionally auto-select
     } catch (err) {
       console.error(err);
     }
   }
 
-  useEffect(() => {
-    if (session) {
-      fetchProjects();
-      fetchUserReports();
+  async function fetchUserReports() {
+    if (!session?.user?.id) return;
+    setLoadingReports(true);
+    try {
+      const res = await fetch(`/api/user/reports?userId=${session.user.id}`);
+      if (!res.ok) throw new Error("Failed to fetch reports");
+      const data = await res.json();
+      setReports(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingReports(false);
     }
-  }, [session]);
+  }
 
-  // Handle create project
+  // -----------------------------
+  // Handlers
+  // -----------------------------
+  function handleProjectClick(proj: Project) {
+    setCurrentProject(proj);
+  }
+
   async function handleCreateProject(e: FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-
     try {
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ owner: session.user.id, name, description }),
+        body: JSON.stringify({
+          owner: session.user.id,
+          name,
+          description,
+        }),
       });
       if (!response.ok) {
         throw new Error("Error creating project");
       }
-      // Clear inputs
       setName("");
       setDescription("");
       setOpenDialog(false);
-      // Refetch
       fetchProjects();
     } catch (error) {
       console.error(error);
     }
   }
 
-  // 4) Create new analysis
   async function handleCreateAnalysis(e: FormEvent) {
     e.preventDefault();
-    //if no project is there create untitled project
+    if (!url.trim()) return;
     if (!currentProject) {
-      try {
-        const response = await fetch("/api/projects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ owner: session.user.id, name: "Untitled" }),
-        });
-        if (!response.ok) {
-          throw new Error("Error creating project");
-        }
-        // Refetch
-        fetchProjects();
-      } catch (error) {
-        console.error(error);
-      }
+      alert("No project selected.");
+      return;
     }
-
     setIsAnalyzing(true);
-
     try {
-      // Step 1: call combinedAnalyze
+      // 1) call your analysis endpoint
       const analyzeRes = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -166,36 +243,35 @@ export default function DashboardPage() {
       if (!analyzeRes.ok) throw new Error("Error analyzing page");
       const { screenshot, analysis, snapshotHtml } = await analyzeRes.json();
 
-      const analysisObj = analysis;
-      //convert all the scores to number and add them to overall score
+      // 2) compute overall score
       let overallScore = 0;
-      analysisObj.scores.forEach((score: any) => {
-        overallScore += Number(score.score);
-      });
+      if (analysis?.scores?.length) {
+        overallScore = analysis.scores.reduce((acc: number, s: any) => {
+          return acc + Number(s.score);
+        }, 0);
+      }
 
-      console.log("Overall Score", overallScore);
-
-      // Step 2: store in DB
+      // 3) store in DB
       const storeRes = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           owner: session.user.id,
-          project: currentProject?._id,
+          project: currentProject._id,
           url,
           screenshot,
           sector: selectedSector,
           pageType: selectedPageType,
-          heuristics: analysisObj.heuristics,
-          score: analysisObj.score,
-          overallScore: overallScore || 0,
+          heuristics: analysis.heuristics,
+          overallScore,
           snapshotHtml,
         }),
       });
       if (!storeRes.ok) throw new Error("Error storing analysis");
 
-      // Clear
+      // Clear the URL field
       setUrl("");
+      fetchUserReports();
     } catch (error) {
       console.error(error);
       alert((error as Error).message);
@@ -204,47 +280,43 @@ export default function DashboardPage() {
     }
   }
 
-  // 2) For a project, fetch all analysis
-  async function fetchUserReports() {
-    setLoadingReports(true);
-    try {
-      const res = await fetch(`/api/user/reports?userId=${session?.user.id}`);
-      if (!res.ok) throw new Error("Failed to fetch analysis");
-      const data = await res.json();
-      setReports(data);
-    } catch (err) {
-      console.error(err);
+  // -----------------------------
+  // Effects
+  // -----------------------------
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchProjects();
+      fetchUserReports();
     }
-    setLoadingReports(false);
-  }
+  }, [session]);
 
-  function handleProjectClick(proj: Project) {
-    setCurrentProject(proj);
-    setSelectedPageType("All");
-  }
-
-  // -------------------------
-  // Derived data in memory
-  // -------------------------
-  // If a project is selected, we gather only that project's reports
+  // -----------------------------
+  // Derived data
+  // -----------------------------
+  // Filter to the selected project’s reports
   const projectReports = currentProject
-    ? reports.filter((report) => report.project?._id === currentProject._id)
+    ? reports.filter((r) => r.project._id === currentProject._id)
     : [];
 
-  // Distinct pageTypes for the selected project
-  const distinctPageTypes = Array.from(
-    new Set(projectReports.map((r) => r.pageType || "Other"))
-  );
-  // Always keep an "All" tab
-  const pageTypeTabs = ["All", ...distinctPageTypes];
+  // Group them by pageType
+  // e.g. { Homepage: [...], AboutUs: [...], Other: [...] }
+  const reportsByPageType: Record<string, AnalysisReport[]> = {};
+  for (const rep of projectReports) {
+    const pt = rep.pageType || "Other";
+    if (!reportsByPageType[pt]) {
+      reportsByPageType[pt] = [];
+    }
+    reportsByPageType[pt].push(rep);
+  }
 
-  // If the user has chosen a pageType in the tab, we filter again
-  const filteredReports =
-    selectedPageType && selectedPageType !== "All"
-      ? projectReports.filter(
-          (r) => (r.pageType || "Other") === selectedPageType
-        )
-      : projectReports;
+  // Gather distinct page types
+  const pageTypes = Object.keys(reportsByPageType).sort();
+
+  // If there are no pageTypes yet, we can skip rendering or show a placeholder
+
+  // -----------------------------
+  // Render
+  // -----------------------------
   return (
     <div className="flex flex-col min-h-screen">
       <AppBar />
@@ -252,10 +324,8 @@ export default function DashboardPage() {
         {/* Sidebar */}
         <aside className="w-64 border-r p-4 bg-gray-50">
           <h2 className="text-xl font-semibold mb-4">Projects</h2>
-          <div className="flex justify-between items-center mt-6">
-            <div className="flex items-center">
-              <p className="text-sm font-semibold">My Projects</p>
-            </div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-semibold">My Projects</p>
             <Dialog open={openDialog} onOpenChange={setOpenDialog}>
               <DialogTrigger asChild>
                 <Button variant="ghost">+ Create</Button>
@@ -268,8 +338,6 @@ export default function DashboardPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleCreateProject} className="space-y-4 mt-4">
-                  {/* If you need the owner field or if the server sets it automatically from session */}
-
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Name
@@ -309,36 +377,39 @@ export default function DashboardPage() {
               </DialogContent>
             </Dialog>
           </div>
-          {projects && (
-            <div>
-              {projects.map((project) => (
-                <div key={project._id}>
-                  <Link href={`/dashboard`}>
-                    <p className="block py-2">{project.name}</p>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="mt-4 space-y-1">
+            {projects.map((project) => (
+              <button
+                key={project._id}
+                onClick={() => handleProjectClick(project)}
+                className={`block w-full text-left px-2 py-1 rounded ${
+                  currentProject?._id === project._id
+                    ? "font-bold bg-gray-200"
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                {project.name}
+              </button>
+            ))}
+          </div>
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 p-8 mt-12">
+        <main className="flex-1 p-6">
           <h2 className="text-2xl font-base mb-4">
-            Welcome {session?.user?.name?.split(" ")[0]}{" "}
-            {session?.user?.name?.split(" ")[1]} 👋
+            Welcome {session?.user?.name?.split(" ")[0]}!
           </h2>
-          <p className="text-lg font-semibold">
-            Generate your Heuristic Report
-          </p>
-          <div className="mt-6">
+
+          {/* 1) Create a new Report Form */}
+          <div className="border p-4 rounded mb-6">
+            <p className="text-lg font-semibold">Generate a New Report</p>
             <form
               onSubmit={handleCreateAnalysis}
-              className="grid grid-cols-12 gap-1 items-center"
+              className="grid grid-cols-12 gap-2 items-end mt-4"
             >
               <div className="col-span-4">
-                <label className="block text-sm font-semibold mb-1 ">
-                  Page's URL
+                <label className="block text-sm font-semibold mb-1">
+                  Page URL
                 </label>
                 <Input
                   type="text"
@@ -348,19 +419,16 @@ export default function DashboardPage() {
                   required
                 />
               </div>
-
               <div className="col-span-3">
                 <label className="block text-sm font-semibold mb-1">
                   Sector
                 </label>
                 <Select
                   value={selectedSector}
-                  onValueChange={(value) => setSelectedSector(value)}
+                  onValueChange={(v) => setSelectedSector(v)}
                 >
                   <SelectTrigger>
-                    <SelectValue>
-                      {selectedSector || "Select Sector"}
-                    </SelectValue>
+                    <SelectValue placeholder="Select Sector" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -373,23 +441,21 @@ export default function DashboardPage() {
               </div>
               <div className="col-span-3">
                 <label className="block text-sm font-semibold mb-1">
-                  PageType
+                  Page Type
                 </label>
                 <Select
                   value={selectedPageType}
-                  onValueChange={(value) => setSelectedPageType(value)}
+                  onValueChange={(v) => setSelectedPageType(v)}
                 >
                   <SelectTrigger>
-                    <SelectValue>
-                      {selectedPageType || "Select Page Type"}
-                    </SelectValue>
+                    <SelectValue placeholder="Page Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="landing">Landing Page</SelectItem>
-                      <SelectItem value="dashboard">Dashboard</SelectItem>
-                      <SelectItem value="pricing">Pricing</SelectItem>
-                      <SelectItem value="checkout">Checkout</SelectItem>
+                      <SelectItem value="Homepage">Homepage</SelectItem>
+                      <SelectItem value="AboutUs">About Us</SelectItem>
+                      <SelectItem value="Pricing">Pricing</SelectItem>
+                      <SelectItem value="Checkout">Checkout</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -399,7 +465,7 @@ export default function DashboardPage() {
                   type="submit"
                   variant="default"
                   disabled={isAnalyzing}
-                  className="mt-6 w-full"
+                  className="w-full"
                 >
                   {isAnalyzing ? "Generating..." : "Generate"}
                 </Button>
@@ -407,43 +473,79 @@ export default function DashboardPage() {
             </form>
           </div>
 
-          <div className="mt-6">
-            <h3 className="font-semibold mb-4">Recent Reports</h3>
+          {/* 2) Show the selected project’s pageTypes using shadcn Tabs */}
+          {currentProject && (
+            <div>
+              <h2 className="text-xl font-semibold mb-2">
+                {currentProject.name}
+              </h2>
+              {loadingReports && (
+                <div className="flex justify-center items-center mt-2">
+                  <Loader2Icon className="animate-spin" />
+                </div>
+              )}
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Report</TableHead>
-                  <TableHead>Date Created</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Project</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reports.map((report) => (
-                  <TableRow key={report._id}>
-                    <TableCell>
-                      {" "}
-                      <Link href={`/report/${report._id}`}>{report.url}</Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/report/${report._id}`}>
-                        {new Date(report.createdAt!).toLocaleString()}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{report.overallScore}</TableCell>
+              {/* If no pageTypes, show a placeholder */}
+              {!pageTypes.length && (
+                <div className="text-gray-500 mt-4">
+                  No reports yet for this project.
+                </div>
+              )}
 
-                    <TableCell>{report.project.name}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            {loadingReports && (
-              <div className="flex justify-center items-center mt-2">
-                <Loader2Icon className="animate-spin" />
-              </div>
-            )}
-          </div>
+              {!!pageTypes.length && (
+                <Tabs defaultValue={pageTypes[0]} className="mt-6">
+                  {/* TabsList: all pageTypes */}
+                  <TabsList>
+                    {pageTypes.map((pt) => (
+                      <TabsTrigger key={pt} value={pt}>
+                        {pt} ({reportsByPageType[pt].length})
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+
+                  {/* For each pageType, show a ComparisonScale & Table */}
+                  {pageTypes.map((pt) => (
+                    <TabsContent key={pt} value={pt}>
+                      {/* 2a) Comparison Scale */}
+                      <ComparisonScale reports={reportsByPageType[pt]} />
+
+                      {/* 2b) Table of Reports for this pageType */}
+                      <div className="mt-4">
+                        <Table>
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Report</TableCell>
+                              <TableCell>Date Created</TableCell>
+                              <TableCell>Score</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {reportsByPageType[pt].map((report) => (
+                              <TableRow key={report._id}>
+                                <TableCell>
+                                  <Link href={`/report/${report._id}`}>
+                                    {report.url}
+                                  </Link>
+                                </TableCell>
+                                <TableCell>
+                                  {new Date(
+                                    report.createdAt!
+                                  ).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell>
+                                  {getRatingLabel(report.overallScore)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              )}
+            </div>
+          )}
         </main>
       </div>
     </div>
