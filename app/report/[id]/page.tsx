@@ -1,6 +1,6 @@
 "use client";
-import { use } from "react";
-import React, { useEffect, useState, useRef } from "react";
+
+import React, { useEffect, useState, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import {
   HoverCard,
@@ -9,12 +9,19 @@ import {
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import AppBar from "@/components/layout/AppBar";
+import { ChevronLeft } from "lucide-react";
+
+type Occurrence = {
+  id: string;
+  selector: string;
+};
 
 type Issue = {
   issue_id: string;
   description: string;
   solution: string;
-  selector?: string;
+  occurrences: Occurrence[];
 };
 
 type Heuristic = {
@@ -23,38 +30,24 @@ type Heuristic = {
   issues: Issue[];
 };
 
-type AnalysisReport = {
-  _id: string;
-  project: string;
-  url: string;
-  screenshot?: string;
-  heuristics: Heuristic[];
+type HeuristicScore = {
+  id: number;
+  name: string;
+  score: number;
 };
 
-function calculateScore(analysis: AnalysisReport): number {
-  // Example logic: the more total issues per heuristic, the lower the score
-  const totalHeuristics = analysis.heuristics.length;
-  const totalIssues = analysis.heuristics.reduce(
-    (acc, h) => acc + h.issues.length,
-    0
-  );
-
-  // Edge case: if no heuristics, treat as best possible score
-  if (totalHeuristics === 0) {
-    return 100;
-  }
-
-  const issuesPerHeuristic = totalIssues / totalHeuristics;
-  const worstCaseThreshold = 5; // e.g. 5+ issues/heuristic is "very poor"
-
-  // Map that ratio into a 0–100 range (clamping to min 0, max 100)
-  const rawScore = 100 - (issuesPerHeuristic / worstCaseThreshold) * 100;
-  const clampedScore = Math.max(0, Math.min(100, rawScore));
-  return Math.round(clampedScore);
-}
+type AnalysisReport = {
+  _id: string;
+  project?: string;
+  url: string;
+  screenshot?: string;
+  snapshotHtml?: string;
+  heuristics: Heuristic[];
+  overallScore: number;
+  scores: HeuristicScore[];
+};
 
 function getQualityLabel(score: number): string {
-  // Simple mapping from score range to text label
   if (score <= 20) return "very poor";
   if (score <= 40) return "poor";
   if (score <= 60) return "mediocre";
@@ -69,28 +62,20 @@ function RatingBar({
   score: number;
   ratingLabel?: string;
 }) {
-  // Ensure `score` is between 0 and 100
   const clampedScore = Math.max(0, Math.min(100, score));
-
   return (
     <div className="mb-4">
-      {/* Top labels (left = Very Poor, center = Mediocre, right = Very Good).
-          Adjust to your preference. */}
       <div className="flex justify-between text-sm mb-1">
         <span>Very Poor</span>
         <span>Mediocre</span>
         <span>Good</span>
         <span>Very Good</span>
       </div>
-
-      {/* Outer bar */}
-      <div className="relative h-4 bg-gray-200 rounded-full">
-        {/* Filled portion based on score */}
+      <div className="relative h-4 bg-rose-200 rounded-full">
         <div
-          className="absolute left-0 top-0 h-4 bg-gray-400 rounded-full transition-all duration-300"
+          className="absolute left-0 top-0 h-4 bg-rose-900 rounded-full transition-all duration-300"
           style={{ width: `${clampedScore}%` }}
         />
-        {/* Centered label showing the bracketed rating */}
         <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
           {ratingLabel && (
             <span className="text-xs font-bold text-black">
@@ -115,7 +100,6 @@ export default function AnalysisView({
   const [hoveredIssue, setHoveredIssue] = useState<Issue | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // 1) Fetch the analysis
   async function fetchAnalysis() {
     try {
       const res = await fetch(`/api/report?id=${id}`);
@@ -131,42 +115,43 @@ export default function AnalysisView({
     fetchAnalysis();
   }, [id]);
 
-  // 2) Once we have the analysis, send highlight instructions to the iframe
+  // Highlight elements in the iframe after it loads
   useEffect(() => {
     if (!analysis || !iframeRef.current) return;
 
     const highlights: { selector: string; label: string }[] = [];
     analysis.heuristics.forEach((h) => {
       h.issues.forEach((issue) => {
-        if (issue.selector) {
-          highlights.push({ selector: issue.selector, label: issue.issue_id });
-        }
+        issue.occurrences?.forEach((occ) => {
+          highlights.push({
+            selector: occ.selector,
+            label: occ.id,
+          });
+        });
       });
     });
 
-    if (highlights.length === 0) return;
-
     const iframe = iframeRef.current;
-    function handleIframeLoad() {
-      // postMessage to the proxied page
+    function sendHighlights() {
       iframe.contentWindow?.postMessage({ type: "HIGHLIGHT", highlights }, "*");
     }
 
-    // wait for the iframe to load
-    iframe.addEventListener("load", handleIframeLoad, { once: true });
+    // in case it's not fully loaded yet
+    iframe.addEventListener("load", sendHighlights, { once: true });
+    // also try after a short delay
+    setTimeout(sendHighlights, 500);
 
     return () => {
-      iframe.removeEventListener("load", handleIframeLoad);
+      iframe.removeEventListener("load", sendHighlights);
     };
   }, [analysis]);
 
-  // 3) Listen for hover events from the proxied page
+  // Listen for hover events from the child iframe
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    function handleMessage(event: MessageEvent) {
       if (!event.data) return;
       if (event.data.type === "ISSUE_MOUSEENTER") {
         const issueId = event.data.issueId;
-        // find the matching issue
         let found: Issue | null = null;
         analysis?.heuristics.forEach((h) => {
           h.issues.forEach((issue) => {
@@ -179,7 +164,8 @@ export default function AnalysisView({
       } else if (event.data.type === "ISSUE_MOUSELEAVE") {
         setHoveredIssue(null);
       }
-    };
+    }
+
     window.addEventListener("message", handleMessage);
     return () => {
       window.removeEventListener("message", handleMessage);
@@ -194,34 +180,34 @@ export default function AnalysisView({
     );
   }
 
-  // Compute numeric score and textual rating
-  const score = calculateScore(analysis);
-  const ratingLabel = getQualityLabel(score);
+  const overallScore = analysis.overallScore;
+  const ratingLabel = getQualityLabel(overallScore);
 
   return (
-    <div className="p-4 space-y-4">
-      <Button variant="outline" onClick={() => router.push(`/dashboard`)}>
-        Back to Dashboard
-      </Button>
+    <>
+      <AppBar />
+      <div className="p-4 space-y-4 pt-16">
+        <Button variant="ghost" onClick={() => router.push(`/dashboard`)}>
+          <ChevronLeft />
+          Back to Dashboard
+        </Button>
 
-      <RatingBar score={score} />
+        <main className="flex-1 px-4 overflow-auto">
+          <div>
+            <RatingBar score={overallScore} ratingLabel={ratingLabel} />
 
-      <main className="flex-1 p-4 space-y-4 overflow-auto">
-        {analysis ? (
-          <div className="space-y-4">
-            <h1 className="text-xl font-bold">Analysis: {analysis.url}</h1>
-
-            {/* Iframe: load snapshot at /api/snapshot/[analysisId] */}
             <div className="grid grid-cols-12 gap-1">
+              {/* IFRAME */}
               <div className="col-span-10 w-full">
                 <div className="relative border rounded w-full">
                   <iframe
                     ref={iframeRef}
                     src={`/api/snapshot/${analysis._id}`}
+                    // Add sandbox, allow scripts & same-origin so highlight script can work
+                    sandbox="allow-same-origin allow-scripts"
                     style={{ width: "100%", height: "500px", border: "none" }}
                   />
-
-                  {/* HoverCard for hoveredIssue */}
+                  {/* Hover card for hovered issues */}
                   <HoverCard open={!!hoveredIssue}>
                     <HoverCardTrigger asChild>
                       <div
@@ -256,7 +242,7 @@ export default function AnalysisView({
                 </div>
               </div>
 
-              {/* Heuristics list */}
+              {/* Side panel with heuristics & issues */}
               <ScrollArea className="col-span-2 h-[500px]">
                 <div className="col-span-2 p-2 rounded">
                   <h2 className="font-semibold mb-2">Heuristics & Issues</h2>
@@ -273,9 +259,14 @@ export default function AnalysisView({
                               {issue.description}
                               <br />
                               <em>Solution:</em> {issue.solution}
-                              {issue.selector && (
-                                <div className="text-blue-500">
-                                  Selector: <code>{issue.selector}</code>
+                              {issue.occurrences?.length > 0 && (
+                                <div className="text-blue-500 mt-1">
+                                  {issue.occurrences.map((occ) => (
+                                    <div key={occ.id}>
+                                      <strong>Occurrence {occ.id}:</strong>{" "}
+                                      <code>{occ.selector}</code>
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                             </li>
@@ -292,13 +283,8 @@ export default function AnalysisView({
               </ScrollArea>
             </div>
           </div>
-        ) : (
-          <div>
-            <h1 className="text-xl font-bold">Dashboard</h1>
-            <p>Select a project and expand an analysis to see it here.</p>
-          </div>
-        )}
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }
