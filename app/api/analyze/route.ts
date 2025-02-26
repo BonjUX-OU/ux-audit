@@ -1,3 +1,4 @@
+//api/analyze/route.ts
 import { NextResponse } from "next/server";
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
@@ -7,7 +8,7 @@ import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
 
 import Report from "@/models/Report"; // Adjust to your model path
-
+import dbConnect from "@/lib/dbConnect";
 // -- Basic config
 export const maxDuration = 45;
 export const revalidate = 0;
@@ -90,6 +91,7 @@ export async function POST(request: Request) {
   let browser: Browser | null = null;
 
   try {
+    await dbConnect();
     const { url } = await request.json();
 
     // 1) Validate URL
