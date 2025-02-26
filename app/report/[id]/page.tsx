@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -11,13 +12,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import AppBar from "@/components/layout/AppBar";
 import { ChevronLeft } from "lucide-react";
 
-// Each occurrence has an ID and a CSS selector
 type Occurrence = {
   id: string;
   selector: string;
 };
 
-// Issues now include an array of occurrences
 type Issue = {
   issue_id: string;
   description: string;
@@ -31,22 +30,21 @@ type Heuristic = {
   issues: Issue[];
 };
 
-// Each heuristic has a numeric score
 type HeuristicScore = {
   id: number;
   name: string;
   score: number;
 };
 
-// Full server response shape
 type AnalysisReport = {
-  _id: string; // e.g. DB or project ID
-  project?: string; // optional project name
-  url: string; // the URL that was analyzed
-  screenshot?: string; // base64 screenshot (optional)
-  heuristics: Heuristic[]; // list of heuristics and issues
-  overallScore: number; // overall numeric score
-  scores: HeuristicScore[]; // per-heuristic numeric scores
+  _id: string;
+  project?: string;
+  url: string;
+  screenshot?: string;
+  snapshotHtml?: string;
+  heuristics: Heuristic[];
+  overallScore: number;
+  scores: HeuristicScore[];
 };
 
 function getQualityLabel(score: number): string {
@@ -57,7 +55,6 @@ function getQualityLabel(score: number): string {
   return "very good";
 }
 
-// Simple rating bar to display a single numeric score
 function RatingBar({
   score,
   ratingLabel,
@@ -91,86 +88,70 @@ function RatingBar({
   );
 }
 
-// ------------------------------------------------------------------------
-// 3. Main Component
-// ------------------------------------------------------------------------
 export default function AnalysisView({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // The ID from the route params
   const { id } = use(params);
   const router = useRouter();
 
-  // Store the entire analysis from /api/report
   const [analysis, setAnalysis] = useState<AnalysisReport | null>(null);
-
-  // Which issue the user is currently hovering over (from the <iframe>)
   const [hoveredIssue, setHoveredIssue] = useState<Issue | null>(null);
-
-  // Reference to the <iframe>, so we can communicate with it via postMessage
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Fetch the analysis from your /api/report route
   async function fetchAnalysis() {
     try {
       const res = await fetch(`/api/report?id=${id}`);
       if (!res.ok) throw new Error("Failed to fetch analysis");
       const data = await res.json();
-      // data is presumably shaped like { _id, url, screenshot, heuristics, scores }
-      console.log("Analysis data:", data);
       setAnalysis(data);
     } catch (err) {
       console.error(err);
     }
   }
 
-  // Run once on mount
   useEffect(() => {
     fetchAnalysis();
   }, [id]);
 
-  // 2) Once we have the analysis, we highlight elements in the iframe
+  // Highlight elements in the iframe after it loads
   useEffect(() => {
     if (!analysis || !iframeRef.current) return;
 
-    // Build an array of all (selector, label) we want to highlight
     const highlights: { selector: string; label: string }[] = [];
     analysis.heuristics.forEach((h) => {
       h.issues.forEach((issue) => {
-        // Each issue may have multiple occurrences
-        issue.occurrences &&
-          issue.occurrences.forEach((occ) => {
-            highlights.push({
-              selector: occ.selector,
-              label: occ.id,
-            });
+        issue.occurrences?.forEach((occ) => {
+          highlights.push({
+            selector: occ.selector,
+            label: issue.issue_id,
           });
+        });
       });
     });
 
-    if (highlights.length === 0) return;
-
     const iframe = iframeRef.current;
-    function handleIframeLoad() {
+    function sendHighlights() {
       iframe.contentWindow?.postMessage({ type: "HIGHLIGHT", highlights }, "*");
     }
 
-    iframe.addEventListener("load", handleIframeLoad, { once: true });
+    // in case it's not fully loaded yet
+    iframe.addEventListener("load", sendHighlights, { once: true });
+    // also try after a short delay
+    setTimeout(sendHighlights, 500);
+
     return () => {
-      iframe.removeEventListener("load", handleIframeLoad);
+      iframe.removeEventListener("load", sendHighlights);
     };
   }, [analysis]);
 
-  // 3) Listen for hover events from the proxied page
+  // Listen for hover events from the child iframe
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
       if (!event.data) return;
-
       if (event.data.type === "ISSUE_MOUSEENTER") {
         const issueId = event.data.issueId;
-        // find the matching issue in analysis
         let found: Issue | null = null;
         analysis?.heuristics.forEach((h) => {
           h.issues.forEach((issue) => {
@@ -184,13 +165,13 @@ export default function AnalysisView({
         setHoveredIssue(null);
       }
     }
+
     window.addEventListener("message", handleMessage);
     return () => {
       window.removeEventListener("message", handleMessage);
     };
   }, [analysis]);
 
-  // If loading or data not yet present
   if (!analysis) {
     return (
       <div className="p-6">
@@ -199,7 +180,6 @@ export default function AnalysisView({
     );
   }
 
-  // Example: overall rating using the # of issues
   const overallScore = analysis.overallScore;
   const ratingLabel = getQualityLabel(overallScore);
 
@@ -211,19 +191,23 @@ export default function AnalysisView({
           <ChevronLeft />
           Back to Dashboard
         </Button>
+
         <main className="flex-1 px-4 overflow-auto">
-          <div className="">
+          <div>
             <RatingBar score={overallScore} ratingLabel={ratingLabel} />
-            {/* If you store an HTML snapshot at /api/snapshot/[analysisId], load it in an iframe */}
+
             <div className="grid grid-cols-12 gap-1">
+              {/* IFRAME */}
               <div className="col-span-10 w-full">
                 <div className="relative border rounded w-full">
                   <iframe
                     ref={iframeRef}
                     src={`/api/snapshot/${analysis._id}`}
+                    // Add sandbox, allow scripts & same-origin so highlight script can work
+                    sandbox="allow-same-origin allow-scripts"
                     style={{ width: "100%", height: "500px", border: "none" }}
                   />
-                  {/* Hover card for the hovered issue */}
+                  {/* Hover card for hovered issues */}
                   <HoverCard open={!!hoveredIssue}>
                     <HoverCardTrigger asChild>
                       <div
@@ -258,7 +242,7 @@ export default function AnalysisView({
                 </div>
               </div>
 
-              {/* Side panel: heuristics & issues */}
+              {/* Side panel with heuristics & issues */}
               <ScrollArea className="col-span-2 h-[500px]">
                 <div className="col-span-2 p-2 rounded">
                   <h2 className="font-semibold mb-2">Heuristics & Issues</h2>
@@ -275,19 +259,16 @@ export default function AnalysisView({
                               {issue.description}
                               <br />
                               <em>Solution:</em> {issue.solution}
-                              {/* Show ALL occurrences (selector + occurrence ID) */}
-                              {issue.occurrences &&
-                                issue.occurrences.length > 0 && (
-                                  <div className="text-blue-500 mt-1">
-                                    {issue.occurrences &&
-                                      issue.occurrences.map((occ) => (
-                                        <div key={occ.id}>
-                                          <strong>Occurrence {occ.id}:</strong>{" "}
-                                          <code>{occ.selector}</code>
-                                        </div>
-                                      ))}
-                                  </div>
-                                )}
+                              {issue.occurrences?.length > 0 && (
+                                <div className="text-blue-500 mt-1">
+                                  {issue.occurrences.map((occ) => (
+                                    <div key={occ.id}>
+                                      <strong>Occurrence {occ.id}:</strong>{" "}
+                                      <code>{occ.selector}</code>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </li>
                           ))}
                         </ul>

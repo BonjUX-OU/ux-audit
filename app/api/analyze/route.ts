@@ -193,14 +193,13 @@ export async function POST(request: Request) {
 
     // 5) If no existing report or GPT says "different," do a new analysis
     const analysisSystemInstruction = `
-      You are a web design expert specializing in usability and user experience.
+      You are a web design expert specializing in usability and user experience. 
       Analyze the webpage based on Nielsen's 10 heuristics and provide structured JSON output.
       Follow these rules:
       - Identify usability issues for each heuristic.
-      - Label each issue with a heuristic number followed by an issue number 
-        and an occurrence number (e.g., 4.1.1, 4.1.2, 4.1.3).
-      - Provide a CSS selector if possible for each occurrence.
-      - Output valid JSON adhering to the provided schema.
+      - Label each issue with a heuristic number followed by an issue number (i.e., "1.1, 1.2 ,1.3" for every occurence of the issue in different parts of the page)and an occurence number for everytime it occurs.For example if we have issue 4.1 "Inconsistent button styles across the page." each occurence of this issue should be labeled as 4.1.1, 4.1.2, 4.1.3, etc.
+      - Provide a CSS selector if possible for each issue occurrence correctly labeled. So this means that each selector is an occurrence of the issue and each should have a unique occurrence ID.
+      - Ensure valid JSON output adhering to the provided schema.
     `;
 
     const analysisUserContent = [
