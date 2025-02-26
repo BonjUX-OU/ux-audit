@@ -20,7 +20,6 @@ const HeuristicSchema = new mongoose.Schema({
 
 const ScoreSchema = new mongoose.Schema({
   id: Number,
-  name: String,
   score: String,
 });
 const ReportSchema = new mongoose.Schema(
@@ -45,7 +44,7 @@ const ReportSchema = new mongoose.Schema(
     pageType: {
       type: String,
     },
-    score: [ScoreSchema],
+    scores: [ScoreSchema],
     overallScore: {
       type: Number,
       required: true,

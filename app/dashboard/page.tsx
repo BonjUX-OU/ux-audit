@@ -249,15 +249,19 @@ export default function DashboardPage() {
           return acc + Number(s.score);
         }, 0);
       }
+      console.log("projects:", projects);
 
       // 3) store in DB
       const storeRes = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        //if id == all set the project to the next project or create a new project
         body: JSON.stringify({
           owner: session.user.id,
-          project: currentProject._id === "all" ? null : currentProject._id,
+          project:
+            currentProject._id === "all" ? projects[1]._id : currentProject._id,
           url,
+          scores: analysis.scores,
           screenshot,
           sector: selectedSector,
           pageType: selectedPageType,

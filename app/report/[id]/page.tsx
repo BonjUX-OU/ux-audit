@@ -11,10 +11,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import AppBar from "@/components/layout/AppBar";
 import { ChevronLeft } from "lucide-react";
 
-// ------------------------------------------------------------------------
-// 1. Data Structures
-// ------------------------------------------------------------------------
-
 // Each occurrence has an ID and a CSS selector
 type Occurrence = {
   id: string;
@@ -52,29 +48,6 @@ type AnalysisReport = {
   overallScore: number; // overall numeric score
   scores: HeuristicScore[]; // per-heuristic numeric scores
 };
-
-// ------------------------------------------------------------------------
-// 2. (Optional) Utility Functions
-// ------------------------------------------------------------------------
-
-// Example scoring logic that doesn't actually use the scores array;
-// it calculates an overall rating based on the total number of issues.
-function calculateScore(analysis: AnalysisReport): number {
-  const totalHeuristics = analysis.heuristics.length;
-  if (totalHeuristics === 0) return 100; // Edge case: no heuristics => perfect
-
-  const totalIssues = analysis.heuristics.reduce(
-    (acc, h) => acc + h.issues.length,
-    0
-  );
-  const issuesPerHeuristic = totalIssues / totalHeuristics;
-
-  // Example: 5+ issues/heuristic => 0 score
-  const worstCaseThreshold = 5;
-  const rawScore = 100 - (issuesPerHeuristic / worstCaseThreshold) * 100;
-  const clampedScore = Math.max(0, Math.min(100, rawScore));
-  return Math.round(clampedScore);
-}
 
 function getQualityLabel(score: number): string {
   if (score <= 20) return "very poor";
@@ -238,7 +211,7 @@ export default function AnalysisView({
           <ChevronLeft />
           Back to Dashboard
         </Button>
-        <main className="flex-1 p-4 overflow-auto">
+        <main className="flex-1 px-4 overflow-auto">
           <div className="">
             <RatingBar score={overallScore} ratingLabel={ratingLabel} />
             {/* If you store an HTML snapshot at /api/snapshot/[analysisId], load it in an iframe */}
@@ -327,25 +300,6 @@ export default function AnalysisView({
                   ))}
                 </div>
               </ScrollArea>
-            </div>
-
-            {/* (Optional) Display the per-heuristic numeric scores from the 'scores' array */}
-            <div className="mt-4 p-2 border rounded">
-              <h2 className="font-semibold mb-2">Heuristic Scores</h2>
-              {analysis.scores && analysis.scores.length > 0 ? (
-                <ul className="list-none pl-0 space-y-1 text-sm">
-                  {analysis.scores.map((score) => (
-                    <li key={score.id}>
-                      <strong>
-                        {score.id}. {score.name}
-                      </strong>
-                      : {score.score}/10
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-gray-600">No scores available.</p>
-              )}
             </div>
           </div>
         </main>
