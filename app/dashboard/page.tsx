@@ -34,8 +34,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// ⬅️ Import the shadcn UI Tabs
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Loader2Icon } from "lucide-react";
 
@@ -103,7 +103,7 @@ function ComparisonScale({ reports }: { reports: AnalysisReport[] }) {
   );
 
   return (
-    <div className="mt-4 p-4 border rounded bg-white">
+    <div className="mt-4 p-4 rounded bg-white">
       {/* Scale header labels */}
       <div className="flex justify-between mb-2 text-gray-600 text-sm">
         <span>Very Poor</span>
@@ -122,9 +122,6 @@ function ComparisonScale({ reports }: { reports: AnalysisReport[] }) {
               <div className="w-6 h-6 bg-gray-500 text-white text-xs rounded-full flex items-center justify-center">
                 {i + 1}
               </div>
-              <div className="text-xs text-center mt-1 whitespace-nowrap">
-                {getRatingLabel(report.overallScore)}
-              </div>
             </div>
           );
         })}
@@ -133,9 +130,6 @@ function ComparisonScale({ reports }: { reports: AnalysisReport[] }) {
   );
 }
 
-// ------------------------------------
-// Main Dashboard Page
-// ------------------------------------
 export default function DashboardPage() {
   const { data: session }: any = useSession();
 
@@ -171,8 +165,16 @@ export default function DashboardPage() {
         throw new Error("Failed to fetch projects");
       }
       const data = await response.json();
-      setProjects(data);
-      if (data.length) setCurrentProject(data[0]); // optionally auto-select
+
+      // Insert a pseudo-project to represent 'All Reports'
+      const allProjectsOption: Project = {
+        _id: "all",
+        name: "All Reports",
+      };
+
+      // Prepend 'All Reports' to the list and set as default
+      setProjects([allProjectsOption, ...data]);
+      setCurrentProject(allProjectsOption);
     } catch (err) {
       console.error(err);
     }
@@ -193,9 +195,6 @@ export default function DashboardPage() {
     }
   }
 
-  // -----------------------------
-  // Handlers
-  // -----------------------------
   function handleProjectClick(proj: Project) {
     setCurrentProject(proj);
   }
@@ -219,7 +218,7 @@ export default function DashboardPage() {
       setName("");
       setDescription("");
       setOpenDialog(false);
-      fetchProjects();
+      fetchProjects(); // refresh the list
     } catch (error) {
       console.error(error);
     }
@@ -257,7 +256,7 @@ export default function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           owner: session.user.id,
-          project: currentProject._id,
+          project: currentProject._id === "all" ? null : currentProject._id,
           url,
           screenshot,
           sector: selectedSector,
@@ -290,16 +289,17 @@ export default function DashboardPage() {
     }
   }, [session]);
 
-  // -----------------------------
-  // Derived data
-  // -----------------------------
-  // Filter to the selected project’s reports
-  const projectReports = currentProject
-    ? reports.filter((r) => r.project._id === currentProject._id)
-    : [];
+  // -----------------------------------------------
+  // Distinguish "All Reports" vs. single project
+  // -----------------------------------------------
+  const isAllProjects = currentProject?._id === "all";
+
+  // If not showing “All Reports”, filter to the selected project’s reports
+  const projectReports = isAllProjects
+    ? reports
+    : reports.filter((r) => r.project._id === currentProject?._id);
 
   // Group them by pageType
-  // e.g. { Homepage: [...], AboutUs: [...], Other: [...] }
   const reportsByPageType: Record<string, AnalysisReport[]> = {};
   for (const rep of projectReports) {
     const pt = rep.pageType || "Other";
@@ -309,20 +309,14 @@ export default function DashboardPage() {
     reportsByPageType[pt].push(rep);
   }
 
-  // Gather distinct page types
   const pageTypes = Object.keys(reportsByPageType).sort();
 
-  // If there are no pageTypes yet, we can skip rendering or show a placeholder
-
-  // -----------------------------
-  // Render
-  // -----------------------------
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       <AppBar />
-      <div className="flex flex-1">
+      <div className="flex flex-1 pt-16">
         {/* Sidebar */}
-        <aside className="w-64 border-r p-4 bg-gray-50">
+        <aside className="w-64 p-4 bg-white m-2 rounded-xl">
           <h2 className="text-xl font-semibold mb-4">Projects</h2>
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-semibold">My Projects</p>
@@ -382,10 +376,10 @@ export default function DashboardPage() {
               <button
                 key={project._id}
                 onClick={() => handleProjectClick(project)}
-                className={`block w-full text-left px-2 py-1 rounded ${
+                className={`block w-full text-left px-2 py-2 rounded ${
                   currentProject?._id === project._id
-                    ? "font-bold bg-gray-200"
-                    : "hover:bg-gray-100"
+                    ? "bg-[#FFF1E0]"
+                    : "hover:bg-stone-50"
                 }`}
               >
                 {project.name}
@@ -395,132 +389,124 @@ export default function DashboardPage() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 p-6">
-          <h2 className="text-2xl font-base mb-4">
-            Welcome {session?.user?.name?.split(" ")[0]}!
-          </h2>
+        <main className="flex-1 h-full">
+          <div className="m-2 rounded-xl bg-white p-4">
+            <h2 className="text-2xl font-base mb-4">
+              Welcome {session?.user?.name?.split(" ")[0]}!
+            </h2>
 
-          {/* 1) Create a new Report Form */}
-          <div className="border p-4 rounded mb-6">
-            <p className="text-lg font-semibold">Generate a New Report</p>
-            <form
-              onSubmit={handleCreateAnalysis}
-              className="grid grid-cols-12 gap-2 items-end mt-4"
-            >
-              <div className="col-span-4">
-                <label className="block text-sm font-semibold mb-1">
-                  Page URL
-                </label>
-                <Input
-                  type="text"
-                  placeholder="https://example.com"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="col-span-3">
-                <label className="block text-sm font-semibold mb-1">
-                  Sector
-                </label>
-                <Select
-                  value={selectedSector}
-                  onValueChange={(v) => setSelectedSector(v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Sector" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="healthcare">Healthcare</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                      <SelectItem value="education">Education</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-3">
-                <label className="block text-sm font-semibold mb-1">
-                  Page Type
-                </label>
-                <Select
-                  value={selectedPageType}
-                  onValueChange={(v) => setSelectedPageType(v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Page Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="Homepage">Homepage</SelectItem>
-                      <SelectItem value="AboutUs">About Us</SelectItem>
-                      <SelectItem value="Pricing">Pricing</SelectItem>
-                      <SelectItem value="Checkout">Checkout</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <Button
-                  type="submit"
-                  variant="default"
-                  disabled={isAnalyzing}
-                  className="w-full"
-                >
-                  {isAnalyzing ? "Generating..." : "Generate"}
-                </Button>
-              </div>
-            </form>
+            {/* 1) Create a new Report Form */}
+            <div className="rounded mb-6">
+              <p className="text-lg font-semibold">Generate a New Report</p>
+              <form
+                onSubmit={handleCreateAnalysis}
+                className="grid grid-cols-12 gap-2 items-end mt-4"
+              >
+                <div className="col-span-4">
+                  <label className="block text-sm font-semibold mb-1">
+                    Page URL
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="https://example.com"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-sm font-semibold mb-1">
+                    Sector
+                  </label>
+                  <Select
+                    value={selectedSector}
+                    onValueChange={(v) => setSelectedSector(v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Sector" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="healthcare">Healthcare</SelectItem>
+                        <SelectItem value="finance">Finance</SelectItem>
+                        <SelectItem value="education">Education</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-3">
+                  <label className="block text-sm font-semibold mb-1">
+                    Page Type
+                  </label>
+                  <Select
+                    value={selectedPageType}
+                    onValueChange={(v) => setSelectedPageType(v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Page Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="Homepage">Homepage</SelectItem>
+                        <SelectItem value="AboutUs">About Us</SelectItem>
+                        <SelectItem value="Pricing">Pricing</SelectItem>
+                        <SelectItem value="Checkout">Checkout</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-2">
+                  <Button
+                    type="submit"
+                    variant="default"
+                    disabled={isAnalyzing}
+                    className="w-full bg-[#B04E34] hover:bg-[#963F28] text-white"
+                  >
+                    {isAnalyzing ? "Generating..." : "Generate"}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
 
-          {/* 2) Show the selected project’s pageTypes using shadcn Tabs */}
-          {currentProject && (
-            <div>
-              <h2 className="text-xl font-semibold mb-2">
-                {currentProject.name}
-              </h2>
-              {loadingReports && (
-                <div className="flex justify-center items-center mt-2">
-                  <Loader2Icon className="animate-spin" />
-                </div>
-              )}
+          <div className="m-2 rounded-xl bg-white p-4">
+            {currentProject && (
+              <div>
+                <h2 className="text-xl font-semibold mb-2">
+                  {currentProject.name}
+                </h2>
 
-              {/* If no pageTypes, show a placeholder */}
-              {!pageTypes.length && (
-                <div className="text-gray-500 mt-4">
-                  No reports yet for this project.
-                </div>
-              )}
+                {loadingReports && (
+                  <div className="flex justify-center items-center mt-2">
+                    <Loader2Icon className="animate-spin" />
+                  </div>
+                )}
 
-              {!!pageTypes.length && (
-                <Tabs defaultValue={pageTypes[0]} className="mt-6">
-                  {/* TabsList: all pageTypes */}
-                  <TabsList>
-                    {pageTypes.map((pt) => (
-                      <TabsTrigger key={pt} value={pt}>
-                        {pt} ({reportsByPageType[pt].length})
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-
-                  {/* For each pageType, show a ComparisonScale & Table */}
-                  {pageTypes.map((pt) => (
-                    <TabsContent key={pt} value={pt}>
-                      {/* 2a) Comparison Scale */}
-                      <ComparisonScale reports={reportsByPageType[pt]} />
-
-                      {/* 2b) Table of Reports for this pageType */}
-                      <div className="mt-4">
+                {isAllProjects ? (
+                  // -------------------------------------------
+                  // When "All Reports" is selected:
+                  // No comparison scale, no page-type tabs,
+                  // just a single table with all user reports.
+                  // -------------------------------------------
+                  <div className="mt-4">
+                    {!reports.length && !loadingReports && (
+                      <div className="text-gray-500 mt-4 h-72">
+                        No reports yet.
+                      </div>
+                    )}
+                    {!!reports.length && (
+                      <ScrollArea className="w-full h-72 overflow-y-auto">
                         <Table>
-                          <TableHead>
+                          <TableHeader>
                             <TableRow>
-                              <TableCell>Report</TableCell>
-                              <TableCell>Date Created</TableCell>
-                              <TableCell>Score</TableCell>
+                              <TableHead>Report</TableHead>
+                              <TableHead>Date Created</TableHead>
+                              <TableHead>Score</TableHead>
+                              <TableHead>Project</TableHead>
                             </TableRow>
-                          </TableHead>
+                          </TableHeader>
                           <TableBody>
-                            {reportsByPageType[pt].map((report) => (
+                            {reports.map((report) => (
                               <TableRow key={report._id}>
                                 <TableCell>
                                   <Link href={`/report/${report._id}`}>
@@ -528,24 +514,96 @@ export default function DashboardPage() {
                                   </Link>
                                 </TableCell>
                                 <TableCell>
-                                  {new Date(
-                                    report.createdAt!
-                                  ).toLocaleDateString()}
+                                  <Link href={`/report/${report._id}`}>
+                                    {new Date(
+                                      report.createdAt!
+                                    ).toLocaleString()}
+                                  </Link>
                                 </TableCell>
                                 <TableCell>
                                   {getRatingLabel(report.overallScore)}
                                 </TableCell>
+                                <TableCell>{report.project.name}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
                         </Table>
+                      </ScrollArea>
+                    )}
+                  </div>
+                ) : (
+                  // -------------------------------------------
+                  // A specific project is selected:
+                  // Show page-type tabs + comparison scale
+                  // -------------------------------------------
+                  <>
+                    {/* If no pageTypes (meaning no reports), show placeholder */}
+                    {!pageTypes.length && !loadingReports && (
+                      <div className="text-gray-500 mt-4 h-72">
+                        No reports yet for this project.
                       </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              )}
-            </div>
-          )}
+                    )}
+
+                    {!!pageTypes.length && (
+                      <Tabs defaultValue={pageTypes[0]} className="mt-6">
+                        <TabsList>
+                          {pageTypes.map((pt) => (
+                            <TabsTrigger key={pt} value={pt}>
+                              {pt} ({reportsByPageType[pt].length})
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+
+                        {pageTypes.map((pt) => (
+                          <TabsContent key={pt} value={pt}>
+                            <ComparisonScale reports={reportsByPageType[pt]} />
+
+                            <ScrollArea className="w-full h-48 overflow-y-auto">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Report</TableHead>
+                                    <TableHead>Date Created</TableHead>
+                                    <TableHead>Score</TableHead>
+                                    <TableHead>Project</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+
+                                <TableBody>
+                                  {reportsByPageType[pt].map((report) => (
+                                    <TableRow key={report._id}>
+                                      <TableCell>
+                                        <Link href={`/report/${report._id}`}>
+                                          {report.url}
+                                        </Link>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Link href={`/report/${report._id}`}>
+                                          {new Date(
+                                            report.createdAt!
+                                          ).toLocaleString()}
+                                        </Link>
+                                      </TableCell>
+                                      <TableCell>
+                                        {getRatingLabel(report.overallScore)}
+                                      </TableCell>
+                                      <TableCell>
+                                        {report.project.name}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </ScrollArea>
+                          </TabsContent>
+                        ))}
+                      </Tabs>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </main>
       </div>
     </div>

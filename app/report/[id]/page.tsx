@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import AppBar from "@/components/layout/AppBar";
+import { ChevronLeft } from "lucide-react";
 
 // ------------------------------------------------------------------------
 // 1. Data Structures
@@ -99,9 +101,9 @@ function RatingBar({
         <span>Good</span>
         <span>Very Good</span>
       </div>
-      <div className="relative h-4 bg-gray-200 rounded-full">
+      <div className="relative h-4 bg-rose-200 rounded-full">
         <div
-          className="absolute left-0 top-0 h-4 bg-gray-400 rounded-full transition-all duration-300"
+          className="absolute left-0 top-0 h-4 bg-rose-900 rounded-full transition-all duration-300"
           style={{ width: `${clampedScore}%` }}
         />
         <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
@@ -229,124 +231,125 @@ export default function AnalysisView({
   const ratingLabel = getQualityLabel(overallScore);
 
   return (
-    <div className="p-4 space-y-4">
-      <Button variant="outline" onClick={() => router.push(`/dashboard`)}>
-        Back to Dashboard
-      </Button>
-
-      {/* Overall rating bar across all heuristics */}
-      <RatingBar score={overallScore} ratingLabel={ratingLabel} />
-
-      <main className="flex-1 p-4 space-y-4 overflow-auto">
-        <div className="space-y-4">
-          <h1 className="text-xl font-bold">Analysis: {analysis.url}</h1>
-
-          {/* If you store an HTML snapshot at /api/snapshot/[analysisId], load it in an iframe */}
-          <div className="grid grid-cols-12 gap-1">
-            <div className="col-span-10 w-full">
-              <div className="relative border rounded w-full">
-                <iframe
-                  ref={iframeRef}
-                  src={`/api/snapshot/${analysis._id}`}
-                  style={{ width: "100%", height: "500px", border: "none" }}
-                />
-                {/* Hover card for the hovered issue */}
-                <HoverCard open={!!hoveredIssue}>
-                  <HoverCardTrigger asChild>
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: 1,
-                        height: 1,
-                      }}
-                    />
-                  </HoverCardTrigger>
-                  <HoverCardContent className="max-w-sm">
-                    {hoveredIssue ? (
-                      <div className="space-y-2">
-                        <p className="font-bold text-red-600">
-                          Issue: {hoveredIssue.issue_id}
-                        </p>
-                        <p>
-                          <strong>Description:</strong>{" "}
-                          {hoveredIssue.description}
-                        </p>
-                        <p>
-                          <strong>Solution:</strong> {hoveredIssue.solution}
-                        </p>
-                      </div>
-                    ) : (
-                      <p>No issue hovered</p>
-                    )}
-                  </HoverCardContent>
-                </HoverCard>
+    <>
+      <AppBar />
+      <div className="p-4 space-y-4 pt-16">
+        <Button variant="ghost" onClick={() => router.push(`/dashboard`)}>
+          <ChevronLeft />
+          Back to Dashboard
+        </Button>
+        <main className="flex-1 p-4 overflow-auto">
+          <div className="">
+            <RatingBar score={overallScore} ratingLabel={ratingLabel} />
+            {/* If you store an HTML snapshot at /api/snapshot/[analysisId], load it in an iframe */}
+            <div className="grid grid-cols-12 gap-1">
+              <div className="col-span-10 w-full">
+                <div className="relative border rounded w-full">
+                  <iframe
+                    ref={iframeRef}
+                    src={`/api/snapshot/${analysis._id}`}
+                    style={{ width: "100%", height: "500px", border: "none" }}
+                  />
+                  {/* Hover card for the hovered issue */}
+                  <HoverCard open={!!hoveredIssue}>
+                    <HoverCardTrigger asChild>
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: 1,
+                          height: 1,
+                        }}
+                      />
+                    </HoverCardTrigger>
+                    <HoverCardContent className="max-w-sm">
+                      {hoveredIssue ? (
+                        <div className="space-y-2">
+                          <p className="font-bold text-red-600">
+                            Issue: {hoveredIssue.issue_id}
+                          </p>
+                          <p>
+                            <strong>Description:</strong>{" "}
+                            {hoveredIssue.description}
+                          </p>
+                          <p>
+                            <strong>Solution:</strong> {hoveredIssue.solution}
+                          </p>
+                        </div>
+                      ) : (
+                        <p>No issue hovered</p>
+                      )}
+                    </HoverCardContent>
+                  </HoverCard>
+                </div>
               </div>
+
+              {/* Side panel: heuristics & issues */}
+              <ScrollArea className="col-span-2 h-[500px]">
+                <div className="col-span-2 p-2 rounded">
+                  <h2 className="font-semibold mb-2">Heuristics & Issues</h2>
+                  {analysis.heuristics.map((h) => (
+                    <div key={h.id} className="border-b pb-2 mb-2">
+                      <p className="font-bold text-sm">
+                        {h.id}. {h.name}
+                      </p>
+                      {h.issues.length > 0 ? (
+                        <ul className="list-disc list-inside text-xs mt-1 space-y-1">
+                          {h.issues.map((issue) => (
+                            <li key={issue.issue_id}>
+                              <strong>{issue.issue_id}:</strong>{" "}
+                              {issue.description}
+                              <br />
+                              <em>Solution:</em> {issue.solution}
+                              {/* Show ALL occurrences (selector + occurrence ID) */}
+                              {issue.occurrences &&
+                                issue.occurrences.length > 0 && (
+                                  <div className="text-blue-500 mt-1">
+                                    {issue.occurrences &&
+                                      issue.occurrences.map((occ) => (
+                                        <div key={occ.id}>
+                                          <strong>Occurrence {occ.id}:</strong>{" "}
+                                          <code>{occ.selector}</code>
+                                        </div>
+                                      ))}
+                                  </div>
+                                )}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-gray-600">
+                          No issues found.
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
 
-            {/* Side panel: heuristics & issues */}
-            <ScrollArea className="col-span-2 h-[500px]">
-              <div className="col-span-2 p-2 rounded">
-                <h2 className="font-semibold mb-2">Heuristics & Issues</h2>
-                {analysis.heuristics.map((h) => (
-                  <div key={h.id} className="border-b pb-2 mb-2">
-                    <p className="font-bold text-sm">
-                      {h.id}. {h.name}
-                    </p>
-                    {h.issues.length > 0 ? (
-                      <ul className="list-disc list-inside text-xs mt-1 space-y-1">
-                        {h.issues.map((issue) => (
-                          <li key={issue.issue_id}>
-                            <strong>{issue.issue_id}:</strong>{" "}
-                            {issue.description}
-                            <br />
-                            <em>Solution:</em> {issue.solution}
-                            {/* Show ALL occurrences (selector + occurrence ID) */}
-                            {issue.occurrences &&
-                              issue.occurrences.length > 0 && (
-                                <div className="text-blue-500 mt-1">
-                                  {issue.occurrences &&
-                                    issue.occurrences.map((occ) => (
-                                      <div key={occ.id}>
-                                        <strong>Occurrence {occ.id}:</strong>{" "}
-                                        <code>{occ.selector}</code>
-                                      </div>
-                                    ))}
-                                </div>
-                              )}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-gray-600">No issues found.</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+            {/* (Optional) Display the per-heuristic numeric scores from the 'scores' array */}
+            <div className="mt-4 p-2 border rounded">
+              <h2 className="font-semibold mb-2">Heuristic Scores</h2>
+              {analysis.scores && analysis.scores.length > 0 ? (
+                <ul className="list-none pl-0 space-y-1 text-sm">
+                  {analysis.scores.map((score) => (
+                    <li key={score.id}>
+                      <strong>
+                        {score.id}. {score.name}
+                      </strong>
+                      : {score.score}/10
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-gray-600">No scores available.</p>
+              )}
+            </div>
           </div>
-
-          {/* (Optional) Display the per-heuristic numeric scores from the 'scores' array */}
-          <div className="mt-4 p-2 border rounded">
-            <h2 className="font-semibold mb-2">Heuristic Scores</h2>
-            {analysis.scores && analysis.scores.length > 0 ? (
-              <ul className="list-none pl-0 space-y-1 text-sm">
-                {analysis.scores.map((score) => (
-                  <li key={score.id}>
-                    <strong>
-                      {score.id}. {score.name}
-                    </strong>
-                    : {score.score}/10
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-xs text-gray-600">No scores available.</p>
-            )}
-          </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
-import { Sparkles } from "lucide-react";
+import Image from "next/image";
 import AccountMenu from "./AccountMenu";
 import Link from "next/link";
 
@@ -12,9 +12,13 @@ export default function AppBar() {
           <div className=" lg:hidden"></div>
           <MenubarTrigger>
             <Link href="/">
-              <div className="flex">
-                <h1 className="text-xl font-bold">UXMust</h1>
-              </div>
+              <Image
+                src="/images/logo.png"
+                alt="UXMust Logo"
+                width={120}
+                height={40}
+                className="w-auto h-8"
+              />
             </Link>
           </MenubarTrigger>
         </MenubarMenu>
