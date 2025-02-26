@@ -125,7 +125,7 @@ export default function AnalysisView({
         issue.occurrences?.forEach((occ) => {
           highlights.push({
             selector: occ.selector,
-            label: issue.issue_id,
+            label: occ.id,
           });
         });
       });
