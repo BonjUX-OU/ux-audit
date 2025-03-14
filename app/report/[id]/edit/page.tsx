@@ -572,7 +572,7 @@ export default function EditReportPage() {
                                   variant="destructive"
                                   size="sm"
                                   onClick={() => removeHeuristic(hIndex)}
-                                  className="bg-[#C25B3F] hover:bg-[#A04A33]"
+                                  className="bg-[#C25B3F] hover:bg-[#A04A33] mt-6"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -611,7 +611,7 @@ export default function EditReportPage() {
                                       onClick={() =>
                                         removeIssue(hIndex, iIndex)
                                       }
-                                      className="bg-[#C25B3F] hover:bg-[#A04A33]"
+                                      className="bg-[#C25B3F] hover:bg-[#A04A33] mt-6"
                                     >
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
