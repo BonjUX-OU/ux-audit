@@ -1,15 +1,16 @@
+// models/Report.ts
 import mongoose from "mongoose";
+
+const OccurrenceSchema = new mongoose.Schema({
+  id: String,
+  selector: String,
+});
 
 const IssueSchema = new mongoose.Schema({
   issue_id: String,
   description: String,
   solution: String,
-  occurrences: [
-    {
-      id: String,
-      selector: String,
-    },
-  ],
+  occurrences: [OccurrenceSchema],
 });
 
 const HeuristicSchema = new mongoose.Schema({
@@ -22,6 +23,7 @@ const ScoreSchema = new mongoose.Schema({
   id: Number,
   score: String,
 });
+
 const ReportSchema = new mongoose.Schema(
   {
     project: {
@@ -53,6 +55,11 @@ const ReportSchema = new mongoose.Schema(
     snapshotHtml: {
       type: String, // store the entire HTML string
       required: true,
+    },
+    // New field for human-edited reports:
+    humanEdited: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
