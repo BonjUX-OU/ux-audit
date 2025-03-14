@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AppBar from "@/components/layout/AppBar";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Edit2Icon } from "lucide-react";
 
 type Occurrence = {
   id: string;
@@ -187,11 +187,19 @@ export default function AnalysisView({
     <>
       <AppBar />
       <div className="p-4 space-y-4 pt-16">
-        <Button variant="ghost" onClick={() => router.push(`/dashboard`)}>
-          <ChevronLeft />
-          Back to Dashboard
-        </Button>
-
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" onClick={() => router.push(`/dashboard`)}>
+            <ChevronLeft />
+            Back to Dashboard
+          </Button>
+          <Button
+            onClick={() => router.push(`/report/${id}/edit`)}
+            className="ml-auto"
+          >
+            <Edit2Icon />
+            Edit
+          </Button>
+        </div>
         <main className="flex-1 px-4 overflow-auto">
           <div>
             <RatingBar score={overallScore} ratingLabel={ratingLabel} />
