@@ -2,45 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Report from "@/models/Report";
 
-/**
- * This script is injected into the snapshot HTML.
- * - We handle a "SET_SCALE" message to zoom out the entire page if needed.
- * - We handle drag-to-select logic, using scaled coords for elementFromPoint.
- */
+// This script is injected into the snapshot HTML.
 function highlightScript() {
-  // If the parent is narrower than 1200 px, we scale down
-  let currentScale = 1.0; // default no zoom-out
+  // Scale factors and edit mode state.
+  let currentScale = 1.0;
   let editMode = false;
   let isDragging = false;
   let startX = 0;
   let startY = 0;
   let overlay: HTMLDivElement | null = null;
 
-  // Make the content always sized for 1200 px, then scale
-  // (You could set the body width to 1200 if you prefer.)
   function applyScaleFactor(scale: number) {
     currentScale = scale;
     const html = document.documentElement;
     html.style.transformOrigin = "top left";
     html.style.transform = `scale(${currentScale})`;
-    // Force the layout to 1200 px so we see the "desktop" layout
     html.style.width = "1200px";
-    // If you want to ensure no leftover horizontal scrolbars in the iFrame doc:
     html.style.overflowX = "hidden";
   }
 
-  // Build a unique CSS path for the found element
   function getUniqueSelector(element: HTMLElement | null): string {
-    if (!element || element.nodeType !== Node.ELEMENT_NODE) {
-      return "";
-    }
-    if (element.id) {
-      return `#${CSS.escape(element.id)}`;
-    }
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return "";
+    if (element.id) return `#${CSS.escape(element.id)}`;
     const parent = element.parentElement;
-    if (!parent) {
-      return element.tagName.toLowerCase();
-    }
+    if (!parent) return element.tagName.toLowerCase();
     const siblings = Array.from(parent.children).filter(
       (node) => node.tagName === element.tagName
     );
@@ -48,11 +33,9 @@ function highlightScript() {
     const tagName = element.tagName.toLowerCase();
     const nth = index > 1 ? `${tagName}:nth-of-type(${index})` : tagName;
     const parentSelector = getUniqueSelector(parent);
-    if (!parentSelector || parentSelector === "html") {
-      return `html > ${nth}`;
-    } else {
-      return `${parentSelector} > ${nth}`;
-    }
+    return parentSelector && parentSelector !== "html"
+      ? `${parentSelector} > ${nth}`
+      : `html > ${nth}`;
   }
 
   function removeOverlay() {
@@ -67,7 +50,6 @@ function highlightScript() {
     isDragging = true;
     startX = e.clientX;
     startY = e.clientY;
-
     overlay = document.createElement("div");
     overlay.style.position = "fixed";
     overlay.style.left = `${startX}px`;
@@ -78,7 +60,6 @@ function highlightScript() {
     overlay.style.border = "2px dashed blue";
     overlay.style.zIndex = "10000";
     document.body.appendChild(overlay);
-
     e.preventDefault();
   }
 
@@ -102,14 +83,9 @@ function highlightScript() {
     isDragging = false;
     const rect = overlay.getBoundingClientRect();
     removeOverlay();
-
-    // The user is seeing a scaled doc.
-    // If currentScale=0.5, then the doc is half size,
-    // but the pointer coords are at the "visual" scale.
-    // We must invert the scale when calling elementFromPoint.
+    // Adjust pointer coordinates for scaling.
     const centerX = (rect.left + rect.width / 2) / currentScale;
     const centerY = (rect.top + rect.height / 2) / currentScale;
-
     const el = document.elementFromPoint(centerX, centerY) as HTMLElement;
     if (el) {
       const uniqueSelector = getUniqueSelector(el);
@@ -124,13 +100,11 @@ function highlightScript() {
   window.addEventListener("message", (event) => {
     if (!event.data) return;
     const { type } = event.data;
-
     if (type === "SET_SCALE") {
-      // The parent told us to scale the doc
       const scale = event.data.scale || 1.0;
       applyScaleFactor(scale);
     } else if (type === "HIGHLIGHT") {
-      // Possibly highlight known issues
+      // Highlight known issues and add hover listeners.
       const highlights = event.data.highlights || [];
       highlights.forEach((h: any) => {
         const label = h.label || "";
@@ -138,9 +112,9 @@ function highlightScript() {
         try {
           const elements = document.querySelectorAll(selector);
           elements.forEach((el) => {
-            (el as HTMLElement).style.outline = "3px solid red";
-            (el as HTMLElement).style.position = "relative";
-
+            const htmlEl = el as HTMLElement;
+            htmlEl.style.outline = "3px solid red";
+            htmlEl.style.position = "relative";
             const labelSpan = document.createElement("span");
             labelSpan.textContent = label;
             labelSpan.style.position = "absolute";
@@ -151,7 +125,22 @@ function highlightScript() {
             labelSpan.style.padding = "2px 4px";
             labelSpan.style.fontSize = "12px";
             labelSpan.style.zIndex = "9999";
-            (el as HTMLElement).appendChild(labelSpan);
+            htmlEl.appendChild(labelSpan);
+            // When the user hovers, send the issue details to the parent.
+            htmlEl.addEventListener("mouseenter", function () {
+              // Send the issue id and current element bounds.
+              window.parent.postMessage(
+                {
+                  type: "ISSUE_MOUSEENTER",
+                  issueId: h.issueId,
+                  position: { x: 0, y: 0 }, // The position is ignored by the parent.
+                },
+                "*"
+              );
+            });
+            htmlEl.addEventListener("mouseleave", function () {
+              window.parent.postMessage({ type: "ISSUE_MOUSELEAVE" }, "*");
+            });
           });
         } catch (err) {
           console.warn("Invalid selector skipped:", selector, err);
@@ -188,46 +177,36 @@ export async function GET(request: NextRequest, { params }: any) {
   if (!analysisId) {
     return new NextResponse("Analysis ID is required", { status: 400 });
   }
-
   try {
     await dbConnect();
     const report = await Report.findById(analysisId);
     if (!report) {
       return new NextResponse("Analysis not found", { status: 404 });
     }
-
     let snapshotHtml = report.snapshotHtml;
     if (!snapshotHtml) {
       return new NextResponse("No snapshot HTML stored", { status: 404 });
     }
-
-    // Remove external scripts that might break the page
+    // Remove external scripts that might break the page.
     snapshotHtml = snapshotHtml.replace(
       /<script[^>]+src=['"]?[^'"]*_vercel\/insights\/view[^>]*><\/script>/gi,
       ""
     );
-
-    // Remove or rewrite <meta name="viewport"> to avoid forced mobile scaling
+    // Remove or rewrite <meta name="viewport"> to avoid forced mobile scaling.
     snapshotHtml = snapshotHtml.replace(
       /<meta[^>]+name=["']viewport["'][^>]*>/gi,
       ""
     );
-
-    // Insert a <base> tag so relative URLs load properly
+    // Insert a <base> tag so relative URLs load properly.
     if (report.url) {
       snapshotHtml = snapshotHtml.replace(
         /<head([^>]*)>/i,
         `<head$1><base href="${report.url}">`
       );
     }
-
-    // Inject highlight/drag script before </body>
-    const injection = `
-<script>(${highlightScript.toString()})()</script>
-</body>
-`;
+    // Inject the highlight/drag script before </body>.
+    const injection = `<script>(${highlightScript.toString()})()</script></body>`;
     snapshotHtml = snapshotHtml.replace("</body>", injection);
-
     return new NextResponse(snapshotHtml, {
       status: 200,
       headers: {
