@@ -4,6 +4,7 @@ import puppeteer from "puppeteer-core";
 import type { Browser } from "puppeteer-core";
 
 export const revalidate = 0;
+export const maxDuration = 45;
 
 let puppeteerModule: any = puppeteer;
 if (process.env.NODE_ENV === "development") {
