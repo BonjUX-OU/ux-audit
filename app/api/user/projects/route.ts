@@ -1,4 +1,4 @@
-// app/api//route.ts
+// app/api/user/projects/route.ts
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Project from "@/models/Project";

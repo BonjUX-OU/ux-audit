@@ -371,7 +371,7 @@ export default function EditReportPage() {
     if (!originalReport) return;
     setIsSaving(true);
 
-    const newReport = {
+    const updatedReport = {
       owner: originalReport.owner,
       project: originalReport.project,
       url: originalReport.url,
@@ -385,10 +385,10 @@ export default function EditReportPage() {
     };
 
     try {
-      const res = await fetch("/api/report", {
-        method: "POST",
+      const res = await fetch(`/api/report?id=${id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newReport),
+        body: JSON.stringify(updatedReport),
       });
       if (!res.ok) throw new Error("Failed to save report");
       router.push("/dashboard");
