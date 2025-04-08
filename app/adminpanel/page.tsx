@@ -90,7 +90,7 @@ ChartJS.register(
   TimeSeriesScale
 );
 
-// Types
+// ----------- Types -----------
 type HeuristicDistributionItem = {
   id: number;
   name: string;
@@ -115,6 +115,13 @@ type HeuristicScoreAverage = {
   averageScore: number;
 };
 
+interface TimeSeriesData {
+  labels: string[]; // e.g. ["2023-09-01","2023-09-02",...]
+  users: number[]; // daily counts of new users
+  projects: number[]; // daily counts of new projects
+  reports: number[]; // daily counts of new reports
+}
+
 interface AdminStatsResponse {
   totalUsers: number;
   totalWaitingList: number;
@@ -126,6 +133,7 @@ interface AdminStatsResponse {
   sectorDistribution: Record<string, number>;
   heuristicStats: HeuristicStats;
   heuristicScoreAverages: HeuristicScoreAverage[];
+  timeSeries: TimeSeriesData; // actual daily data from the DB
 }
 
 interface AdminUserDetails {
@@ -155,21 +163,21 @@ const TIME_PERIODS = [
 
 // UXMust theme colors
 const THEME = {
-  primary: "#B94A2F", // Terracotta red for primary actions
-  primaryLight: "#E57A5F", // Lighter version of primary
-  background: "#FFF5E6", // Cream background
-  text: "#1E2A3B", // Dark navy text
-  muted: "#8896AB", // Muted text
-  accent: "#F8B400", // Yellow accent
-  success: "#4CAF50", // Green for success
-  warning: "#FF9800", // Orange for warnings
-  error: "#F44336", // Red for errors
+  primary: "#B94A2F",
+  primaryLight: "#E57A5F",
+  background: "#FFF5E6",
+  text: "#1E2A3B",
+  muted: "#8896AB",
+  accent: "#F8B400",
+  success: "#4CAF50",
+  warning: "#FF9800",
+  error: "#F44336",
   chart: {
-    users: "#B94A2F", // Primary color for users
-    reports: "#F8B400", // Accent color for reports
-    projects: "#1E2A3B", // Text color for projects
-    humanEdited: "#4CAF50", // Success color for human edited
-    aiOnly: "#8896AB", // Muted color for AI only
+    users: "#B94A2F",
+    reports: "#F8B400",
+    projects: "#1E2A3B",
+    humanEdited: "#4CAF50",
+    aiOnly: "#8896AB",
   },
 };
 
@@ -180,9 +188,14 @@ export default function AdminDashboard() {
   const [filteredUsers, setFilteredUsers] = useState<AdminUserDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [userTypeFilter, setUserTypeFilter] = useState<string>("all");
+
+  // This timePeriod is used to filter the user table,
+  // but the line chart is always 30 days from the server for now.
   const [timePeriod, setTimePeriod] = useState<string>("30d");
+
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedDataSeries, setSelectedDataSeries] = useState({
     users: true,
@@ -190,34 +203,19 @@ export default function AdminDashboard() {
     projects: true,
   });
 
-  // Generate time series data for charts
-  const [timeSeriesData, setTimeSeriesData] = useState<{
-    users: { x: Date; y: number }[];
-    reports: { x: Date; y: number }[];
-    projects: { x: Date; y: number }[];
-  }>({
-    users: [],
-    reports: [],
-    projects: [],
-  });
-
-  // Fetch main stats
+  // Fetch main stats (including timeSeries)
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await fetch("/api/admin/stats");
         const data: AdminStatsResponse = await res.json();
         setStats(data);
-
-        // Generate time series data for charts
-        generateTimeSeriesData(data);
       } catch (error) {
         console.error("Error fetching admin stats:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchStats();
   }, []);
 
@@ -235,11 +233,10 @@ export default function AdminDashboard() {
         setLoadingUsers(false);
       }
     };
-
     fetchUsers();
   }, []);
 
-  // Filter users when search term or user type filter changes
+  // Filter users when search term / user type / timePeriod changes
   useEffect(() => {
     if (!userDetails.length) return;
 
@@ -260,7 +257,7 @@ export default function AdminDashboard() {
       filtered = filtered.filter((user) => user.type === userTypeFilter);
     }
 
-    // Filter by time period if applicable
+    // Filter by time period for createdAt
     if (timePeriod !== "all") {
       const cutoffDate = getDateFromTimePeriod(timePeriod);
       filtered = filtered.filter((user) => {
@@ -273,7 +270,7 @@ export default function AdminDashboard() {
     setFilteredUsers(filtered);
   }, [searchTerm, userTypeFilter, userDetails, timePeriod]);
 
-  // Get cutoff date based on time period
+  // Helper: get cutoff date based on time period (for user table filtering)
   const getDateFromTimePeriod = (period: string): Date => {
     const now = new Date();
     switch (period) {
@@ -290,84 +287,9 @@ export default function AdminDashboard() {
       case "3y":
         return subYears(now, 3);
       default:
-        return new Date(0); // Beginning of time
+        return new Date(0);
     }
   };
-
-  // Generate time series data for line charts
-  const generateTimeSeriesData = (data: AdminStatsResponse) => {
-    if (!data) return;
-
-    const now = new Date();
-    const users: { x: Date; y: number }[] = [];
-    const reports: { x: Date; y: number }[] = [];
-    const projects: { x: Date; y: number }[] = [];
-
-    // Determine how many data points to generate based on time period
-    let days = 30;
-    switch (timePeriod) {
-      case "24h":
-        days = 24;
-        break; // 24 hours, hourly data points
-      case "7d":
-        days = 7;
-        break;
-      case "30d":
-        days = 30;
-        break;
-      case "90d":
-        days = 90;
-        break;
-      case "12m":
-        days = 365;
-        break;
-      case "3y":
-        days = 365 * 3;
-        break;
-      case "all":
-        days = 365 * 3;
-        break; // Default to 3 years for "all"
-    }
-
-    // Generate data points
-    for (let i = days; i >= 0; i--) {
-      const date = subDays(now, i);
-
-      // Simulate cumulative data based on the stats
-      // In a real app, you'd fetch actual daily data from your API
-      const dayFactor = (days - i) / days;
-
-      users.push({
-        x: date,
-        y: Math.round(
-          data.totalUsers * dayFactor * (0.9 + Math.random() * 0.2)
-        ),
-      });
-
-      reports.push({
-        x: date,
-        y: Math.round(
-          data.totalReports * dayFactor * (0.85 + Math.random() * 0.3)
-        ),
-      });
-
-      projects.push({
-        x: date,
-        y: Math.round(
-          data.totalProjects * dayFactor * (0.88 + Math.random() * 0.24)
-        ),
-      });
-    }
-
-    setTimeSeriesData({ users, reports, projects });
-  };
-
-  // Update time series data when time period changes
-  useEffect(() => {
-    if (stats) {
-      generateTimeSeriesData(stats);
-    }
-  }, [timePeriod]);
 
   // Helper for date display
   function formatDate(date?: string | Date) {
@@ -376,49 +298,54 @@ export default function AdminDashboard() {
     return d.toLocaleString();
   }
 
-  // Get filtered stats based on time period
+  // getFilteredStats is used in your KPI cards for "overview"
+  // (the daily line chart is always 30d from server)
   const getFilteredStats = useMemo(() => {
     if (!stats) return null;
 
-    // For the overview cards, use the dateRangeStats directly
-    if (timePeriod === "24h")
+    if (timePeriod === "24h") {
       return {
         users: stats.dateRangeStats.users["24h"],
         reports: stats.dateRangeStats.reports["24h"],
         projects: stats.dateRangeStats.projects["24h"],
       };
-    if (timePeriod === "7d")
+    }
+    if (timePeriod === "7d") {
       return {
         users: stats.dateRangeStats.users["7d"],
         reports: stats.dateRangeStats.reports["7d"],
         projects: stats.dateRangeStats.projects["7d"],
       };
-    if (timePeriod === "30d")
+    }
+    if (timePeriod === "30d") {
       return {
         users: stats.dateRangeStats.users["30d"],
         reports: stats.dateRangeStats.reports["30d"],
         projects: stats.dateRangeStats.projects["30d"],
       };
-    if (timePeriod === "90d")
+    }
+    if (timePeriod === "90d") {
       return {
         users: stats.dateRangeStats.users["90d"],
         reports: stats.dateRangeStats.reports["90d"],
         projects: stats.dateRangeStats.projects["90d"],
       };
-    if (timePeriod === "12m")
+    }
+    if (timePeriod === "12m") {
       return {
         users: stats.dateRangeStats.users["12m"],
         reports: stats.dateRangeStats.reports["12m"],
         projects: stats.dateRangeStats.projects["12m"],
       };
-    if (timePeriod === "3y")
+    }
+    if (timePeriod === "3y") {
       return {
         users: stats.dateRangeStats.users["3y"],
         reports: stats.dateRangeStats.reports["3y"],
         projects: stats.dateRangeStats.projects["3y"],
       };
-
-    // Default to total counts for "all"
+    }
+    // Default to total if "all"
     return {
       users: stats.totalUsers,
       reports: stats.totalReports,
@@ -426,7 +353,7 @@ export default function AdminDashboard() {
     };
   }, [stats, timePeriod]);
 
-  // Loading state
+  // Loading states
   if (loading || loadingUsers) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -464,8 +391,8 @@ export default function AdminDashboard() {
     );
   }
 
-  // Prepare chart data
-  // Human vs AI pie chart
+  // ----------- CHART DATA PREP -----------
+  // 1) Human vs AI Pie
   const humanEditedCount = stats.totalHumanEditedReports;
   const aiOnlyCount = stats.totalReports - humanEditedCount;
   const humanVsAiPieData = {
@@ -481,7 +408,7 @@ export default function AdminDashboard() {
     ],
   };
 
-  // Page type distribution pie chart
+  // 2) Page Type Distribution
   const pageTypeLabels = Object.keys(stats.pageTypeDistribution);
   const pageTypeValues = Object.values(stats.pageTypeDistribution);
   const pageTypePieData = {
@@ -511,7 +438,7 @@ export default function AdminDashboard() {
     ],
   };
 
-  // Sector distribution bar chart
+  // 3) Sector Distribution Bar
   const sectorLabels = Object.keys(stats.sectorDistribution);
   const sectorValues = Object.values(stats.sectorDistribution);
   const sectorBarData = {
@@ -526,7 +453,7 @@ export default function AdminDashboard() {
     ],
   };
 
-  // Heuristic distribution bar chart
+  // 4) Heuristic Distribution Bar
   const heuristicsSorted = stats.heuristicStats.distribution;
   const heuristicIssueBarData = {
     labels: heuristicsSorted.map((h) => h.name || `Heuristic ${h.id}`),
@@ -540,7 +467,7 @@ export default function AdminDashboard() {
     ],
   };
 
-  // Heuristic average scores bar chart
+  // 5) Heuristic Average Scores Bar
   const heuristicScoreLabels = stats.heuristicScoreAverages.map((h) => h.name);
   const heuristicScoreValues = stats.heuristicScoreAverages.map(
     (h) => h.averageScore
@@ -557,62 +484,76 @@ export default function AdminDashboard() {
     ],
   };
 
-  // Combined time series line chart
+  // 6) **Actual** Time Series from `stats.timeSeries` for 30 days
+  // We'll store them as "date -> count" or just use the arrays
+  // You can do a "time" scale if we convert each label into a date, or just treat them as category labels.
+  const {
+    labels: timeSeriesLabels,
+    users,
+    projects,
+    reports,
+  } = stats.timeSeries;
+
+  // If you want a time-based scale with real dates, you'd parse each label into a Date object.
+  // For example:
+  const timeDataUsers = timeSeriesLabels.map((label, i) => ({
+    x: new Date(label), // parse the "YYYY-MM-DD"
+    y: users[i],
+  }));
+  const timeDataProjects = timeSeriesLabels.map((label, i) => ({
+    x: new Date(label),
+    y: projects[i],
+  }));
+  const timeDataReports = timeSeriesLabels.map((label, i) => ({
+    x: new Date(label),
+    y: reports[i],
+  }));
+
   const combinedLineData = {
     datasets: [
-      ...(selectedDataSeries.users
-        ? [
-            {
-              label: "Users",
-              data: timeSeriesData.users,
-              borderColor: THEME.chart.users,
-              backgroundColor: "rgba(185, 74, 47, 0.1)",
-              fill: true,
-              tension: 0.2,
-              hidden: !selectedDataSeries.users,
-            },
-          ]
-        : []),
-      ...(selectedDataSeries.reports
-        ? [
-            {
-              label: "Reports",
-              data: timeSeriesData.reports,
-              borderColor: THEME.chart.reports,
-              backgroundColor: "rgba(248, 180, 0, 0.1)",
-              fill: true,
-              tension: 0.2,
-              hidden: !selectedDataSeries.reports,
-            },
-          ]
-        : []),
-      ...(selectedDataSeries.projects
-        ? [
-            {
-              label: "Projects",
-              data: timeSeriesData.projects,
-              borderColor: THEME.chart.projects,
-              backgroundColor: "rgba(30, 42, 59, 0.1)",
-              fill: true,
-              tension: 0.2,
-              hidden: !selectedDataSeries.projects,
-            },
-          ]
-        : []),
-    ],
+      selectedDataSeries.users
+        ? {
+            label: "Users",
+            data: timeDataUsers,
+            borderColor: THEME.chart.users,
+            backgroundColor: "rgba(185, 74, 47, 0.1)",
+            fill: true,
+            tension: 0.2,
+          }
+        : null,
+      selectedDataSeries.reports
+        ? {
+            label: "Reports",
+            data: timeDataReports,
+            borderColor: THEME.chart.reports,
+            backgroundColor: "rgba(248, 180, 0, 0.1)",
+            fill: true,
+            tension: 0.2,
+          }
+        : null,
+      selectedDataSeries.projects
+        ? {
+            label: "Projects",
+            data: timeDataProjects,
+            borderColor: THEME.chart.projects,
+            backgroundColor: "rgba(30, 42, 59, 0.1)",
+            fill: true,
+            tension: 0.2,
+          }
+        : null,
+    ].filter((dataset) => dataset !== null),
   };
 
-  // Line chart options
+  // Chart Options
   const lineChartOptions = {
     responsive: true,
     scales: {
       x: {
         type: "time" as const,
         time: {
-          unit: timePeriod === "24h" ? ("hour" as const) : ("day" as const),
-          tooltipFormat: "MMM d, yyyy, HH:mm",
+          unit: "day" as const,
+          tooltipFormat: "MMM d, yyyy",
           displayFormats: {
-            hour: "HH:mm",
             day: "MMM d",
           },
         },
@@ -620,6 +561,12 @@ export default function AdminDashboard() {
           display: true,
           text: "Date",
           color: THEME.text,
+        },
+        ticks: {
+          color: THEME.text,
+        },
+        grid: {
+          color: "rgba(0,0,0,0.05)",
         },
       },
       y: {
@@ -629,8 +576,11 @@ export default function AdminDashboard() {
           text: "Count",
           color: THEME.text,
         },
+        ticks: {
+          color: THEME.text,
+        },
         grid: {
-          color: "rgba(0, 0, 0, 0.05)",
+          color: "rgba(0,0,0,0.05)",
         },
       },
     },
@@ -640,7 +590,6 @@ export default function AdminDashboard() {
         labels: {
           color: THEME.text,
           usePointStyle: true,
-          pointStyle: "circle",
         },
       },
       tooltip: {
@@ -655,7 +604,6 @@ export default function AdminDashboard() {
     },
   };
 
-  // Bar chart options
   const barChartOptions = {
     responsive: true,
     plugins: {
@@ -693,7 +641,6 @@ export default function AdminDashboard() {
     },
   };
 
-  // Pie chart options
   const pieChartOptions = {
     responsive: true,
     plugins: {
@@ -716,7 +663,7 @@ export default function AdminDashboard() {
             const label = context.label || "";
             const value = context.raw || 0;
             const total = context.dataset.data.reduce(
-              (a: number, b: number) => a + b,
+              (acc: number, val: number) => acc + val,
               0
             );
             const percentage = Math.round((value / total) * 100);
@@ -762,9 +709,7 @@ export default function AdminDashboard() {
           </div>
           <Select
             value={timePeriod}
-            onValueChange={(value) => {
-              setTimePeriod(value);
-            }}
+            onValueChange={(value) => setTimePeriod(value)}
           >
             <SelectTrigger
               className="w-40"
@@ -803,7 +748,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="flex items-center justify-center p-6 lg:px-24">
         <Tabs
           value={activeTab}
@@ -861,9 +806,9 @@ export default function AdminDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
+          {/* OVERVIEW TAB */}
           <TabsContent value="overview" className="space-y-6">
-            {/* KPI Cards */}
+            {/* KPI CARDS */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card className="border border-gray-300">
                 <CardHeader className="pb-2">
@@ -882,7 +827,7 @@ export default function AdminDashboard() {
                     <span style={{ color: THEME.chart.humanEdited }}>
                       +{stats.dateRangeStats.users["24h"]}
                     </span>{" "}
-                    in the last 24h
+                    in last 24h
                   </p>
                 </CardContent>
               </Card>
@@ -921,7 +866,7 @@ export default function AdminDashboard() {
                     <span style={{ color: THEME.chart.humanEdited }}>
                       +{stats.dateRangeStats.projects["24h"]}
                     </span>{" "}
-                    in the last 24h
+                    in last 24h
                   </p>
                 </CardContent>
               </Card>
@@ -942,13 +887,13 @@ export default function AdminDashboard() {
                     <span style={{ color: THEME.chart.humanEdited }}>
                       +{stats.dateRangeStats.reports["24h"]}
                     </span>{" "}
-                    in the last 24h
+                    in last 24h
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Combined Growth Chart */}
+            {/* COMBINED GROWTH CHART (Line) */}
             <Card className="border border-gray-300">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
@@ -956,7 +901,7 @@ export default function AdminDashboard() {
                     Growth Trends
                   </CardTitle>
                   <CardDescription style={{ color: THEME.muted }}>
-                    Track users, reports, and projects over time
+                    Actual daily counts (last 30 days)
                   </CardDescription>
                 </div>
                 <DropdownMenu>
@@ -979,36 +924,36 @@ export default function AdminDashboard() {
                     <DropdownMenuCheckboxItem
                       checked={selectedDataSeries.users}
                       onCheckedChange={(checked) =>
-                        setSelectedDataSeries({
-                          ...selectedDataSeries,
+                        setSelectedDataSeries((prev) => ({
+                          ...prev,
                           users: !!checked,
-                        })
+                        }))
                       }
                     >
-                      <span style={{ color: THEME.chart.users }}>● </span>Users
+                      <span style={{ color: THEME.chart.users }}>●</span> Users
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
                       checked={selectedDataSeries.reports}
                       onCheckedChange={(checked) =>
-                        setSelectedDataSeries({
-                          ...selectedDataSeries,
+                        setSelectedDataSeries((prev) => ({
+                          ...prev,
                           reports: !!checked,
-                        })
+                        }))
                       }
                     >
-                      <span style={{ color: THEME.chart.reports }}>● </span>
+                      <span style={{ color: THEME.chart.reports }}>●</span>{" "}
                       Reports
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
                       checked={selectedDataSeries.projects}
                       onCheckedChange={(checked) =>
-                        setSelectedDataSeries({
-                          ...selectedDataSeries,
+                        setSelectedDataSeries((prev) => ({
+                          ...prev,
                           projects: !!checked,
-                        })
+                        }))
                       }
                     >
-                      <span style={{ color: THEME.chart.projects }}>● </span>
+                      <span style={{ color: THEME.chart.projects }}>●</span>{" "}
                       Projects
                     </DropdownMenuCheckboxItem>
                   </DropdownMenuContent>
@@ -1022,7 +967,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Users Tab */}
+          {/* USERS TAB */}
           <TabsContent value="users" className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold" style={{ color: THEME.text }}>
@@ -1221,7 +1166,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Reports Tab */}
+          {/* REPORTS TAB */}
           <TabsContent value="reports" className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="border border-gray-300">
@@ -1380,7 +1325,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Analytics Tab */}
+          {/* ANALYTICS TAB */}
           <TabsContent value="analytics" className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="border border-gray-300">
@@ -1493,6 +1438,7 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+
             {/* Distribution Charts */}
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="border border-gray-300">

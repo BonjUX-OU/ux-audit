@@ -344,7 +344,11 @@ export default function EditReportPage() {
       solution: newIssueData.solution || "",
       occurrences: [
         {
-          id: Date.now().toString(),
+          //id = issue id + occurence index for the issue id, this means find issues with the same id and add its occurrences and get the occurences length
+          id: `${newIssueData.issue_id}.
+            ${newHeuristics[hIndex].issues
+              .filter((issue) => issue.issue_id === newIssueData.issue_id)
+              .reduce((acc, issue) => acc + issue.occurrences.length, 0)}`,
           selector: newIssueSelector,
         },
       ],

@@ -168,12 +168,28 @@ export default function DashboardPage() {
     "Healthcare",
     "Finance",
     "Education",
+    "E-commerce",
+    "Technology / Software",
+    "Real Estate",
+    "Entertainment & Media",
+    "Tourism & Travel",
+    "Social Networking",
+    "Manufacturing",
+    "Consulting & Professional Services",
+    "Nonprofit/NGO",
+    "Retail",
+    "Telecommunications",
+    "Automotive",
   ]);
   const [pageTypeOptions, setPageTypeOptions] = useState([
     "Homepage",
-    "AboutUs",
-    "Pricing",
-    "Checkout",
+    "Product/Service Page",
+    "About Page",
+    "Blog Page",
+    "Contact Page",
+    "FAQ Page",
+    "E-commerce Product Page",
+    "Pricing Page",
   ]);
 
   // Add new item dialog controls
