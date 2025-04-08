@@ -1,71 +1,74 @@
+// app/api/admin/stats/route.ts
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-
 import User from "@/models/User";
 import Email from "@/models/Email";
 import Project from "@/models/Project";
 import Report from "@/models/Report";
 
-// Helper function to get date ranges
+// Helper: returns a date "days" days ago
 function getPastDate(days: number) {
   const now = new Date();
   return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
 }
-
 function getPastYears(years: number) {
   const now = new Date();
   return new Date(now.setFullYear(now.getFullYear() - years));
 }
 
-// ----- TIME SERIES HELPER -----
-// Return an array of daily counts for the last `days` days, in ascending order.
-async function getDailyCounts(Model: any, days = 30) {
-  const results: { date: string; count: number }[] = [];
+// Daily counts for the last X days
+// We'll do a simple day-by-day loop, counting docs each day.
+async function getDailyCounts(Model: any, days: number): Promise<number[]> {
+  const counts: number[] = [];
+  // We'll go from "today - days" up to "today - 1 day"
+  // Then for the last iteration, it's "today"
+  // We'll store them in ascending order or descending order as we like.
 
-  // We'll go from the oldest day to the most recent day
-  // Day i=days-1 => the oldest day, i=0 => "today"
-  // so final array is ascending in date
-  for (let i = days - 1; i >= 0; i--) {
-    // Start of the day
-    const start = new Date();
-    start.setHours(0, 0, 0, 0); // midnight
-    start.setDate(start.getDate() - i);
+  // Let's store ascending. We'll define a reference date "start"
+  // and for i in [0..days) we create day i.
+  // Then do a 1-day range each time.
+  const now = new Date();
+  const earliest = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
 
-    // Next day
+  // We'll step from day 0 to day n, each time counting docs for that day.
+  let current = new Date(earliest);
+  for (let i = 0; i < days; i++) {
+    // start of the day
+    const start = new Date(current);
+    start.setHours(0, 0, 0, 0);
+
+    // end of the day = start + 24h
     const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
 
+    // Count how many docs have createdAt in [start, end)
     const count = await Model.countDocuments({
-      createdAt: {
-        $gte: start,
-        $lt: end,
-      },
+      createdAt: { $gte: start, $lt: end },
     });
+    counts.push(count);
 
-    // Format the date label (YYYY-MM-DD) or anything you like
-    const label = start.toISOString().split("T")[0]; // e.g. 2025-04-04
-
-    results.push({ date: label, count });
+    // increment current by 1 day
+    current = end;
   }
 
-  return results;
+  return counts;
 }
 
 export async function GET() {
   try {
     await dbConnect();
 
-    // ---- BASIC COUNTS ----
+    // 1) Basic totals
     const totalUsers = await User.countDocuments();
     const totalWaitingList = await Email.countDocuments();
     const totalProjects = await Project.countDocuments();
     const totalReports = await Report.countDocuments();
 
-    // ---- HUMAN-EDITED REPORTS ----
+    // 2) Human-edited vs AI
     const totalHumanEditedReports = await Report.countDocuments({
       humanEdited: true,
     });
 
-    // ---- DATE RANGE QUERIES ----
+    // 3) Date-range queries for stats
     const last24Hours = getPastDate(1);
     const last7Days = getPastDate(7);
     const last30Days = getPastDate(30);
@@ -93,7 +96,6 @@ export async function GET() {
       reports12m,
       reports3y,
     ] = await Promise.all([
-      // user counts
       User.countDocuments({ createdAt: { $gte: last24Hours } }),
       User.countDocuments({ createdAt: { $gte: last7Days } }),
       User.countDocuments({ createdAt: { $gte: last30Days } }),
@@ -101,7 +103,6 @@ export async function GET() {
       User.countDocuments({ createdAt: { $gte: last12Months } }),
       User.countDocuments({ createdAt: { $gte: last3Years } }),
 
-      // project counts
       Project.countDocuments({ createdAt: { $gte: last24Hours } }),
       Project.countDocuments({ createdAt: { $gte: last7Days } }),
       Project.countDocuments({ createdAt: { $gte: last30Days } }),
@@ -109,7 +110,6 @@ export async function GET() {
       Project.countDocuments({ createdAt: { $gte: last12Months } }),
       Project.countDocuments({ createdAt: { $gte: last3Years } }),
 
-      // report counts
       Report.countDocuments({ createdAt: { $gte: last24Hours } }),
       Report.countDocuments({ createdAt: { $gte: last7Days } }),
       Report.countDocuments({ createdAt: { $gte: last30Days } }),
@@ -118,20 +118,18 @@ export async function GET() {
       Report.countDocuments({ createdAt: { $gte: last3Years } }),
     ]);
 
-    // ---- GET ALL REPORTS (FOR DISTRIBUTIONS) ----
+    // 4) Page type, sector distribution, heuristic stats
     const allReports = await Report.find(
       {},
       { heuristics: 1, scores: 1, pageType: 1, sector: 1 }
     );
 
-    // PAGE TYPE / SECTOR / HEURISTIC DISTRIBUTIONS
     const pageTypeIssueCount: Record<string, number> = {};
     const sectorIssueCount: Record<string, number> = {};
 
     const heuristicIssueCountMap: Record<number, number> = {};
     const heuristicNamesMap: Record<number, string> = {};
 
-    // For averaging heuristic scores
     interface HeuristicScoreData {
       totalScore: number;
       count: number;
@@ -139,52 +137,45 @@ export async function GET() {
     const heuristicScoreMap: Record<number, HeuristicScoreData> = {};
 
     for (const rep of allReports) {
-      // Count issues in heuristics
+      // count total issues in this report
       let reportIssueCount = 0;
-      (rep.heuristics || []).forEach(
-        (heuristic: { id: any; name: string; issues: string | any[] }) => {
-          const hId = heuristic.id;
-          heuristicNamesMap[hId] = heuristic.name;
+      for (const h of rep.heuristics || []) {
+        heuristicNamesMap[h.id] = h.name;
+        const issueCount = h.issues ? h.issues.length : 0;
+        heuristicIssueCountMap[h.id] =
+          (heuristicIssueCountMap[h.id] || 0) + issueCount;
+        reportIssueCount += issueCount;
+      }
 
-          const issueCount = heuristic.issues ? heuristic.issues.length : 0;
-          heuristicIssueCountMap[hId] =
-            (heuristicIssueCountMap[hId] || 0) + issueCount;
-          reportIssueCount += issueCount;
-        }
-      );
-
-      // pageType aggregator
+      // Page type aggregator
       const pt = rep.pageType || "Unknown";
       pageTypeIssueCount[pt] = (pageTypeIssueCount[pt] || 0) + reportIssueCount;
 
-      // sector aggregator
-      const sec = rep.sector || "Unknown";
-      sectorIssueCount[sec] = (sectorIssueCount[sec] || 0) + reportIssueCount;
+      // Sector aggregator
+      const s = rep.sector || "Unknown";
+      sectorIssueCount[s] = (sectorIssueCount[s] || 0) + reportIssueCount;
 
-      // average heuristic scores
-      (rep.scores || []).forEach((sc: { id: any; score: string }) => {
-        const id = sc.id;
+      // Heuristic average scores
+      for (const sc of rep.scores || []) {
+        const scId = sc.id;
         const parsed = parseFloat(sc.score);
         if (!isNaN(parsed)) {
-          if (!heuristicScoreMap[id]) {
-            heuristicScoreMap[id] = { totalScore: 0, count: 0 };
+          if (!heuristicScoreMap[scId]) {
+            heuristicScoreMap[scId] = { totalScore: 0, count: 0 };
           }
-          heuristicScoreMap[id].totalScore += parsed;
-          heuristicScoreMap[id].count += 1;
+          heuristicScoreMap[scId].totalScore += parsed;
+          heuristicScoreMap[scId].count += 1;
         }
-      });
+      }
     }
 
-    // Convert heuristicIssueCountMap to sorted array
+    // Sort heuristics by totalIssues desc
     const heuristicsSorted = Object.entries(heuristicIssueCountMap)
-      .map(([idStr, totalIssues]) => {
-        const id = parseInt(idStr, 10);
-        return {
-          id,
-          name: heuristicNamesMap[id] || `Heuristic ${id}`,
-          totalIssues,
-        };
-      })
+      .map(([idStr, totalIssues]) => ({
+        id: parseInt(idStr, 10),
+        name: heuristicNamesMap[parseInt(idStr, 10)],
+        totalIssues,
+      }))
       .sort((a, b) => b.totalIssues - a.totalIssues);
 
     const mostIssues = heuristicsSorted.length ? heuristicsSorted[0] : null;
@@ -192,45 +183,52 @@ export async function GET() {
       ? heuristicsSorted[heuristicsSorted.length - 1]
       : null;
 
-    // build average score array
+    // Average heuristic scores
     const heuristicScoreAverages = Object.entries(heuristicScoreMap).map(
       ([idStr, data]) => {
-        const id = parseInt(idStr, 10);
-        const avg = data.count > 0 ? data.totalScore / data.count : 0;
+        const idNum = parseInt(idStr, 10);
+        const avg = data.count ? data.totalScore / data.count : 0;
         return {
-          id,
-          name: heuristicNamesMap[id] || `Heuristic ${id}`,
+          id: idNum,
+          name: heuristicNamesMap[idNum] || `Heuristic ${idNum}`,
           averageScore: avg,
         };
       }
     );
     heuristicScoreAverages.sort((a, b) => a.id - b.id);
 
-    // ---- TIME SERIES: LAST 30 DAYS FOR USERS, PROJECTS, REPORTS ----
+    // 5) Actual daily counts for last 30 days for line chart
+    const DAYS = 30;
+    // For "labels", we'll just store YYYY-MM-DD
+    const now = new Date();
+    const labels: string[] = [];
+    // We'll gather the daily counts
     const [userDaily, projectDaily, reportDaily] = await Promise.all([
-      getDailyCounts(User, 30), // returns array of {date, count}
-      getDailyCounts(Project, 30),
-      getDailyCounts(Report, 30),
+      getDailyCounts(User, DAYS),
+      getDailyCounts(Project, DAYS),
+      getDailyCounts(Report, DAYS),
     ]);
 
-    // We'll unify them based on the date field. Since each array is ascending,
-    // we can combine them into a final object with arrays of counts for the chart.
-    // For simplicity, assume they have identical length & date ordering (30 days).
-    const labels = userDaily.map((item) => item.date);
-    const usersTimeSeries = userDaily.map((item) => item.count);
-    const projectsTimeSeries = projectDaily.map((item) => item.count);
-    const reportsTimeSeries = reportDaily.map((item) => item.count);
+    // Because getDailyCounts returns an array of length=30 in ascending order,
+    // we build the matching "labels" in ascending order too.
+    // Start from earliest date:
+    const earliest = new Date(now.getTime() - DAYS * 24 * 60 * 60 * 1000);
+    for (let i = 0; i < DAYS; i++) {
+      const d = new Date(earliest);
+      d.setDate(earliest.getDate() + i);
+      // format as YYYY-MM-DD
+      const label = d.toISOString().split("T")[0];
+      labels.push(label);
+    }
 
     // Build final data
     const data = {
-      // Basic counts
       totalUsers,
       totalWaitingList,
       totalProjects,
       totalReports,
       totalHumanEditedReports,
 
-      // time-based stats
       dateRangeStats: {
         users: {
           "24h": users24,
@@ -257,29 +255,21 @@ export async function GET() {
           "3y": reports3y,
         },
       },
-
-      // page-type distribution
       pageTypeDistribution: pageTypeIssueCount,
-
-      // sector distribution
       sectorDistribution: sectorIssueCount,
-
-      // heuristic-based stats
       heuristicStats: {
         distribution: heuristicsSorted,
         mostIssues,
         leastIssues,
       },
-
-      // heuristic score averages
       heuristicScoreAverages,
 
-      // NEW: 30-day time series
+      // Actual time-series for line chart
       timeSeries: {
-        labels, // array of date strings
-        users: usersTimeSeries, // array of daily counts
-        projects: projectsTimeSeries,
-        reports: reportsTimeSeries,
+        labels, // e.g. ["2023-09-01","2023-09-02",...]
+        users: userDaily, // daily count of new users
+        projects: projectDaily,
+        reports: reportDaily,
       },
     };
 
