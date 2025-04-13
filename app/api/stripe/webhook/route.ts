@@ -3,32 +3,38 @@ import Stripe from "stripe";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 
+// Force the Node.js runtime so we can get the raw request body
+export const runtime = "nodejs";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-03-31.basil",
 });
 
 export async function POST(request: Request) {
+  // 1. Get signature from headers
   const sig = request.headers.get("stripe-signature") || "";
+
+  // 2. Read the raw body from arrayBuffer
   const buf = await request.arrayBuffer();
   const rawBody = Buffer.from(buf).toString("utf8");
 
   let event: Stripe.Event;
-
   try {
+    // 3. Verify the signature with your webhook secret
     event = stripe.webhooks.constructEvent(
       rawBody,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET || ""
     );
   } catch (err: any) {
-    console.error("Webhook signature verification failed:", err.message);
+    console.error("Stripe signature verification error:", err.message);
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
+  // 4. Handle event
   try {
     switch (event.type) {
       case "checkout.session.completed": {
-        // Payment Links for recurring charges also produce a Checkout Session
         const session = event.data.object as Stripe.Checkout.Session;
         if (
           session.mode === "subscription" &&
@@ -46,10 +52,10 @@ export async function POST(request: Request) {
         break;
       }
       default:
-        console.log(`Unhandled Stripe event: ${event.type}`);
+        console.log(`Unhandled event type: ${event.type}`);
     }
   } catch (error: any) {
-    console.error("Stripe webhook handler error:", event.type, error.message);
+    console.error("Webhook handler error:", event.type, error.message);
     return new NextResponse("Webhook handler failed", { status: 500 });
   }
 
