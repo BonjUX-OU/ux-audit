@@ -56,14 +56,14 @@ export async function POST(request: Request) {
       ];
 
       const compareResponse = await openai.beta.chat.completions.parse({
-        model: "gpt-4o-2024-08-06",
+        model: "o1",
         messages: [
           { role: "system", content: compareSystemInstruction },
           { role: "user", content: compareUserContent as any },
         ],
         response_format: zodResponseFormat(CompareSchema, "comparison"),
-        temperature: 0.0,
-        max_tokens: 1000,
+        // temperature: 0.0,
+        //max_tokens: 1000,
       });
 
       const compareParsed = compareResponse.choices[0]?.message?.parsed;

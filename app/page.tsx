@@ -17,6 +17,7 @@ import {
   BadgeCheck,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 // A reusable JoinForm component to handle email submissions and feedback.
 function JoinForm() {
@@ -97,52 +98,84 @@ function JoinForm() {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#FFF1E0]">
+    <div className="min-h-screen bg-[#FFF1E0] flex flex-col">
       {/* Header */}
-      <header className="mx-auto px-4 py-3 bg-white flex justify-center items-center text-center">
-        <Image
-          src="/images/logo.png"
-          alt="UXMust Logo"
-          width={120}
-          height={40}
-          className="w-auto h-8"
-        />
+      <header className="bg-white border-b">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center space-x-3">
+            <Image
+              src="/images/logo.png"
+              alt="UXMust Logo"
+              width={120}
+              height={40}
+              className="h-8 w-auto"
+            />
+          </div>
+          {/* Nav Right */}
+          <div className="flex items-center space-x-4">
+            <Link href="/signin">
+              <Button
+                variant="outline"
+                className="border-none hover:bg-gray-100"
+              >
+                Login
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white">
+                Join us as a Beta User
+              </Button>
+            </Link>
+          </div>
+        </div>
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-[#2D3648] text-4xl md:text-5xl font-bold mb-4 mt-20">
-          Ensure User-Friendly Experiences
-        </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto mb-8">
-          Discover how your design choices impact user experience and keep
-          improving with actionable insights for your website. UXMust provides
-          you ways to design user-friendly solutions.
-        </p>
-        <JoinForm />
-        <div className="relative w-full max-w-5xl mx-auto -mb-32 mt-12">
-          <div className="flex justify-center items-center md:space-x-[-30px]">
-            <Image
-              src="/images/image1.jpeg"
-              alt="UXMust Dashboard View 1"
-              width={390}
-              height={175}
-              className="hidden md:flex rounded-lg shadow-xl relative z-10"
-            />
-            <Image
-              src="/images/image2.png"
-              alt="UXMust Dashboard View 2"
-              width={580}
-              height={325}
-              className="rounded-lg shadow-xl relative z-20 md:-ml-24"
-            />
-            <Image
-              src="/images/image3.jpeg"
-              alt="UXMust Dashboard View 3"
-              width={390}
-              height={175}
-              className="hidden md:flex rounded-lg shadow-xl relative z-10 -ml-24"
-            />
+      <section className="bg-[#FFF1E0]">
+        <div className="container mx-auto px-4 py-12 text-center">
+          <h1 className="text-[#2D3648] text-4xl md:text-5xl font-bold mt-10 mb-4">
+            Ensure User-Friendly Experiences
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto mb-8">
+            Discover how your design choices impact user experience and keep
+            improving with actionable insights for your website. UXMust provides
+            ways to design user-friendly solutions.
+          </p>
+          <div className="mb-2">
+            <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white px-6 py-3 font-semibold">
+              Join us as a Beta User*
+            </Button>
+          </div>
+          <p className="text-sm text-gray-500 italic mb-12">
+            *Get the chance to subscribe only for 4.99 € valid for 6 months
+          </p>
+
+          {/* Dashboard Previews */}
+          <div className="relative w-full max-w-5xl mx-auto">
+            <div className="flex justify-center items-center md:space-x-[-30px]">
+              <Image
+                src="/images/image1.jpeg"
+                alt="UXMust Dashboard View 1"
+                width={390}
+                height={175}
+                className="hidden md:flex rounded-lg shadow-xl relative z-10"
+              />
+              <Image
+                src="/images/image2.png"
+                alt="UXMust Dashboard View 2"
+                width={580}
+                height={325}
+                className="rounded-lg shadow-xl relative z-20 md:-ml-24"
+              />
+              <Image
+                src="/images/image3.jpeg"
+                alt="UXMust Dashboard View 3"
+                width={390}
+                height={175}
+                className="hidden md:flex rounded-lg shadow-xl relative z-10 -ml-24"
+              />
+            </div>
           </div>
         </div>
       </section>

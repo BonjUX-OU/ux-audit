@@ -15,12 +15,17 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"; // Import ShadCN Dialog components
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff } from "lucide-react";
 
 function SignupPage() {
   const [error, setError] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  //const [acceptedTerms, setAcceptedTerms] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -56,10 +61,10 @@ function SignupPage() {
       return;
     }
 
-    if (!acceptedTerms) {
-      setError("You must accept the terms and conditions to proceed");
-      return;
-    }
+    // if (!acceptedTerms) {
+    //   setError("You must accept the terms and conditions to proceed");
+    //   return;
+    // }
 
     try {
       const res = await fetch("/api/signup", {
@@ -98,89 +103,139 @@ function SignupPage() {
     }
   };
 
-  return (
-    <div>
-      <header className="flex justify-between items-center p-4 border-b">
-        <h1 className="text-xl font-bold">UXMust</h1>
-      </header>
-      <div className="flex justify-center mt-8 px-4">
-        <div className="grid grid-cols-12 gap-12 w-full max-w-4xl">
-          <div className="col-span-12 md:col-span-6 lg:col-span-6 flex flex-col justify-start items-start">
-            <div className="mt-12 px-8">
-              <Avatar className="w-36 h-36">
-                <AvatarImage src="" />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
-              <div className="w-full ml-2">
-                <h1 className="text-2xl font-semibold mt-4 mb-3">Welcome 👋</h1>
-                <p className="text-sm  mb-6 ">
-                  According to Nielsen 10 Heuristics, It helps identify
-                  usability issues and opportunities, providing insights for
-                  improving UX in their products.
-                </p>
+  return (
+    <div className="bg-gray-100 p-8 h-screen">
+      <div className="bg-white flex justify-center py-8 px-4 h-full rounded-lg">
+        <div className="grid grid-cols-12 gap-12 w-full max-w-5xl">
+          {/* Left Section */}
+          <div className="col-span-12 md:col-span-6 lg:col-span-6 flex flex-col justify-start items-start">
+            <Link href="/" className="flex items-center text-[#C25B3F] mb-12">
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              <span>Back to homepage</span>
+            </Link>
+
+            <div className="flex-grow flex flex-col justify-center items-center md:items-start">
+              <div className="bg-[#E84C30] rounded-full w-32 h-32 flex items-center justify-center mb-8">
+                <span className="text-white text-4xl font-bold">0.0</span>
               </div>
+
+              <h2 className="text-2xl font-bold mb-4">
+                Thank you for being our Beta User👋
+              </h2>
+              <p className="text-gray-600 max-w-md">
+                We are here to identify usability issues and opportunities,
+                providing insights for improving UX in your products. We are
+                here to identify usability issues and opportunities, providing
+                insights for improving UX in your products.
+              </p>
+
+              <Link
+                href="/signin"
+                className="flex items-center text-[#C25B3F] mt-8"
+              >
+                <span>I have already an account</span>
+                <ChevronLeft className="h-4 w-4 ml-2 rotate-180" />
+              </Link>
             </div>
           </div>
           <div className="col-span-12 md:col-span-6 lg:col-span-6">
-            <div className="w-full">
-              <h1 className="text-xl text-center font-bold mt-4 mb-3">
-                Create an account
+            <div className="max-w-md mx-auto">
+              {/* Progress Indicator */}
+              <div className="flex items-center mb-12">
+                <div className="flex items-center">
+                  <div className="bg-[#C25B3F] rounded-full w-6 h-6 flex items-center justify-center">
+                    <span className="text-white text-xs">1</span>
+                  </div>
+                  <span className="ml-2 text-sm">User Details</span>
+                </div>
+                <div className="h-px bg-gray-300 flex-grow mx-2"></div>
+                <div className="flex items-center">
+                  <div className="bg-[#E5E5E5] rounded-full w-6 h-6 flex items-center justify-center">
+                    <span className="text-gray-600 text-xs">2</span>
+                  </div>
+                  <span className="ml-2 text-sm text-gray-400">
+                    Beta User Payment
+                  </span>
+                </div>
+              </div>
+
+              <h1 className="text-2xl font-bold mb-8">
+                Let's create an account first
               </h1>
-              <p className="text-base text-center mb-6">
-                Enter your details to sign up for this app
-                <br />
-              </p>
               <form className="space-y-3" onSubmit={handleSubmit}>
-                <div>
+                <div className="space-y-2">
+                  <label htmlFor="name" className="block font-medium">
+                    Your full name
+                  </label>
                   <Input
-                    type="name"
+                    id="name"
                     name="name"
-                    placeholder="Enter full name"
+                    placeholder="Type your full name"
                     className="w-full"
+                    required
                   />
                 </div>
-                <div>
+
+                <div className="space-y-2">
+                  <label htmlFor="email" className="block font-medium">
+                    Your Business Email
+                  </label>
                   <Input
-                    type="email"
+                    id="email"
                     name="email"
-                    placeholder="Enter email address"
+                    type="email"
+                    placeholder="Your business email address"
                     className="w-full"
+                    required
                   />
                 </div>
-                <div>
-                  <Input
-                    type="password"
-                    name="password"
-                    placeholder="New password"
-                    className="w-full"
-                  />
+
+                <div className="space-y-2">
+                  <label htmlFor="password" className="block font-medium">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Type your password"
+                      className="w-full pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                {/* <div>
-                <Input
-                  type="password"
-                  name="confirmPassword"
-                  placeholder="Confirm password"
-                  className="w-full"
-                />
-              </div> */}
-                <div className="flex justify-center">
-                  <Button
-                    variant="default"
-                    type="submit"
-                    className="mb-1 w-full"
-                  >
-                    Sign up with email
-                  </Button>
+
+                {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                <Button
+                  type="submit"
+                  className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white"
+                >
+                  Continue with email
+                </Button>
+
+                <div className="flex items-center my-6">
+                  <div className="flex-grow h-px bg-gray-300"></div>
+                  <span className="px-4 text-gray-500">or</span>
+                  <div className="flex-grow h-px bg-gray-300"></div>
                 </div>
-                <p className="text-sm text-red-500 text-center mt-2">
-                  {error && error}
-                </p>
-                <div className="flex items-center mb-4">
-                  <div className="flex-grow h-px bg-gray-300" />
-                  <span className="text-sm text-gray-500 mx-2">or </span>
-                  <div className="flex-grow h-px bg-gray-300" />
-                </div>
+
                 <div className="flex justify-center">
                   <Button
                     variant="outline"
@@ -216,84 +271,17 @@ function SignupPage() {
                     <span>Google</span>
                   </Button>
                 </div>
-                <div className="flex justify-center items-center space-x-4">
-                  <Checkbox
-                    id="terms"
-                    checked={acceptedTerms}
-                    onCheckedChange={(checked: any) =>
-                      setAcceptedTerms(!!checked)
-                    }
-                  />
-                  <p className="text-sm text-center text-gray-500">
-                    I have read and agree to the
-                    <br />
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <a className="text-sm text-gray-500 underline hover:text-indigo-500">
-                          Terms of Service
-                        </a>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Terms of Service</DialogTitle>
-                        </DialogHeader>
-                        <DialogDescription>
-                          By signing up, you agree to the{" "}
-                          <a
-                            href="/terms"
-                            className="text-indigo-500 underline hover:text-indigo-700"
-                          >
-                            Terms of Service
-                          </a>{" "}
-                          and{" "}
-                          <a
-                            href="/privacy"
-                            className="text-indigo-500 underline hover:text-indigo-700"
-                          >
-                            Privacy Policy
-                          </a>
-                          .
-                        </DialogDescription>
-                      </DialogContent>
-                    </Dialog>{" "}
-                    and{" "}
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <a className="text-sm text-gray-500 underline hover:text-indigo-500">
-                          Privacy Policy
-                        </a>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Privacy Policy</DialogTitle>
-                        </DialogHeader>
-                        <DialogDescription>
-                          By signing up, you agree to the{" "}
-                          <a
-                            href="/terms"
-                            className="text-indigo-500 underline hover:text-indigo-700"
-                          >
-                            Terms of Service
-                          </a>{" "}
-                          and{" "}
-                          <a
-                            href="/privacy"
-                            className="text-indigo-500 underline hover:text-indigo-700"
-                          >
-                            Privacy Policy
-                          </a>
-                          .
-                        </DialogDescription>
-                      </DialogContent>
-                    </Dialog>
-                  </p>
-                </div>
               </form>
-              <p className="text-base text-center mb-3 mt-6">
-                If you have an existing account,{" "}
-                <a href="/signin" className="font-bold text-indigo-500">
-                  Log in
-                </a>
+              <p className="text-sm text-gray-500 text-center mt-6">
+                By registering you accept our{" "}
+                <Link href="/privacy" className="text-[#C25B3F]">
+                  Privacy Policy
+                </Link>{" "}
+                and{" "}
+                <Link href="/terms" className="text-[#C25B3F]">
+                  Terms of Use
+                </Link>
+                .
               </p>
             </div>
           </div>
