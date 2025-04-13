@@ -68,17 +68,22 @@ export const authOptions: NextAuthOptions = {
             subscribed: false,
             usedAnalyses: 0,
           });
+          //console.log("New user created:", newUser);
+          //change newuser._id from objectId to string
           user.id = newUser._id;
           user.role = newUser.role;
           user.subscribed = newUser.subscribed;
           user.usedAnalyses = newUser.usedAnalyses;
           user.createdAt = newUser.createdAt;
+          user.isNewUser = true; // Flag to indicate new user
+        } else {
+          user.id = existingUser._id;
+          user.role = existingUser.role;
+          user.subscribed = existingUser.subscribed;
+          user.usedAnalyses = existingUser.usedAnalyses;
+          user.createdAt = existingUser.createdAt;
+          user.isNewUser = false;
         }
-        user.id = existingUser._id;
-        user.role = existingUser.role;
-        user.subscribed = existingUser.subscribed;
-        user.usedAnalyses = existingUser.usedAnalyses;
-        user.createdAt = existingUser.createdAt;
       }
       return user;
     },
@@ -95,6 +100,7 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.image = user.image;
         token.expires = account.expires_at;
+        token.isNewUser = user.isNewUser; // Flag to indicate new user
       }
       return token;
     },
@@ -107,10 +113,18 @@ export const authOptions: NextAuthOptions = {
       session.user.subscribed = token.subscribed;
       session.user.usedAnalyses = token.usedAnalyses;
       session.user.createdAt = token.createdAt;
+      session.user.isNewUser = token.isNewUser; // Flag to indicate new user
       return session;
+    },
+    async redirect({ url, baseUrl, token }: any) {
+      // This is where you control where to send the user
+      if (token?.isNewUser === true) {
+        return `${baseUrl}/onboarding`;
+      }
+      return `${baseUrl}/dashboard`; // Otherwise, to dashboard
     },
   },
   pages: {
-    signIn: "/signin", // Customize the sign-in page URL
+    signIn: "/signin",
   },
 };

@@ -50,6 +50,7 @@ import {
   Layers,
   FolderPlus,
   Edit,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -173,13 +174,13 @@ export default function DashboardPage() {
     ? new Date(session.user.createdAt)
     : new Date(0);
 
-  // 7-day trial
+  // 7-day trial calculation
   const trialEnd = new Date(userCreatedAt.getTime() + 7 * 24 * 60 * 60 * 1000);
   const now = new Date();
   const within7Days = now < trialEnd;
   const under10Analyses = userUsedAnalyses < 10;
 
-  // If user is "admin"/"tester" => no limit
+  // If user is admin/tester => no limit
   // If user.subscribed => no limit
   // Otherwise => must be within7Days && under10Analyses
   const userAllowedToAnalyze =
@@ -191,11 +192,10 @@ export default function DashboardPage() {
   // We'll show a forced subscription dialog if user is blocked
   const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
 
-  // This is your Payment Link from env or config
-  // e.g. in .env: NEXT_PUBLIC_STRIPE_PAYMENT_LINK="https://buy.stripe.com/test_XXXXXXXX"
+  // Payment Link from env
   const paymentLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || "";
 
-  // Open subscription dialog if user is blocked
+  // If blocked from analyzing, open subscription modal
   useEffect(() => {
     if (session?.user && !userAllowedToAnalyze) {
       setSubscribeDialogOpen(true);
@@ -210,6 +210,12 @@ export default function DashboardPage() {
     }
     window.location.href = paymentLink;
   }
+
+  // Calculate how many days left in trial
+  const daysLeft = Math.max(
+    0,
+    Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  );
 
   // ------------------------------------
   // State for Sectors/Page Types
@@ -278,7 +284,7 @@ export default function DashboardPage() {
   const [analysisSteps, setAnalysisSteps] = useState<AnalysisStep[]>([
     { label: "Scraping the website...", status: "pending" },
     {
-      label: "Analyzing webpage & and highlighting issues...",
+      label: "Analyzing webpage & Highlighting issues...",
       status: "pending",
     },
     {
@@ -649,6 +655,7 @@ export default function DashboardPage() {
       fetchProjects();
       fetchUserReports();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   // ------------------------------------
@@ -675,21 +682,25 @@ export default function DashboardPage() {
       <Dialog open={subscribeDialogOpen} onOpenChange={setSubscribeDialogOpen}>
         <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
           <DialogHeader>
-            <DialogTitle className="text-lg">Free Trial Ended</DialogTitle>
+            <div className="bg-[#E84C30] rounded-full w-24 h-24 flex items-center justify-center mb-4">
+              <span className="text-white text-3xl font-bold">X . X</span>
+            </div>
+            <DialogTitle className="text-lg">Free Trial Ended!</DialogTitle>
             <DialogDescription>
-              Your 7-day free trial has ended. Please subscribe to continue.
+              To keep going, just add your payment details. You’ll only be
+              charged €4.99/month.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
+            {/* <Button
               variant="outline"
               onClick={() => setSubscribeDialogOpen(false)}
             >
               Maybe Later
-            </Button>
+            </Button> */}
             <Button
               onClick={handleSubscribeNow}
-              className="bg-[#B04E34] text-white"
+              className="bg-[#B04E34] text-white w-full"
             >
               Subscribe Now
             </Button>
@@ -822,6 +833,34 @@ export default function DashboardPage() {
 
           {/* Main Content */}
           <main className="flex-1">
+            {/* 
+          TOP BANNER if user is unsubscribed or still in trial:
+          e.g.: "Your free trial ends in X Days. Just add your payment details..."
+        */}
+            {!userSubscribed && (within7Days || under10Analyses) && (
+              <div className="bg-[#FFF1E0] text-sm text-gray-700  mt-4 mb-2 p-3 rounded-md flex items-center justify-between border border-[#FADBBB]">
+                <div>
+                  <strong className="mr-1">
+                    Your free trial ends in {daysLeft} Days.
+                  </strong>
+                  <br />
+                  {
+                    "To keep going, just add your payment details — you’ll only becharged"
+                  }{" "}
+                  <span className="font-semibold">€4.99/month</span>{" "}
+                  {"after your free trial ends."}
+                </div>
+                <Button
+                  onClick={handleSubscribeNow}
+                  variant="ghost"
+                  className="text-[#B04E34] ml-4"
+                >
+                  Subscribe Now
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            )}
+
             {/* Welcome Card */}
             <Card className="mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
               <CardHeader className="pb-0">
@@ -987,7 +1026,12 @@ export default function DashboardPage() {
                                 className="hover:bg-gray-50 transition-colors duration-200"
                               >
                                 <TableCell className="font-medium max-w-[300px] truncate">
-                                  {report.url}
+                                  <Link
+                                    href={`/report/${report._id}`}
+                                    //target="_blank"
+                                  >
+                                    {report.url}
+                                  </Link>
                                 </TableCell>
                                 <TableCell className="text-gray-500">
                                   <div className="flex items-center">
@@ -1014,7 +1058,7 @@ export default function DashboardPage() {
                                 <TableCell>
                                   <Link
                                     href={`/report/${report._id}`}
-                                    target="_blank"
+                                    //target="_blank"
                                   >
                                     <Button
                                       variant="ghost"

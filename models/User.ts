@@ -1,3 +1,4 @@
+// models/User.ts
 import mongoose from "mongoose";
 /**
  * The UserSchema stores all key fields:
