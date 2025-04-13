@@ -1,5 +1,5 @@
 "use client";
-
+import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -135,6 +135,9 @@ export default function AnalysisView({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { data: session }: any = useSession();
+
+  const userRole = session?.user?.role;
 
   const [analysis, setAnalysis] = useState<AnalysisReport | null>(null);
   const [hoveredIssue, setHoveredIssue] = useState<Issue | null>(null);
@@ -310,14 +313,16 @@ export default function AnalysisView({
                   </>
                 )}
               </Button>
-              <Button
-                onClick={() => router.push(`/report/${id}/edit`)}
-                className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
-                size="sm"
-              >
-                <Edit2 className="h-4 w-4" />
-                <span>Edit Report</span>
-              </Button>
+              {(userRole === "admin" || userRole === "tester") && (
+                <Button
+                  onClick={() => router.push(`/report/${id}/edit`)}
+                  className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
+                  size="sm"
+                >
+                  <Edit2 className="h-4 w-4" />
+                  <span>Edit Report</span>
+                </Button>
+              )}
             </div>
           </div>
           {/* Score Card */}

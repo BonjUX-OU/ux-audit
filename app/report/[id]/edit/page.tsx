@@ -1,5 +1,5 @@
 "use client";
-
+import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -143,7 +143,20 @@ function RatingBar({
 export default function EditReportPage() {
   const router = useRouter();
   const params = useParams();
+  const { data: session }: any = useSession();
   const { id } = params; // The report ID to edit
+  const userRole = session?.user?.role;
+
+  useEffect(() => {
+    //if user is not logged redirect to login page
+    //if user is not admin or tester redirect to dashboard
+    if (!session) {
+      router.push("/signin");
+    } else if (userRole !== "admin" && userRole !== "tester") {
+      router.push("/dashboard");
+    }
+  }, [session, userRole, router]);
+  // States
 
   // Original report loaded from the API
   const [originalReport, setOriginalReport] = useState<AnalysisReport | null>(

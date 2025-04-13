@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   BarChart,
   LineChart,
@@ -182,7 +184,9 @@ const THEME = {
 };
 
 export default function AdminDashboard() {
-  // State
+  const router = useRouter();
+  const { data: session }: any = useSession();
+
   const [stats, setStats] = useState<AdminStatsResponse | null>(null);
   const [userDetails, setUserDetails] = useState<AdminUserDetails[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<AdminUserDetails[]>([]);
@@ -204,6 +208,17 @@ export default function AdminDashboard() {
   });
 
   // Fetch main stats (including timeSeries)
+  const userRole = session?.user?.role;
+
+  useEffect(() => {
+    //if user is not logged redirect to login page
+    //if user is not admin or tester redirect to dashboard
+    if (!session) {
+      router.push("/signin");
+    } else if (userRole !== "admin") {
+      router.push("/dashboard");
+    }
+  }, [session, userRole, router]);
   useEffect(() => {
     const fetchStats = async () => {
       try {
