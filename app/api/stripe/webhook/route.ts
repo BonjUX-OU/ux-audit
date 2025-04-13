@@ -55,6 +55,9 @@ export async function POST(request: Request) {
             user.subscribed = true;
             user.stripeSubscriptionId = session.subscription as string;
             await user.save();
+            console.log(
+              `User ${userEmail} marked as subscribed with subscription ID: ${session.subscription}`
+            );
           }
         }
         break;
