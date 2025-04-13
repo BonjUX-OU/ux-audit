@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         // If it's a subscription and we have an email, mark user as subscribed
         if (
-          session.mode === "subscription" &&
+          //session.mode === "subscription" &&
           session.customer_details?.email
         ) {
           const userEmail = session.customer_details.email;
