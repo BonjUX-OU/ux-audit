@@ -4,7 +4,7 @@ import puppeteer from "puppeteer-core";
 import type { Browser } from "puppeteer-core";
 
 export const revalidate = 0;
-export const maxDuration = 45;
+export const maxDuration = 60;
 
 let puppeteerModule: any = puppeteer;
 if (process.env.NODE_ENV === "development") {
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid URL" }, { status: 400 });
     }
 
-    // Launch Puppeteer with same configuration as before
+    // Launch Puppeteer with the existing configuration
     const browser: Browser = await puppeteerModule.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
@@ -33,6 +33,30 @@ export async function POST(request: Request) {
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });
     await page.goto(url, { waitUntil: "networkidle2" });
+
+    // -------------------------------
+    // Added cookie popup handling
+    // -------------------------------
+    try {
+      // Wait a bit to ensure cookie banner might appear
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      // Common approach: click button that has some variant of "Accept" text
+      await page.evaluate(() => {
+        const acceptTexts = ["accept", "agree", "ok", "yes"];
+        const buttons = Array.from(document.querySelectorAll("button"));
+        for (const btn of buttons) {
+          const txt = btn.textContent?.toLowerCase().trim() || "";
+          if (acceptTexts.some((word) => txt.includes(word))) {
+            btn.click();
+            break;
+          }
+        }
+      });
+    } catch (cookieErr) {
+      console.log("Cookie popup not found or could not be closed:", cookieErr);
+    }
+    // -------------------------------
 
     const screenshotBuffer = await page.screenshot({ fullPage: true });
     const screenshotBase64 = Buffer.from(screenshotBuffer).toString("base64");

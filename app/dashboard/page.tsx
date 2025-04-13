@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 import AppBar from "@/components/layout/AppBar";
 import { Button } from "@/components/ui/button";
@@ -160,6 +161,55 @@ function ComparisonScale({ reports }: { reports: AnalysisReport[] }) {
 
 export default function DashboardPage() {
   const { data: session }: any = useSession();
+  const router = useRouter();
+
+  // ------------------------------------
+  // Subscription & Free Trial Logic
+  // ------------------------------------
+  const userRole = session?.user?.role;
+  const userSubscribed = session?.user?.subscribed;
+  const userUsedAnalyses = session?.user?.usedAnalyses ?? 0;
+  const userCreatedAt = session?.user?.createdAt
+    ? new Date(session.user.createdAt)
+    : new Date(0);
+
+  // 7-day trial
+  const trialEnd = new Date(userCreatedAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const now = new Date();
+  const within7Days = now < trialEnd;
+  const under10Analyses = userUsedAnalyses < 10;
+
+  // If user is "admin"/"tester" => no limit
+  // If user.subscribed => no limit
+  // Otherwise => must be within7Days && under10Analyses
+  const userAllowedToAnalyze =
+    userRole === "admin" ||
+    userRole === "tester" ||
+    userSubscribed ||
+    (within7Days && under10Analyses);
+
+  // We'll show a forced subscription dialog if user is blocked
+  const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
+
+  // This is your Payment Link from env or config
+  // e.g. in .env: NEXT_PUBLIC_STRIPE_PAYMENT_LINK="https://buy.stripe.com/test_XXXXXXXX"
+  const paymentLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || "";
+
+  // Open subscription dialog if user is blocked
+  useEffect(() => {
+    if (session?.user && !userAllowedToAnalyze) {
+      setSubscribeDialogOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, userAllowedToAnalyze]);
+
+  function handleSubscribeNow() {
+    if (!paymentLink) {
+      alert("No Payment Link available. Please contact support.");
+      return;
+    }
+    window.location.href = paymentLink;
+  }
 
   // ------------------------------------
   // State for Sectors/Page Types
@@ -208,12 +258,15 @@ export default function DashboardPage() {
   const [loadingReports, setLoadingReports] = useState(false);
 
   // ------------------------------------
-  // Form State
+  // Form State for New Project
   // ------------------------------------
   const [openDialog, setOpenDialog] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
+  // ------------------------------------
+  // Form State for New Analysis
+  // ------------------------------------
   const [url, setUrl] = useState("");
   const [selectedSector, setSelectedSector] = useState("");
   const [selectedPageType, setSelectedPageType] = useState("");
@@ -244,7 +297,7 @@ export default function DashboardPage() {
   const [editProjectName, setEditProjectName] = useState("");
 
   // ------------------------------------
-  // Project/Report Fetching
+  // Fetch Projects & Reports
   // ------------------------------------
   async function fetchProjects() {
     if (!session?.user?.id) return;
@@ -283,7 +336,7 @@ export default function DashboardPage() {
   }
 
   // ------------------------------------
-  // Sector/PageType Add Logic
+  // Add Sector & Page Type Logic
   // ------------------------------------
   function handleSectorSelect(value: string) {
     if (value === "add-new-sector") {
@@ -370,10 +423,10 @@ export default function DashboardPage() {
   }
 
   // ------------------------------------
-  // Edit Project (Name) Handlers
+  // Edit Project Name
   // ------------------------------------
   function handleEditProjectClick(project: Project) {
-    if (project._id === "all") return; // We won't allow editing the "All Reports" pseudo-project
+    if (project._id === "all") return; // skip "All Reports"
     setEditProjectData(project);
     setEditProjectName(project.name);
     setEditProjectDialogOpen(true);
@@ -398,13 +451,7 @@ export default function DashboardPage() {
       setEditProjectDialogOpen(false);
       setEditProjectData(null);
       setEditProjectName("");
-
-      // Refresh the projects
       await fetchProjects();
-
-      // If the user was editing the currently selected project, we need to update that name as well
-      // The simplest way is just to re-select the updated project from the list if it still exists
-      // (already handled by fetchProjects, but we can ensure the currentProject is re-updated)
     } catch (error) {
       console.error(error);
       alert("Failed to update project. Please try again.");
@@ -412,7 +459,7 @@ export default function DashboardPage() {
   }
 
   // ------------------------------------
-  // Analysis
+  // Analysis Logic
   // ------------------------------------
   function resetAnalysisSteps() {
     setAnalysisSteps([
@@ -430,6 +477,14 @@ export default function DashboardPage() {
 
   async function handleCreateAnalysis(e: FormEvent) {
     e.preventDefault();
+
+    // If user is blocked from analyzing, show the forced dialog
+    if (!userAllowedToAnalyze) {
+      alert("Your free trial has ended. Please subscribe to continue.");
+      setSubscribeDialogOpen(true);
+      return;
+    }
+
     if (!url.trim()) return;
     if (!currentProject) {
       alert("No project selected.");
@@ -558,7 +613,18 @@ export default function DashboardPage() {
         prev.map((s, i) => (i === 2 ? { ...s, status: "done" } : s))
       );
 
-      // Refresh
+      // If user is normal and not subscribed, increment usage
+      if (userRole === "user" && !userSubscribed) {
+        await fetch("/api/user/increment-usage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: session.user.id }),
+        });
+        // Force refresh to update session usedAnalyses
+        router.refresh();
+      }
+
+      // Finally, refresh to see new reports
       fetchUserReports();
     } catch (error: any) {
       console.error("Analysis error:", error);
@@ -586,7 +652,7 @@ export default function DashboardPage() {
   }, [session]);
 
   // ------------------------------------
-  // Derived data
+  // Derived Data
   // ------------------------------------
   const isAllProjects = currentProject?._id === "all";
   const projectReports = isAllProjects
@@ -605,6 +671,32 @@ export default function DashboardPage() {
 
   return (
     <>
+      {/* FORCED SUBSCRIBE DIALOG IF BLOCKED */}
+      <Dialog open={subscribeDialogOpen} onOpenChange={setSubscribeDialogOpen}>
+        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg">Free Trial Ended</DialogTitle>
+            <DialogDescription>
+              Your 7-day free trial has ended. Please subscribe to continue.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setSubscribeDialogOpen(false)}
+            >
+              Maybe Later
+            </Button>
+            <Button
+              onClick={handleSubscribeNow}
+              className="bg-[#B04E34] text-white"
+            >
+              Subscribe Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <AppBar />
         <div className="flex flex-1 pt-16 px-4 md:px-6 lg:px-8 pb-8">

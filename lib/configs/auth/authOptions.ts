@@ -1,3 +1,4 @@
+//lib/configs/auth/authOptions.ts
 import NextAuth, { NextAuthOptions, User as NextAuthUser } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -63,10 +64,21 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             isProfileCompleted: false,
+            role: "user",
+            subscribed: false,
+            usedAnalyses: 0,
           });
           user.id = newUser._id;
+          user.role = newUser.role;
+          user.subscribed = newUser.subscribed;
+          user.usedAnalyses = newUser.usedAnalyses;
+          user.createdAt = newUser.createdAt;
         }
         user.id = existingUser._id;
+        user.role = existingUser.role;
+        user.subscribed = existingUser.subscribed;
+        user.usedAnalyses = existingUser.usedAnalyses;
+        user.createdAt = existingUser.createdAt;
       }
       return user;
     },
@@ -76,6 +88,13 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
         token.id = user._id || user.id;
         token.name = user.name;
+        token.role = user.role;
+        token.subscribed = user.subscribed;
+        token.usedAnalyses = user.usedAnalyses;
+        token.createdAt = user.createdAt;
+        token.email = user.email;
+        token.image = user.image;
+        token.expires = account.expires_at;
       }
       return token;
     },
@@ -84,6 +103,10 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken;
       session.user.id = token.id;
       session.user.name = token.name;
+      session.user.role = token.role;
+      session.user.subscribed = token.subscribed;
+      session.user.usedAnalyses = token.usedAnalyses;
+      session.user.createdAt = token.createdAt;
       return session;
     },
   },

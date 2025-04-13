@@ -4,6 +4,7 @@ import "./globals.css";
 import { getServerSession } from "next-auth";
 import SessionProvider from "@/utils/SessionProvider";
 import { Work_Sans } from "next/font/google";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,7 +42,7 @@ export default async function RootLayout({
         <body
           className={`${workSans.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          {children}
+          {children} <Toaster />
         </body>
       </SessionProvider>
     </html>
