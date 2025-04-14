@@ -129,7 +129,8 @@ function LoginPage() {
                   <div className="flex justify-center">
                     <Button
                       variant="default"
-                      type="submit"
+                      //type="submit"
+                      disabled
                       className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white"
                     >
                       Log in with email

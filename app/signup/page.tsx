@@ -223,8 +223,9 @@ function SignupPage() {
                 {error && <p className="text-red-500 text-sm">{error}</p>}
 
                 <Button
-                  type="submit"
+                  //type="submit"
                   className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white"
+                  disabled
                 >
                   Continue with email
                 </Button>
