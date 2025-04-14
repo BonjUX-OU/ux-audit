@@ -143,9 +143,11 @@ export default function LandingPage() {
             ways to design user-friendly solutions.
           </p>
           <div className="mb-2">
-            <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white px-6 py-3 font-semibold">
-              Join us as a Beta User*
-            </Button>
+            <Link href="/signup">
+              <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white px-6 py-3 font-semibold">
+                Join us as a Beta User*
+              </Button>
+            </Link>
           </div>
           <p className="text-sm text-gray-500 italic mb-12">
             *Get the chance to subscribe only for 4.99 € valid for 6 months
@@ -276,7 +278,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white mx-auto px-4 py-8 text-center text-gray-600 border-t">
+      <footer className="bg-white mx-auto px-4 py-8 text-center text-gray-600 border-t w-full">
         © 2025 UXMust. All rights reserved.
       </footer>
     </div>
