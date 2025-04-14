@@ -128,9 +128,7 @@ function SignupPage() {
               </h2>
               <p className="text-gray-600 max-w-md">
                 We are here to identify usability issues and opportunities,
-                providing insights for improving UX in your products. We are
-                here to identify usability issues and opportunities, providing
-                insights for improving UX in your products.
+                providing insights for improving UX in your products.
               </p>
 
               <Link
