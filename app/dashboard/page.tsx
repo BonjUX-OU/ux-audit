@@ -51,6 +51,7 @@ import {
   FolderPlus,
   Edit,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -303,6 +304,21 @@ export default function DashboardPage() {
   const [editProjectName, setEditProjectName] = useState("");
 
   // ------------------------------------
+  // Delete Project
+  // ------------------------------------
+  const [deleteProjectDialogOpen, setDeleteProjectDialogOpen] = useState(false);
+  const [deleteProjectName, setDeleteProjectName] = useState("");
+  const [selectedProjectToDelete, setSelectedProjectToDelete] =
+    useState<Project | null>(null);
+
+  // ------------------------------------
+  // Delete Report
+  // ------------------------------------
+  const [deleteReportDialogOpen, setDeleteReportDialogOpen] = useState(false);
+  const [selectedReportToDelete, setSelectedReportToDelete] =
+    useState<AnalysisReport | null>(null);
+
+  // ------------------------------------
   // Fetch Projects & Reports
   // ------------------------------------
   async function fetchProjects() {
@@ -461,6 +477,43 @@ export default function DashboardPage() {
     } catch (error) {
       console.error(error);
       alert("Failed to update project. Please try again.");
+    }
+  }
+
+  // ------------------------------------
+  // Delete Project
+  // ------------------------------------
+  function handleDeleteProjectClick(project: Project) {
+    if (project._id === "all") return; // skip "All Reports"
+    setSelectedProjectToDelete(project);
+    setDeleteProjectName("");
+    setDeleteProjectDialogOpen(true);
+  }
+
+  async function confirmDeleteProject() {
+    if (!selectedProjectToDelete?._id) return;
+
+    try {
+      const response = await fetch(
+        `/api/projects?id=${selectedProjectToDelete._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Error deleting project");
+      }
+      setDeleteProjectDialogOpen(false);
+      setSelectedProjectToDelete(null);
+      fetchProjects();
+      fetchUserReports();
+      // If the deleted project was currently selected, reset to "All Reports"
+      if (currentProject?._id === selectedProjectToDelete._id) {
+        setCurrentProject(projects.find((p) => p._id === "all") || null);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete project. Please try again.");
     }
   }
 
@@ -648,6 +701,35 @@ export default function DashboardPage() {
   }
 
   // ------------------------------------
+  // Delete Report
+  // ------------------------------------
+  function handleDeleteReportClick(report: AnalysisReport) {
+    setSelectedReportToDelete(report);
+    setDeleteReportDialogOpen(true);
+  }
+
+  async function confirmDeleteReport() {
+    if (!selectedReportToDelete?._id) return;
+    try {
+      const response = await fetch(
+        `/api/report?id=${selectedReportToDelete._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Error deleting report");
+      }
+      setDeleteReportDialogOpen(false);
+      setSelectedReportToDelete(null);
+      fetchUserReports();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete report. Please try again.");
+    }
+  }
+
+  // ------------------------------------
   // useEffect
   // ------------------------------------
   useEffect(() => {
@@ -692,12 +774,6 @@ export default function DashboardPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            {/* <Button
-              variant="outline"
-              onClick={() => setSubscribeDialogOpen(false)}
-            >
-              Maybe Later
-            </Button> */}
             <Button
               onClick={handleSubscribeNow}
               className="bg-[#B04E34] text-white w-full"
@@ -815,13 +891,24 @@ export default function DashboardPage() {
                           <span className="truncate">{project.name}</span>
                         </button>
                         {project._id !== "all" && (
-                          <button
-                            onClick={() => handleEditProjectClick(project)}
-                            className="hidden group-hover:block mr-3 text-gray-400 hover:text-[#B04E34] transition-colors duration-200"
-                            title="Edit project name"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
+                          <div className="flex flex-row items-center mr-2 space-x-2">
+                            {/* Edit Button */}
+                            <button
+                              onClick={() => handleEditProjectClick(project)}
+                              className="hidden group-hover:block text-gray-400 hover:text-[#B04E34] transition-colors duration-200"
+                              title="Edit project name"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            {/* Delete Button */}
+                            <button
+                              onClick={() => handleDeleteProjectClick(project)}
+                              className="hidden group-hover:block text-gray-400 hover:text-red-600 transition-colors duration-200"
+                              title="Delete project"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     ))}
@@ -834,9 +921,9 @@ export default function DashboardPage() {
           {/* Main Content */}
           <main className="flex-1">
             {/* 
-          TOP BANNER if user is unsubscribed or still in trial:
-          e.g.: "Your free trial ends in X Days. Just add your payment details..."
-        */}
+              TOP BANNER if user is unsubscribed or still in trial:
+              e.g.: "Your free trial ends in X Days. Just add your payment details..."
+            */}
             {!userSubscribed && (within7Days || under10Analyses) && (
               <div className="bg-[#FFF1E0] text-sm text-gray-700  mt-4 mb-2 p-3 rounded-md flex items-center justify-between border border-[#FADBBB]">
                 <div>
@@ -845,7 +932,7 @@ export default function DashboardPage() {
                   </strong>
                   <br />
                   {
-                    "To keep going, just add your payment details — you’ll only becharged"
+                    "To keep going, just add your payment details — you’ll only be charged"
                   }{" "}
                   <span className="font-semibold">€4.99/month</span>{" "}
                   {"after your free trial ends."}
@@ -1016,7 +1103,7 @@ export default function DashboardPage() {
                               <TableHead>Date Created</TableHead>
                               <TableHead>Score</TableHead>
                               <TableHead>Project</TableHead>
-                              <TableHead className="w-[80px]"></TableHead>
+                              <TableHead className="w-[120px]"></TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -1026,10 +1113,7 @@ export default function DashboardPage() {
                                 className="hover:bg-gray-50 transition-colors duration-200"
                               >
                                 <TableCell className="font-medium max-w-[300px] truncate">
-                                  <Link
-                                    href={`/report/${report._id}`}
-                                    //target="_blank"
-                                  >
+                                  <Link href={`/report/${report._id}`}>
                                     {report.url}
                                   </Link>
                                 </TableCell>
@@ -1055,11 +1139,8 @@ export default function DashboardPage() {
                                 <TableCell className="text-gray-600">
                                   {report.project.name}
                                 </TableCell>
-                                <TableCell>
-                                  <Link
-                                    href={`/report/${report._id}`}
-                                    //target="_blank"
-                                  >
+                                <TableCell className="flex space-x-1">
+                                  <Link href={`/report/${report._id}`}>
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -1071,6 +1152,19 @@ export default function DashboardPage() {
                                       </span>
                                     </Button>
                                   </Link>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+                                    onClick={() =>
+                                      handleDeleteReportClick(report)
+                                    }
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="sr-only">
+                                      Delete Report
+                                    </span>
+                                  </Button>
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -1163,7 +1257,7 @@ export default function DashboardPage() {
                                           {getRatingLabel(report.overallScore)}
                                         </Badge>
                                       </TableCell>
-                                      <TableCell>
+                                      <TableCell className="flex space-x-1">
                                         <Link
                                           href={`/report/${report._id}`}
                                           target="_blank"
@@ -1179,6 +1273,19 @@ export default function DashboardPage() {
                                             </span>
                                           </Button>
                                         </Link>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+                                          onClick={() =>
+                                            handleDeleteReportClick(report)
+                                          }
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                          <span className="sr-only">
+                                            Delete Report
+                                          </span>
+                                        </Button>
                                       </TableCell>
                                     </TableRow>
                                   ))}
@@ -1423,6 +1530,97 @@ export default function DashboardPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for Deleting Project */}
+      <Dialog
+        open={deleteProjectDialogOpen}
+        onOpenChange={setDeleteProjectDialogOpen}
+      >
+        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg text-red-600">
+              Delete Project
+            </DialogTitle>
+            <DialogDescription>
+              Deleting the project will remove <strong>all reports</strong>{" "}
+              inside it. This action <strong>cannot be undone</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4 text-sm">
+            To confirm, type the name of the project below:
+          </div>
+          <div className="mt-2 mb-4">
+            <Input
+              type="text"
+              placeholder="Enter project name"
+              value={deleteProjectName}
+              onChange={(e) => setDeleteProjectName(e.target.value)}
+              className="shadow-sm focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteProjectDialogOpen(false)}
+              className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200"
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={
+                !selectedProjectToDelete ||
+                deleteProjectName !== selectedProjectToDelete.name
+              }
+              onClick={confirmDeleteProject}
+              className={cn(
+                "bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200",
+                {
+                  "cursor-not-allowed opacity-50":
+                    !selectedProjectToDelete ||
+                    deleteProjectName !== selectedProjectToDelete.name,
+                }
+              )}
+            >
+              Delete Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for Deleting Report */}
+      <Dialog
+        open={deleteReportDialogOpen}
+        onOpenChange={setDeleteReportDialogOpen}
+      >
+        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg text-red-600">
+              Delete Report
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this report? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteReportDialogOpen(false)}
+              className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteReport}
+              className="bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+            >
+              Delete Report
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

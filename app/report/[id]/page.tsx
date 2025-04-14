@@ -116,13 +116,13 @@ function RatingBar({
           className="absolute left-0 top-0 h-full bg-[#B04E34] opacity-70 rounded-full transition-all duration-300"
           style={{ width: `${clampedScore}%` }}
         />
-        {showLabel && ratingLabel && (
+        {/* {showLabel && ratingLabel && (
           <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
             <Badge className="bg-white text-[#B04E34] border border-[#B04E34]">
               {ratingLabel}
             </Badge>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
@@ -328,8 +328,11 @@ export default function AnalysisView({
           {/* Score Card */}
           <Card className="mb-6 border-none shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">
-                Overall Usability Score
+              <CardTitle className="flex items-center gap-2">
+                <p className="text-lg font-medium"> Overall Usability Score</p>
+                <Badge className="bg-white text-[#B04E34] border border-[#B04E34] hover:bg-[#B04E34] hover:text-white transition-colors duration-200">
+                  {ratingLabel}
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>

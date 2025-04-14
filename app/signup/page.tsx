@@ -142,6 +142,7 @@ function SignupPage() {
               </Link>
             </div>
           </div>
+          {/* Right Section */}
           <div className="col-span-12 md:col-span-6 lg:col-span-6">
             <div className="max-w-md mx-auto">
               {/* Progress Indicator */}

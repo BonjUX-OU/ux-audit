@@ -2,6 +2,7 @@
 import dbConnect from "@/lib/dbConnect";
 import Project from "@/models/Project";
 import { NextResponse } from "next/server";
+import Report from "@/models/Report";
 
 /**
  * GET /api/apps - Get all apps
@@ -68,30 +69,38 @@ export async function PUT(request: Request) {
 }
 
 /**
- * DELETE /api/apps/:id - Delete an app by ID
+ * DELETE /api/projects?id=XYZ - Delete a project by ID,
+ * including all associated reports.
  */
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
   if (!id) {
-    return NextResponse.json({ error: "App ID is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Project ID is required" },
+      { status: 400 }
+    );
   }
 
   try {
     await dbConnect();
-    const deletedApp = await Project.findByIdAndDelete(id);
 
-    if (!deletedApp) {
-      return NextResponse.json({ error: "App not found" }, { status: 404 });
+    // First find and delete the project
+    const deletedProject = await Project.findByIdAndDelete(id);
+    if (!deletedProject) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
+    // Delete all reports associated with this project
+    await Report.deleteMany({ project: id });
+
     return NextResponse.json(
-      { message: "App deleted successfully" },
+      { message: "Project and associated reports deleted successfully" },
       { status: 200 }
     );
   } catch (error: any) {
-    console.error("Error deleting app:", error.message);
+    console.error("Error deleting project:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
