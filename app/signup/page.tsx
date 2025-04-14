@@ -128,9 +128,7 @@ function SignupPage() {
               </h2>
               <p className="text-gray-600 max-w-md">
                 We are here to identify usability issues and opportunities,
-                providing insights for improving UX in your products. We are
-                here to identify usability issues and opportunities, providing
-                insights for improving UX in your products.
+                providing insights for improving UX in your products.
               </p>
 
               <Link
@@ -225,8 +223,9 @@ function SignupPage() {
                 {error && <p className="text-red-500 text-sm">{error}</p>}
 
                 <Button
-                  type="submit"
+                  //type="submit"
                   className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white"
+                  disabled
                 >
                   Continue with email
                 </Button>

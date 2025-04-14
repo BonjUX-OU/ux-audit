@@ -75,9 +75,7 @@ function LoginPage() {
               </h2>
               <p className="text-gray-600 max-w-md">
                 We are here to identify usability issues and opportunities,
-                providing insights for improving UX in your products. We are
-                here to identify usability issues and opportunities, providing
-                insights for improving UX in your products.
+                providing insights for improving UX in your products.
               </p>
 
               <Link
@@ -131,7 +129,8 @@ function LoginPage() {
                   <div className="flex justify-center">
                     <Button
                       variant="default"
-                      type="submit"
+                      //type="submit"
+                      disabled
                       className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white"
                     >
                       Log in with email

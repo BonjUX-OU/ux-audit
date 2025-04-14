@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 function AccountMenu() {
   const { data: session }: any = useSession();
@@ -44,11 +45,16 @@ function AccountMenu() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {/* Profile Button */}
-            <DropdownMenuItem onClick={handleProfileClick}>
+            {/* <DropdownMenuItem onClick={handleProfileClick}>
               Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Support</DropdownMenuItem>
+            </DropdownMenuItem> */}
+            <Link
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdCSVNo2phhZ03CnE1unEUp5Rto7M_AxRjHji_2UKuWw1KMNg/viewform?usp=dialog"
+              target="_blank"
+            >
+              <DropdownMenuItem>Give Feedback</DropdownMenuItem>
+            </Link>
+
             <DropdownMenuSeparator />
             {/* Logout Button */}
             <DropdownMenuItem
