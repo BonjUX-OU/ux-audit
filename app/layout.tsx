@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import SessionProvider from "@/utils/SessionProvider";
 import { Work_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
+import { Analytics } from "@vercel/analytics/react";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -43,6 +44,7 @@ export default async function RootLayout({
           className={`${workSans.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           {children} <Toaster />
+          <Analytics />
         </body>
       </SessionProvider>
     </html>
