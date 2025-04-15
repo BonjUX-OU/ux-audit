@@ -210,15 +210,15 @@ export default function AdminDashboard() {
   // Fetch main stats (including timeSeries)
   const userRole = session?.user?.role;
 
-  useEffect(() => {
-    //if user is not logged redirect to login page
-    //if user is not admin or tester redirect to dashboard
-    if (!session) {
-      router.push("/signin");
-    } else if (userRole !== "admin") {
-      router.push("/dashboard");
-    }
-  }, [session, userRole, router]);
+  // useEffect(() => {
+  //   //if user is not logged redirect to login page
+  //   //if user is not admin or tester redirect to dashboard
+  //   if (!session) {
+  //     router.push("/signin");
+  //   } else if (userRole !== "admin") {
+  //     router.push("/dashboard");
+  //   }
+  // }, [session, userRole, router]);
   useEffect(() => {
     const fetchStats = async () => {
       try {
