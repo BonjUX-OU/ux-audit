@@ -185,7 +185,7 @@ const THEME = {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { data: session }: any = useSession();
+  const { data: session, status }: any = useSession();
 
   const [stats, setStats] = useState<AdminStatsResponse | null>(null);
   const [userDetails, setUserDetails] = useState<AdminUserDetails[]>([]);
@@ -208,17 +208,15 @@ export default function AdminDashboard() {
   });
 
   // Fetch main stats (including timeSeries)
-  const userRole = session?.user?.role;
+  //const userRole = session?.user?.role;
 
-  // useEffect(() => {
-  //   //if user is not logged redirect to login page
-  //   //if user is not admin or tester redirect to dashboard
-  //   if (!session) {
-  //     router.push("/signin");
-  //   } else if (userRole !== "admin") {
-  //     router.push("/dashboard");
-  //   }
-  // }, [session, userRole, router]);
+  useEffect(() => {
+    if (status === "loading") return; // Don't do anything while loading
+
+    if (status === "unauthenticated" || session?.user?.role !== "admin") {
+      router.push("/dashboard");
+    }
+  }, [status, session, router]);
   useEffect(() => {
     const fetchStats = async () => {
       try {

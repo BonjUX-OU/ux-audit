@@ -274,7 +274,7 @@ function SignupPage() {
               </form>
               <p className="text-sm text-gray-500 text-center mt-6">
                 By registering you accept our{" "}
-                <Link href="/privacy" className="text-[#C25B3F]">
+                <Link href="/privacy-policy" className="text-[#C25B3F]">
                   Privacy Policy
                 </Link>{" "}
                 and{" "}
