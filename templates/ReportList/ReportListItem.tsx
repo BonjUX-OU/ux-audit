@@ -16,7 +16,7 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
 	return (
 		<TableRow className="hover:bg-gray-50 transition-colors duration-200">
 			<TableCell className="font-medium max-w-[300px] truncate">
-				<Link href={`/report/xyz`}></Link>
+				<Link href={`/report/${report._id}`}>{report.url}</Link>
 			</TableCell>
 			<TableCell className="text-gray-500">
 				<div className="flex items-center">
@@ -33,7 +33,6 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
 				</Badge>
 			</TableCell>
 			<TableCell className="text-gray-600">{report.project.name}</TableCell>
-
 			<TableCell className="flex space-x-1">
 				<Link href={`/report/${report._id}`}>
 					<Button
