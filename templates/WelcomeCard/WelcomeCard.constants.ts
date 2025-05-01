@@ -27,4 +27,5 @@ export const PageTypes: string[] = [
   "FAQ Page",
   "E-commerce Product Page",
   "Pricing Page",
+  "Others",
 ] as const;

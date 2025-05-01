@@ -1001,38 +1001,6 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog for adding new Page Type */}
-      <Dialog open={isAddPageTypeDialogOpen} onOpenChange={setIsAddPageTypeDialogOpen}>
-        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Add New Page Type</DialogTitle>
-            <DialogDescription>Enter a new page type that is not in the list.</DialogDescription>
-          </DialogHeader>
-          <div className="mt-2 space-y-4">
-            <Input
-              type="text"
-              placeholder="e.g. Contact"
-              value={newPageTypeInput}
-              onChange={(e) => setNewPageTypeInput(e.target.value)}
-              className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAddPageTypeDialogOpen(false)}
-              className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddNewPageType}
-              className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
-              Add
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Dialog for editing existing Project */}
       <ConfirmationModal
         title="Edit Project Name"
