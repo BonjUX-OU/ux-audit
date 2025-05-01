@@ -75,9 +75,6 @@ const WelcomeCard = ({
                         {sec}
                       </SelectItem>
                     ))}
-                    <SelectItem value="add-new-sector" className="text-gray-500 italic">
-                      + Add new sector...
-                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -97,9 +94,6 @@ const WelcomeCard = ({
                         {pt}
                       </SelectItem>
                     ))}
-                    <SelectItem value="add-new-pagetype" className="text-gray-500 italic">
-                      + Add new page type...
-                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
