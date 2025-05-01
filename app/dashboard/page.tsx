@@ -969,38 +969,6 @@ export default function DashboardPage() {
         <AnalysingLoader isOpen={showAnalysisModal} hasError={!!analysisError} onOpenChange={setShowAnalysisModal} />
       </div>
 
-      {/* Dialog for adding new Sector */}
-      <Dialog open={isAddSectorDialogOpen} onOpenChange={setIsAddSectorDialogOpen}>
-        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Add New Sector</DialogTitle>
-            <DialogDescription>Enter a new sector that is not in the list.</DialogDescription>
-          </DialogHeader>
-          <div className="mt-2 space-y-4">
-            <Input
-              type="text"
-              placeholder="e.g. Technology"
-              value={newSectorInput}
-              onChange={(e) => setNewSectorInput(e.target.value)}
-              className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAddSectorDialogOpen(false)}
-              className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddNewSector}
-              className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
-              Add
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Dialog for editing existing Project */}
       <ConfirmationModal
         title="Edit Project Name"

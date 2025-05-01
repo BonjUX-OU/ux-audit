@@ -15,6 +15,7 @@ export const Sectors: string[] = [
   "Retail",
   "Telecommunications",
   "Automotive",
+  "Others",
 ] as const;
 
 // TODO: Will be moved to BE
