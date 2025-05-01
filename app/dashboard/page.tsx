@@ -399,8 +399,7 @@ export default function DashboardPage() {
     setEditProjectDialogOpen(true);
   }
 
-  async function handleEditProjectSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function handleEditProjectSubmit() {
     if (!editProjectData || !editProjectName.trim()) return;
 
     try {
@@ -1035,86 +1034,61 @@ export default function DashboardPage() {
       </Dialog>
 
       {/* Dialog for editing existing Project */}
-      <Dialog open={editProjectDialogOpen} onOpenChange={setEditProjectDialogOpen}>
-        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Edit Project Name</DialogTitle>
-            <DialogDescription>Update the project name as you wish.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleEditProjectSubmit}>
-            <div className="mt-2 space-y-4 mb-4">
-              <Input
-                type="text"
-                placeholder="Project name"
-                value={editProjectName}
-                onChange={(e) => setEditProjectName(e.target.value)}
-                className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setEditProjectDialogOpen(false)}
-                className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200">
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
-                Update
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationModal
+        title="Edit Project Name"
+        description="Update the project name as you wish."
+        confirmButtonTitle="Update"
+        isOpen={editProjectDialogOpen}
+        onClose={() => setEditProjectDialogOpen(false)}
+        onConfirm={handleEditProjectSubmit}>
+        <div className="mt-2 space-y-4 mb-4">
+          <Input
+            type="text"
+            placeholder="Project name"
+            value={editProjectName}
+            onChange={(e) => setEditProjectName(e.target.value)}
+            className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
+          />
+        </div>
+      </ConfirmationModal>
 
       {/* Dialog for Deleting Project */}
-      <Dialog open={deleteProjectDialogOpen} onOpenChange={setDeleteProjectDialogOpen}>
-        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg text-red-600">Delete Project</DialogTitle>
-            <DialogDescription>
-              Deleting the project will remove <strong>all reports</strong> inside it. This action{" "}
-              <strong>cannot be undone</strong>.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="mt-4 text-sm">To confirm, type the name of the project below:</div>
-          <div className="mt-2 mb-4">
-            <Input
-              type="text"
-              placeholder="Enter project name"
-              value={deleteProjectName}
-              onChange={(e) => setDeleteProjectName(e.target.value)}
-              className="shadow-sm focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
-            />
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteProjectDialogOpen(false)}
-              className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200">
-              Cancel
-            </Button>
-            <Button
-              disabled={!selectedProjectToDelete || deleteProjectName !== selectedProjectToDelete.name}
-              onClick={confirmDeleteProject}
-              className={cn("bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200", {
-                "cursor-not-allowed opacity-50":
-                  !selectedProjectToDelete || deleteProjectName !== selectedProjectToDelete.name,
-              })}>
-              Delete Project
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationModal
+        variant="delete"
+        title="Delete Project"
+        description={
+          <>
+            Deleting the project will remove <strong>all reports</strong> inside it. This action{" "}
+            <strong>cannot be undone</strong>.
+          </>
+        }
+        confirmButtonTitle="Delete Project"
+        confirmButtonDisabled={!selectedProjectToDelete || deleteProjectName !== selectedProjectToDelete.name}
+        isOpen={deleteReportDialogOpen}
+        onConfirm={confirmDeleteProject}
+        onClose={() => setDeleteProjectDialogOpen(false)}>
+        <div className="mt-4 text-sm">To confirm, type the name of the project below:</div>
+        <div className="mt-2 mb-4">
+          <Input
+            type="text"
+            placeholder="Enter project name"
+            value={deleteProjectName}
+            onChange={(e) => setDeleteProjectName(e.target.value)}
+            className="shadow-sm focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
+          />
+        </div>
+      </ConfirmationModal>
 
       {/* Dialog for Deleting Report */}
       <ConfirmationModal
+        variant="delete"
+        title="Delete Report"
+        description="Are you sure you want to delete this report? This action cannot be
+              undone."
         isOpen={deleteReportDialogOpen}
+        confirmButtonTitle="Delete Report"
         onConfirm={confirmDeleteReport}
-        onClose={() => setDeleteProjectDialogOpen(false)}
+        onClose={() => setDeleteReportDialogOpen(false)}
       />
     </>
   );
