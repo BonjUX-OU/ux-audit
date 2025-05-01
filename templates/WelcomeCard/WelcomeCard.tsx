@@ -4,14 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Globe } from "lucide-react";
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageTypes, Sectors } from "./WelcomeCard.constants";
 import { Button } from "@/components/ui/button";
 
@@ -52,9 +45,7 @@ const WelcomeCard = ({
 			<CardContent>
 				<div className="mt-4">
 					<h3 className="text-lg font-medium mb-4">Generate a New Report</h3>
-					<form
-						onSubmit={onCreateAnalysis}
-						className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+					<form onSubmit={onCreateAnalysis} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
 						<div className="md:col-span-5">
 							<label className="block text-sm font-medium mb-1.5 ">Page URL</label>
 							<div className="relative">
@@ -84,9 +75,7 @@ const WelcomeCard = ({
 												{sec}
 											</SelectItem>
 										))}
-										<SelectItem
-											value="add-new-sector"
-											className="text-gray-500 italic">
+										<SelectItem value="add-new-sector" className="text-gray-500 italic">
 											+ Add new sector...
 										</SelectItem>
 									</SelectGroup>
@@ -108,9 +97,7 @@ const WelcomeCard = ({
 												{pt}
 											</SelectItem>
 										))}
-										<SelectItem
-											value="add-new-pagetype"
-											className="text-gray-500 italic">
+										<SelectItem value="add-new-pagetype" className="text-gray-500 italic">
 											+ Add new page type...
 										</SelectItem>
 									</SelectGroup>
