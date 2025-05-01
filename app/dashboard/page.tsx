@@ -348,8 +348,7 @@ export default function DashboardPage() {
     setCurrentProject(proj);
   }
 
-  async function handleCreateProject(e: FormEvent) {
-    e.preventDefault();
+  async function handleCreateProject() {
     if (!name.trim()) return;
     try {
       const response = await fetch("/api/projects", {
@@ -710,60 +709,14 @@ export default function DashboardPage() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-medium">Projects</CardTitle>
-                  <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2 text-[#B04E34] hover:bg-[#FFF1E0] transition-colors duration-200">
-                        <Plus className="h-4 w-4 mr-1" />
-                        New
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md bg-white shadow-2xl border-none rounded-xl">
-                      <DialogHeader>
-                        <DialogTitle className="text-xl">Create a new Project</DialogTitle>
-                        <DialogDescription>Enter details for your new project.</DialogDescription>
-                      </DialogHeader>
-                      <form onSubmit={handleCreateProject} className="space-y-4 mt-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Name</label>
-                          <Input
-                            type="text"
-                            placeholder="Project Name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Description</label>
-                          <Input
-                            type="text"
-                            placeholder="Optional"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
-                          />
-                        </div>
-                        <DialogFooter>
-                          <Button
-                            variant="outline"
-                            onClick={() => setOpenDialog(false)}
-                            type="button"
-                            className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200">
-                            Cancel
-                          </Button>
-                          <Button
-                            type="submit"
-                            className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
-                            Create
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
+                  <Button
+                    onClick={() => setOpenDialog(true)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-[#B04E34] hover:bg-[#FFF1E0] transition-colors duration-200">
+                    <Plus className="h-4 w-4 mr-1" />
+                    New
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
@@ -968,6 +921,39 @@ export default function DashboardPage() {
         {/* Analysis Modal */}
         <AnalysingLoader isOpen={showAnalysisModal} hasError={!!analysisError} onOpenChange={setShowAnalysisModal} />
       </div>
+
+      {/* Dialog for adding new Project */}
+      <ConfirmationModal
+        title="Create a new Project"
+        description="Enter details for your new project."
+        confirmButtonTitle="Create"
+        isOpen={openDialog}
+        onConfirm={handleCreateProject}
+        onClose={() => setOpenDialog(false)}>
+        <div className="space-y-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Name</label>
+            <Input
+              type="text"
+              placeholder="Project Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <Input
+              type="text"
+              placeholder="Optional"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
+            />
+          </div>
+        </div>
+      </ConfirmationModal>
 
       {/* Dialog for editing existing Project */}
       <ConfirmationModal
