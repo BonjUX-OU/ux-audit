@@ -60,7 +60,4 @@ jobs:
         env:
           MONGODB_URI: $ {{secrets.MONGODB_URI}}
           STRIPE_SECRET_KEY: $ {{secrets.STRIPE_SECRET_KEY}}
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./out
+
