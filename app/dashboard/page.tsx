@@ -55,6 +55,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
+import { SelectItemType } from "@/components/organisms/SelectElement/SelectElement.types";
+import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 
 // ------------------------------------
 // Types
@@ -218,34 +220,35 @@ export default function DashboardPage() {
 	);
 
 	// ------------------------------------
-	// State for Sectors/Page Types
+	// Sectors and Page Types
 	// ------------------------------------
-	const sectors = [
-		"Healthcare",
-		"Finance",
-		"Education",
-		"E-commerce",
-		"Technology / Software",
-		"Real Estate",
-		"Entertainment & Media",
-		"Tourism & Travel",
-		"Social Networking",
-		"Manufacturing",
-		"Consulting & Professional Services",
-		"Nonprofit/NGO",
-		"Retail",
-		"Telecommunications",
-		"Automotive",
+	const sectorOptions: SelectItemType[] = [
+		{ value: "healt", label: "Healthcare" },
+		{ value: "finance", label: "Finance" },
+		{ value: "education", label: "Education" },
+		{ value: "eCommerce", label: "E-commerce" },
+		{ value: "technology", label: "Technology / Software" },
+		{ value: "realEstate", label: "Real Estate" },
+		{ value: "entertaintment", label: "Entertainment & Media" },
+		{ value: "tourism", label: "Tourism & Travel" },
+		{ value: "socialNetwork", label: "Social Networking" },
+		{ value: "manufacturing", label: "Manufacturing" },
+		{ value: "consulting", label: "Consulting & Professional Services" },
+		{ value: "nonprofit", label: "Nonprofit/NGO" },
+		{ value: "retail", label: "Retail" },
+		{ value: "telecom", label: "Telecommunications" },
+		{ value: "automotive", label: "Automotive" },
 	];
-	const pageTypeOptions = [
-		"Homepage",
-		"Product/Service Page",
-		"About Page",
-		"Blog Page",
-		"Contact Page",
-		"FAQ Page",
-		"E-commerce Product Page",
-		"Pricing Page",
+
+	const pageTypeOptions: SelectItemType[] = [
+		{ value: "home", label: "Homepage" },
+		{ value: "service", label: "Product/Service Page" },
+		{ value: "about", label: "About Page" },
+		{ value: "blog", label: "Blog Page" },
+		{ value: "contact", label: "Contact Page" },
+		{ value: "faq", label: "FAQ Page" },
+		{ value: "product", label: "E-commerce Product Page" },
+		{ value: "pricing", label: "Pricing Page" },
 	];
 
 	// ------------------------------------
@@ -914,58 +917,22 @@ export default function DashboardPage() {
 
 										{/* Sector */}
 										<div className="md:col-span-3">
-											<label className="block text-sm font-medium mb-1.5">
-												Sector
-											</label>
-											<Select
-												value={selectedSector}
-												onValueChange={setSelectedSector}>
-												<SelectTrigger className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200">
-													<SelectValue placeholder="Select Sector" />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectGroup>
-														{sectors.map((sec) => (
-															<SelectItem key={sec} value={sec}>
-																{sec}
-															</SelectItem>
-														))}
-														<SelectItem
-															value="add-new-sector"
-															className="text-gray-500 italic">
-															+ Add new sector...
-														</SelectItem>
-													</SelectGroup>
-												</SelectContent>
-											</Select>
+											<SelectElement
+												label="Sector"
+												placeholder="Select Sector"
+												options={sectorOptions}
+												onValueChange={(item) => setSelectedSector(item.value)}
+											/>
 										</div>
 
 										{/* Page Type */}
 										<div className="md:col-span-2">
-											<label className="block text-sm font-medium mb-1.5">
-												Page Type
-											</label>
-											<Select
-												value={selectedPageType}
-												onValueChange={setSelectedPageType}>
-												<SelectTrigger className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200">
-													<SelectValue placeholder="Page Type" />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectGroup>
-														{pageTypeOptions.map((pt) => (
-															<SelectItem key={pt} value={pt}>
-																{pt}
-															</SelectItem>
-														))}
-														<SelectItem
-															value="add-new-pagetype"
-															className="text-gray-500 italic">
-															+ Add new page type...
-														</SelectItem>
-													</SelectGroup>
-												</SelectContent>
-											</Select>
+											<SelectElement
+												label="Page Type"
+												placeholder="Select Page Type"
+												options={pageTypeOptions}
+												onValueChange={(item) => setSelectedPageType(item.value)}
+											/>
 										</div>
 
 										{/* Generate Button */}
