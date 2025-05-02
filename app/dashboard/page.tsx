@@ -210,6 +210,7 @@ export default function DashboardPage() {
   // ------------------------------------
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [finalReportId, setFinalReportId] = useState<string | null>(null);
 
   // ------------------------------------
   // Edit Project
@@ -414,6 +415,7 @@ export default function DashboardPage() {
 
     setShowAnalysisModal(true);
     setAnalysisError(null);
+    setFinalReportId(null);
 
     try {
       // STEP 1
@@ -492,6 +494,7 @@ export default function DashboardPage() {
       if (!storeRes.ok) throw new Error("Error storing analysis");
 
       const savedReportId = (await storeRes.json())._id;
+      setFinalReportId(savedReportId);
 
       // If user is normal and not subscribed, increment usage
       if (userRole === "user" && !userSubscribed) {
@@ -806,7 +809,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Analysis Modal */}
-        <AnalysingLoader isOpen={showAnalysisModal} hasError={!!analysisError} onOpenChange={setShowAnalysisModal} />
+        <AnalysingLoader
+          isOpen={showAnalysisModal}
+          hasError={!!analysisError}
+          reportId={finalReportId}
+          onOpenChange={setShowAnalysisModal}
+        />
       </div>
 
       {/* Dialog for adding new Project */}

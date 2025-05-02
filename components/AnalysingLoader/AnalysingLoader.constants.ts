@@ -1,9 +1,12 @@
 import { AnalysingStepType } from "./AnalysingLoader.types";
 
 export const AnalysingStatuses = {
+  IN_PROGRESS: "in-progress",
   PENDING: "pending",
   COMPLETED: "completed",
   FAILED: "failed",
+  ERROR: "error",
+  DONE: "done",
 } as const;
 
 export const AnalysingSteps: AnalysingStepType[] = [
