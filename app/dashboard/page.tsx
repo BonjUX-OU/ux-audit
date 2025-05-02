@@ -220,7 +220,7 @@ export default function DashboardPage() {
 	// ------------------------------------
 	// State for Sectors/Page Types
 	// ------------------------------------
-	const [sectors, setSectors] = useState([
+	const sectors = [
 		"Healthcare",
 		"Finance",
 		"Education",
@@ -236,8 +236,8 @@ export default function DashboardPage() {
 		"Retail",
 		"Telecommunications",
 		"Automotive",
-	]);
-	const [pageTypeOptions, setPageTypeOptions] = useState([
+	];
+	const pageTypeOptions = [
 		"Homepage",
 		"Product/Service Page",
 		"About Page",
@@ -246,14 +246,7 @@ export default function DashboardPage() {
 		"FAQ Page",
 		"E-commerce Product Page",
 		"Pricing Page",
-	]);
-
-	// Add new item dialog controls
-	const [isAddSectorDialogOpen, setIsAddSectorDialogOpen] = useState(false);
-	const [newSectorInput, setNewSectorInput] = useState("");
-
-	const [isAddPageTypeDialogOpen, setIsAddPageTypeDialogOpen] = useState(false);
-	const [newPageTypeInput, setNewPageTypeInput] = useState("");
+	];
 
 	// ------------------------------------
 	// Projects & Reports
@@ -355,45 +348,6 @@ export default function DashboardPage() {
 	}
 
 	// ------------------------------------
-	// Add Sector & Page Type Logic
-	// ------------------------------------
-	function handleSectorSelect(value: string) {
-		if (value === "add-new-sector") {
-			setIsAddSectorDialogOpen(true);
-		} else {
-			setSelectedSector(value);
-		}
-	}
-
-	function handlePageTypeSelect(value: string) {
-		if (value === "add-new-pagetype") {
-			setIsAddPageTypeDialogOpen(true);
-		} else {
-			setSelectedPageType(value);
-		}
-	}
-
-	function handleAddNewSector() {
-		const newSec = newSectorInput.trim();
-		if (newSec && !sectors.includes(newSec)) {
-			setSectors((prev) => [...prev, newSec]);
-			setSelectedSector(newSec);
-		}
-		setNewSectorInput("");
-		setIsAddSectorDialogOpen(false);
-	}
-
-	function handleAddNewPageType() {
-		const newType = newPageTypeInput.trim();
-		if (newType && !pageTypeOptions.includes(newType)) {
-			setPageTypeOptions((prev) => [...prev, newType]);
-			setSelectedPageType(newType);
-		}
-		setNewPageTypeInput("");
-		setIsAddPageTypeDialogOpen(false);
-	}
-
-	// ------------------------------------
 	// Project Handlers
 	// ------------------------------------
 	function handleProjectClick(proj: Project) {
@@ -487,8 +441,6 @@ export default function DashboardPage() {
 	}
 
 	async function confirmDeleteProject() {
-		console.log("ok");
-		return;
 		if (!selectedProjectToDelete?._id) return;
 
 		try {
@@ -577,7 +529,7 @@ export default function DashboardPage() {
 			setAnalysisSteps((prev) =>
 				prev.map((s, i) => (i === 0 ? { ...s, status: "in-progress" } : s))
 			);
-			let step1Res = await fetch("/api/analyze/step1", {
+			const step1Res = await fetch("/api/analyze/step1", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -603,7 +555,7 @@ export default function DashboardPage() {
 			setAnalysisSteps((prev) =>
 				prev.map((s, i) => (i === 1 ? { ...s, status: "in-progress" } : s))
 			);
-			let step2Res = await fetch("/api/analyze/step2", {
+			const step2Res = await fetch("/api/analyze/step2", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -624,7 +576,7 @@ export default function DashboardPage() {
 			setAnalysisSteps((prev) =>
 				prev.map((s, i) => (i === 2 ? { ...s, status: "in-progress" } : s))
 			);
-			let step3Res = await fetch("/api/analyze/step3", {
+			const step3Res = await fetch("/api/analyze/step3", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -706,8 +658,6 @@ export default function DashboardPage() {
 	}
 
 	async function confirmDeleteReport() {
-		console.log("ok");
-		return;
 		if (!selectedReportToDelete?._id) return;
 		try {
 			const response = await fetch(`/api/report?id=${selectedReportToDelete._id}`, {
@@ -969,7 +919,7 @@ export default function DashboardPage() {
 											</label>
 											<Select
 												value={selectedSector}
-												onValueChange={handleSectorSelect}>
+												onValueChange={setSelectedSector}>
 												<SelectTrigger className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200">
 													<SelectValue placeholder="Select Sector" />
 												</SelectTrigger>
@@ -997,7 +947,7 @@ export default function DashboardPage() {
 											</label>
 											<Select
 												value={selectedPageType}
-												onValueChange={handlePageTypeSelect}>
+												onValueChange={setSelectedPageType}>
 												<SelectTrigger className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200">
 													<SelectValue placeholder="Page Type" />
 												</SelectTrigger>
