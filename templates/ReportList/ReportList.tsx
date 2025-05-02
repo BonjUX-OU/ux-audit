@@ -1,12 +1,12 @@
 import React from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AnalysisReport } from "./ReportList.types";
+import { AnalysisReportType } from "./ReportList.types";
 import ReportListItem from "./ReportListItem";
 import { FileIcon } from "lucide-react";
 
 type ReportListProps = {
-  reports: AnalysisReport[];
-  onDeleteReportClick: (report: AnalysisReport) => void;
+  reports: AnalysisReportType[];
+  onDeleteReportClick: (report: AnalysisReportType) => void;
 };
 
 const ReportList = ({ reports, onDeleteReportClick }: ReportListProps) => {

@@ -9,6 +9,8 @@ declare module "next-auth" {
   interface User {
     createdAt?: string;
     subscribed?: boolean;
+    role?: string;
+    usedAnalyses?: number;
   }
 
   interface Session {
@@ -29,10 +31,7 @@ export default function AccountAndPlanDetailsPage() {
   // Trial logic
   const trialEnd = new Date(userCreatedAt.getTime() + 7 * 24 * 60 * 60 * 1000);
   const now = new Date();
-  const daysLeft = Math.max(
-    0,
-    Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-  );
+  const daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
 
   // Subscription logic
   const userSubscribed = user?.subscribed;
@@ -133,11 +132,7 @@ export default function AccountAndPlanDetailsPage() {
   }
 
   async function handleDeleteAccount() {
-    if (
-      !confirm(
-        "Are you sure you want to delete your account? This action cannot be undone."
-      )
-    ) {
+    if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
       return;
     }
     setDeleteLoading(true);
@@ -174,14 +169,11 @@ export default function AccountAndPlanDetailsPage() {
             <h2 className="text-xl font-medium">Beta User Plan</h2>
             {daysLeft > 0 ? (
               <p className="text-sm text-gray-600">
-                Your free trial ends in <strong>{daysLeft}</strong> Days. To
-                keep going, just add your payment details — you’ll only be
-                charged €4.99/month after your trial ends.
+                Your free trial ends in <strong>{daysLeft}</strong> Days. To keep going, just add your payment details —
+                you’ll only be charged €4.99/month after your trial ends.
               </p>
             ) : (
-              <p className="text-sm text-red-600">
-                Your free trial has ended. Please subscribe to continue usage.
-              </p>
+              <p className="text-sm text-red-600">Your free trial has ended. Please subscribe to continue usage.</p>
             )}
           </div>
         )}
@@ -191,8 +183,7 @@ export default function AccountAndPlanDetailsPage() {
           <button
             onClick={handleCancelPlan}
             disabled={subCancelLoading}
-            className="text-sm font-semibold text-red-500 hover:text-red-700"
-          >
+            className="text-sm font-semibold text-red-500 hover:text-red-700">
             {subCancelLoading ? "Canceling..." : "Cancel my plan ›"}
           </button>
         )}
@@ -201,8 +192,7 @@ export default function AccountAndPlanDetailsPage() {
         {!userSubscribed && (
           <a
             href={process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || "#"}
-            className="text-sm font-semibold text-orange-600 hover:text-orange-800"
-          >
+            className="text-sm font-semibold text-orange-600 hover:text-orange-800">
             Subscribe Now ›
           </a>
         )}
@@ -214,20 +204,17 @@ export default function AccountAndPlanDetailsPage() {
           <h3 className="text-lg font-semibold mb-3">Change Email</h3>
           <form onSubmit={handleChangeEmail} className="space-y-4">
             <div>
-              <label className="block text-sm mb-1">
-                Your Current Business Email
-              </label>
+              <label className="block text-sm mb-1">Your Current Business Email</label>
               <Input
                 type="text"
                 readOnly
                 value={currentEmail}
                 className="bg-gray-100 cursor-not-allowed"
+                onChange={(e) => setCurrentEmail(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm mb-1">
-                Your New Business Email
-              </label>
+              <label className="block text-sm mb-1">Your New Business Email</label>
               <Input
                 type="email"
                 placeholder="new@email.com"
@@ -236,11 +223,7 @@ export default function AccountAndPlanDetailsPage() {
                 required
               />
             </div>
-            <Button
-              type="submit"
-              disabled={emailLoading}
-              className="bg-[#B04E34] text-white"
-            >
+            <Button type="submit" disabled={emailLoading} className="bg-[#B04E34] text-white">
               {emailLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -259,9 +242,7 @@ export default function AccountAndPlanDetailsPage() {
           <h3 className="text-lg font-semibold mb-3">Change Password</h3>
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div>
-              <label className="block text-sm mb-1">
-                Your Current Password
-              </label>
+              <label className="block text-sm mb-1">Your Current Password</label>
               <Input
                 type="password"
                 placeholder="Enter your current password"
@@ -280,11 +261,7 @@ export default function AccountAndPlanDetailsPage() {
                 required
               />
             </div>
-            <Button
-              type="submit"
-              disabled={passwordLoading}
-              className="bg-[#B04E34] text-white"
-            >
+            <Button type="submit" disabled={passwordLoading} className="bg-[#B04E34] text-white">
               {passwordLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -309,8 +286,7 @@ export default function AccountAndPlanDetailsPage() {
           variant="destructive"
           onClick={handleDeleteAccount}
           disabled={deleteLoading}
-          className="bg-red-600 hover:bg-red-700 text-white"
-        >
+          className="bg-red-600 hover:bg-red-700 text-white">
           {deleteLoading ? "Deleting..." : "Delete my account ›"}
         </Button>
       </div>

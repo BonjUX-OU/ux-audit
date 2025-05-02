@@ -4,7 +4,7 @@ export type RatingLabelType = {
   color: string;
 };
 
-export type Project = {
+export type ProjectType = {
   _id: string;
   owner?: string;
   name: string;
@@ -12,13 +12,15 @@ export type Project = {
   createdAt?: string;
 };
 
-export type AnalysisReport = {
+export type HeuristicType = any;
+
+export type AnalysisReportType = {
   _id: string;
   url: string;
   sector?: string;
   overallScore: number;
   createdAt?: string;
-  heuristics?: any[];
-  project: Project;
+  heuristics?: HeuristicType[];
+  project: ProjectType;
   pageType?: string;
 };

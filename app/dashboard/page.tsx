@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -25,8 +24,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Loader2,
-  Check,
-  XCircle,
   Plus,
   ExternalLink,
   FileIcon,
@@ -40,7 +37,6 @@ import {
 import { cn } from "@/lib/utils";
 import WelcomeCard from "@/templates/WelcomeCard/WelcomeCard";
 import ReportList from "@/templates/ReportList/ReportList";
-import { PageTypes, Sectors } from "@/templates/WelcomeCard/WelcomeCard.constants";
 import AnalysingLoader from "@/components/AnalysingLoader/AnalysingLoader";
 import ConfirmationModal from "@/components/ConfirmationModal/ConfirmationModal";
 
@@ -64,11 +60,6 @@ type AnalysisReport = {
   heuristics?: any[];
   project: Project;
   pageType?: string;
-};
-
-type AnalysisStep = {
-  label: string;
-  status: "pending" | "in-progress" | "done" | "error";
 };
 
 // ------------------------------------
@@ -144,7 +135,7 @@ function ComparisonScale({ reports }: { reports: AnalysisReport[] }) {
 }
 
 export default function DashboardPage() {
-  const { data: session }: any = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
 
   // ------------------------------------
@@ -193,19 +184,6 @@ export default function DashboardPage() {
   const daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
 
   // ------------------------------------
-  // State for Sectors/Page Types
-  // ------------------------------------
-  const [sectors, setSectors] = useState(Sectors);
-  const [pageTypeOptions, setPageTypeOptions] = useState(PageTypes);
-
-  // Add new item dialog controls
-  const [isAddSectorDialogOpen, setIsAddSectorDialogOpen] = useState(false);
-  const [newSectorInput, setNewSectorInput] = useState("");
-
-  const [isAddPageTypeDialogOpen, setIsAddPageTypeDialogOpen] = useState(false);
-  const [newPageTypeInput, setNewPageTypeInput] = useState("");
-
-  // ------------------------------------
   // Projects & Reports
   // ------------------------------------
   const [projects, setProjects] = useState<Project[]>([]);
@@ -231,19 +209,7 @@ export default function DashboardPage() {
   // Analysis Modal Steps
   // ------------------------------------
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
-  const [analysisSteps, setAnalysisSteps] = useState<AnalysisStep[]>([
-    { label: "Scraping the website...", status: "pending" },
-    {
-      label: "Analyzing webpage & Highlighting issues...",
-      status: "pending",
-    },
-    {
-      label: "Generating final analysis & storing report...",
-      status: "pending",
-    },
-  ]);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [finalReportId, setFinalReportId] = useState<string | null>(null);
 
   // ------------------------------------
   // Edit Project
@@ -302,52 +268,6 @@ export default function DashboardPage() {
     }
   }
 
-  // ------------------------------------
-  // Add Sector & Page Type Logic
-  // ------------------------------------
-  function handleSectorSelect(value: string) {
-    if (value === "add-new-sector") {
-      setIsAddSectorDialogOpen(true);
-    } else {
-      setSelectedSector(value);
-    }
-  }
-
-  function handlePageTypeSelect(value: string) {
-    if (value === "add-new-pagetype") {
-      setIsAddPageTypeDialogOpen(true);
-    } else {
-      setSelectedPageType(value);
-    }
-  }
-
-  function handleAddNewSector() {
-    const newSec = newSectorInput.trim();
-    if (newSec && !sectors.includes(newSec)) {
-      setSectors((prev) => [...prev, newSec]);
-      setSelectedSector(newSec);
-    }
-    setNewSectorInput("");
-    setIsAddSectorDialogOpen(false);
-  }
-
-  function handleAddNewPageType() {
-    const newType = newPageTypeInput.trim();
-    if (newType && !pageTypeOptions.includes(newType)) {
-      setPageTypeOptions((prev) => [...prev, newType]);
-      setSelectedPageType(newType);
-    }
-    setNewPageTypeInput("");
-    setIsAddPageTypeDialogOpen(false);
-  }
-
-  // ------------------------------------
-  // Project Handlers
-  // ------------------------------------
-  function handleProjectClick(proj: Project) {
-    setCurrentProject(proj);
-  }
-
   async function handleCreateProject() {
     if (!name.trim()) return;
     try {
@@ -355,7 +275,7 @@ export default function DashboardPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          owner: session.user.id,
+          owner: session?.user?.id,
           name,
           description,
         }),
@@ -377,7 +297,7 @@ export default function DashboardPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        owner: session.user.id,
+        owner: session?.user?.id,
         name: "Untitled Project",
         description: "",
       }),
@@ -457,23 +377,6 @@ export default function DashboardPage() {
     }
   }
 
-  // ------------------------------------
-  // Analysis Logic
-  // ------------------------------------
-  function resetAnalysisSteps() {
-    setAnalysisSteps([
-      { label: "Scanning the website...", status: "pending" },
-      {
-        label: "Analyzing webpage & Highlighting issues...",
-        status: "pending",
-      },
-      {
-        label: "Generating final analysis & storing report...",
-        status: "pending",
-      },
-    ]);
-  }
-
   async function handleCreateAnalysis(e: FormEvent) {
     e.preventDefault();
 
@@ -510,21 +413,18 @@ export default function DashboardPage() {
     }
 
     setShowAnalysisModal(true);
-    resetAnalysisSteps();
     setAnalysisError(null);
-    setFinalReportId(null);
 
     try {
       // STEP 1
-      setAnalysisSteps((prev) => prev.map((s, i) => (i === 0 ? { ...s, status: "in-progress" } : s)));
-      let step1Res = await fetch("/api/analyze/step1", {
+      const step1Res = await fetch("/api/analyze/step1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url,
           sector: selectedSector,
           pageType: selectedPageType,
-          ownerId: session.user.id,
+          ownerId: session?.user?.id,
           projectId,
         }),
       });
@@ -535,11 +435,9 @@ export default function DashboardPage() {
       const screenshot = step1Data.screenshot;
       const truncatedHTML = step1Data.truncatedHTML;
       const rawHTML = step1Data.rawHTML;
-      setAnalysisSteps((prev) => prev.map((s, i) => (i === 0 ? { ...s, status: "done" } : s)));
 
       // STEP 2
-      setAnalysisSteps((prev) => prev.map((s, i) => (i === 1 ? { ...s, status: "in-progress" } : s)));
-      let step2Res = await fetch("/api/analyze/step2", {
+      const step2Res = await fetch("/api/analyze/step2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -552,11 +450,9 @@ export default function DashboardPage() {
         throw new Error(`Step 2 failed: ${step2Res.statusText}`);
       }
       await step2Res.json(); // presumably { success: true }
-      setAnalysisSteps((prev) => prev.map((s, i) => (i === 1 ? { ...s, status: "done" } : s)));
 
       // STEP 3
-      setAnalysisSteps((prev) => prev.map((s, i) => (i === 2 ? { ...s, status: "in-progress" } : s)));
-      let step3Res = await fetch("/api/analyze/step3", {
+      const step3Res = await fetch("/api/analyze/step3", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -581,7 +477,7 @@ export default function DashboardPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          owner: session.user.id,
+          owner: session?.user?.id,
           project: currentProject._id === "all" ? newProjectId : currentProject._id,
           url,
           scores: analysis.scores,
@@ -596,15 +492,13 @@ export default function DashboardPage() {
       if (!storeRes.ok) throw new Error("Error storing analysis");
 
       const savedReportId = (await storeRes.json())._id;
-      setFinalReportId(savedReportId);
-      setAnalysisSteps((prev) => prev.map((s, i) => (i === 2 ? { ...s, status: "done" } : s)));
 
       // If user is normal and not subscribed, increment usage
       if (userRole === "user" && !userSubscribed) {
         await fetch("/api/user/increment-usage", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: session.user.id }),
+          body: JSON.stringify({ userId: session?.user?.id }),
         });
         // Force refresh to update session usedAnalyses
         router.refresh();
@@ -615,13 +509,6 @@ export default function DashboardPage() {
     } catch (error: any) {
       console.error("Analysis error:", error);
       setAnalysisError(error.message || "Unknown error");
-      setAnalysisSteps((prev) => {
-        const idx = prev.findIndex((s) => s.status === "in-progress");
-        if (idx >= 0) {
-          return prev.map((step, i) => (i === idx ? { ...step, status: "error" } : step));
-        }
-        return prev;
-      });
     }
   }
 
@@ -726,7 +613,7 @@ export default function DashboardPage() {
                     {projects.map((project) => (
                       <div key={project._id} className="group flex items-center justify-between">
                         <button
-                          onClick={() => handleProjectClick(project)}
+                          onClick={() => setCurrentProject(project)}
                           className={cn(
                             "flex items-center text-left px-3 py-2 rounded-md w-full transition-all duration-200",
                             currentProject?._id === project._id
@@ -793,8 +680,8 @@ export default function DashboardPage() {
               selectedPageType={selectedPageType}
               isAnalysisModalOpen={showAnalysisModal}
               onCreateAnalysis={handleCreateAnalysis}
-              onSectorSelect={handleSectorSelect}
-              onPageTypeSelect={handlePageTypeSelect}
+              onSectorSelect={setSelectedSector}
+              onPageTypeSelect={setSelectedPageType}
               onUrlChanged={(newUrl: string) => setUrl(newUrl)}
             />
 
@@ -986,7 +873,7 @@ export default function DashboardPage() {
         }
         confirmButtonTitle="Delete Project"
         confirmButtonDisabled={!selectedProjectToDelete || deleteProjectName !== selectedProjectToDelete.name}
-        isOpen={deleteReportDialogOpen}
+        isOpen={deleteProjectDialogOpen}
         onConfirm={confirmDeleteProject}
         onClose={() => setDeleteProjectDialogOpen(false)}>
         <div className="mt-4 text-sm">To confirm, type the name of the project below:</div>

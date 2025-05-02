@@ -4,12 +4,12 @@ import Link from "next/link";
 import { Calendar, ExternalLink, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getRatingColor, getRatingLabel } from "./ReportList.helpers";
-import { AnalysisReport } from "./ReportList.types";
+import { AnalysisReportType } from "./ReportList.types";
 import { Button } from "@/components/ui/button";
 
 type ReportListItemProps = {
-  report: AnalysisReport;
-  onDeleteReportClick: (report: AnalysisReport) => void;
+  report: AnalysisReportType;
+  onDeleteReportClick: (report: AnalysisReportType) => void;
 };
 
 const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) => {
