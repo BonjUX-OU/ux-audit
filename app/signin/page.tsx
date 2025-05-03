@@ -71,7 +71,7 @@ function LoginPage() {
               </div>
 
               <h2 className="text-2xl font-bold mb-4">
-                Thank you Kmras Antep👋
+              Thank you for being our Beta User👋
               </h2>
               <p className="text-gray-600 max-w-md">
                 We are here to identify usability issues and opportunities,
