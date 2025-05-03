@@ -73,7 +73,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
     if (!analysis || !iframeRef.current) return;
     const highlights: { selector: string; label: string; issueId: string }[] = [];
     analysis.heuristics?.forEach((h) => {
-      h.issues.forEach((issue) => {
+      h.issues.forEach((issue: Issue) => {
         issue.occurrences?.forEach((occ) => {
           highlights.push({
             selector: occ.selector,
@@ -121,7 +121,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
         const issueId = event.data.issueId;
         let found: Issue | null = null;
         analysis?.heuristics?.forEach((h) => {
-          h.issues.forEach((issue) => {
+          h.issues.forEach((issue: Issue) => {
             if (issue.issue_id === issueId) {
               found = issue;
             }
@@ -332,7 +332,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
                         <TabsContent value="issues" className="m-0">
                           <div className="p-4">
                             {analysis.heuristics?.flatMap((h) =>
-                              h.issues.map((issue) => (
+                              h.issues.map((issue: Issue) => (
                                 <div key={issue.issue_id} className="mb-4 bg-gray-50 rounded-lg p-3">
                                   <div className="flex items-start gap-2">
                                     <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5" />
@@ -391,7 +391,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
                                 </div>
                                 {h.issues.length > 0 ? (
                                   <div className="pl-8 space-y-2">
-                                    {h.issues.map((issue) => (
+                                    {h.issues.map((issue: Issue) => (
                                       <div
                                         key={issue.issue_id}
                                         className="text-xs text-gray-700 bg-gray-50 p-2 rounded">
