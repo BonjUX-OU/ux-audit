@@ -17,22 +17,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,9 +27,7 @@ import {
   Check,
   XCircle,
   Plus,
-  ExternalLink,
   FileIcon,
-  Calendar,
   Globe,
   Layers,
   FolderPlus,
@@ -54,6 +36,10 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
+import { SelectItemType } from "@/components/organisms/SelectElement/SelectElement.types";
+import SelectElement from "@/components/organisms/SelectElement/SelectElement";
+import ReportList from "@/components/organisms/ReportList/ReportList";
 
 // ------------------------------------
 // Types
@@ -82,31 +68,6 @@ type AnalysisStep = {
   status: "pending" | "in-progress" | "done" | "error";
 };
 
-// ------------------------------------
-// Rating Helpers
-// ------------------------------------
-const ratingLabels = [
-  { threshold: 20, label: "Very Poor", color: "bg-red-500" },
-  { threshold: 40, label: "Poor", color: "bg-orange-500" },
-  { threshold: 60, label: "Mediocre", color: "bg-yellow-500" },
-  { threshold: 80, label: "Good", color: "bg-green-400" },
-  { threshold: 100, label: "Very Good", color: "bg-green-600" },
-];
-
-function getRatingLabel(score: number): string {
-  for (const rating of ratingLabels) {
-    if (score <= rating.threshold) return rating.label;
-  }
-  return "Unknown";
-}
-
-function getRatingColor(score: number): string {
-  for (const rating of ratingLabels) {
-    if (score <= rating.threshold) return rating.color;
-  }
-  return "bg-gray-500";
-}
-
 function getLeftPercent(score: number) {
   const clamped = Math.min(100, Math.max(0, score));
   return `${clamped}%`;
@@ -118,10 +79,7 @@ function getLeftPercent(score: number) {
 function ComparisonScale({ reports }: { reports: AnalysisReport[] }) {
   if (!reports || !reports.length) return null;
 
-  const sortedByDate = [...reports].sort(
-    (a, b) =>
-      new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime()
-  );
+  const sortedByDate = [...reports].sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
 
   return (
     <Card className="mt-4 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
@@ -144,11 +102,7 @@ function ComparisonScale({ reports }: { reports: AnalysisReport[] }) {
           {sortedByDate.map((report, i) => {
             const left = getLeftPercent(report.overallScore);
             return (
-              <div
-                key={report._id}
-                className="absolute -top-3 transform -translate-x-1/2"
-                style={{ left }}
-              >
+              <div key={report._id} className="absolute -top-3 transform -translate-x-1/2" style={{ left }}>
                 <div className="w-7 h-7 bg-white border-2 border-[#B04E34] text-[#B04E34] text-xs rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-110 hover:shadow-lg">
                   {i + 1}
                 </div>
@@ -171,9 +125,7 @@ export default function DashboardPage() {
   const userRole = session?.user?.role;
   const userSubscribed = session?.user?.subscribed;
   const userUsedAnalyses = session?.user?.usedAnalyses ?? 0;
-  const userCreatedAt = session?.user?.createdAt
-    ? new Date(session.user.createdAt)
-    : new Date(0);
+  const userCreatedAt = session?.user?.createdAt ? new Date(session.user.createdAt) : new Date(0);
 
   // 7-day trial calculation
   const trialEnd = new Date(userCreatedAt.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -185,10 +137,7 @@ export default function DashboardPage() {
   // If user.subscribed => no limit
   // Otherwise => must be within7Days && under10Analyses
   const userAllowedToAnalyze =
-    userRole === "admin" ||
-    userRole === "tester" ||
-    userSubscribed ||
-    (within7Days && under10Analyses);
+    userRole === "admin" || userRole === "tester" || userSubscribed || (within7Days && under10Analyses);
 
   // We'll show a forced subscription dialog if user is blocked
   const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
@@ -213,48 +162,39 @@ export default function DashboardPage() {
   }
 
   // Calculate how many days left in trial
-  const daysLeft = Math.max(
-    0,
-    Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-  );
+  const daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
 
   // ------------------------------------
-  // State for Sectors/Page Types
+  // Sectors and Page Types
   // ------------------------------------
-  const [sectors, setSectors] = useState([
-    "Healthcare",
-    "Finance",
-    "Education",
-    "E-commerce",
-    "Technology / Software",
-    "Real Estate",
-    "Entertainment & Media",
-    "Tourism & Travel",
-    "Social Networking",
-    "Manufacturing",
-    "Consulting & Professional Services",
-    "Nonprofit/NGO",
-    "Retail",
-    "Telecommunications",
-    "Automotive",
-  ]);
-  const [pageTypeOptions, setPageTypeOptions] = useState([
-    "Homepage",
-    "Product/Service Page",
-    "About Page",
-    "Blog Page",
-    "Contact Page",
-    "FAQ Page",
-    "E-commerce Product Page",
-    "Pricing Page",
-  ]);
+  const sectorOptions: SelectItemType[] = [
+    { value: "healt", label: "Healthcare" },
+    { value: "finance", label: "Finance" },
+    { value: "education", label: "Education" },
+    { value: "eCommerce", label: "E-commerce" },
+    { value: "technology", label: "Technology / Software" },
+    { value: "realEstate", label: "Real Estate" },
+    { value: "entertaintment", label: "Entertainment & Media" },
+    { value: "tourism", label: "Tourism & Travel" },
+    { value: "socialNetwork", label: "Social Networking" },
+    { value: "manufacturing", label: "Manufacturing" },
+    { value: "consulting", label: "Consulting & Professional Services" },
+    { value: "nonprofit", label: "Nonprofit/NGO" },
+    { value: "retail", label: "Retail" },
+    { value: "telecom", label: "Telecommunications" },
+    { value: "automotive", label: "Automotive" },
+  ];
 
-  // Add new item dialog controls
-  const [isAddSectorDialogOpen, setIsAddSectorDialogOpen] = useState(false);
-  const [newSectorInput, setNewSectorInput] = useState("");
-
-  const [isAddPageTypeDialogOpen, setIsAddPageTypeDialogOpen] = useState(false);
-  const [newPageTypeInput, setNewPageTypeInput] = useState("");
+  const pageTypeOptions: SelectItemType[] = [
+    { value: "home", label: "Homepage" },
+    { value: "service", label: "Product/Service Page" },
+    { value: "about", label: "About Page" },
+    { value: "blog", label: "Blog Page" },
+    { value: "contact", label: "Contact Page" },
+    { value: "faq", label: "FAQ Page" },
+    { value: "product", label: "E-commerce Product Page" },
+    { value: "pricing", label: "Pricing Page" },
+  ];
 
   // ------------------------------------
   // Projects & Reports
@@ -308,15 +248,13 @@ export default function DashboardPage() {
   // ------------------------------------
   const [deleteProjectDialogOpen, setDeleteProjectDialogOpen] = useState(false);
   const [deleteProjectName, setDeleteProjectName] = useState("");
-  const [selectedProjectToDelete, setSelectedProjectToDelete] =
-    useState<Project | null>(null);
+  const [selectedProjectToDelete, setSelectedProjectToDelete] = useState<Project | null>(null);
 
   // ------------------------------------
   // Delete Report
   // ------------------------------------
   const [deleteReportDialogOpen, setDeleteReportDialogOpen] = useState(false);
-  const [selectedReportToDelete, setSelectedReportToDelete] =
-    useState<AnalysisReport | null>(null);
+  const [selectedReportToDelete, setSelectedReportToDelete] = useState<AnalysisReport | null>(null);
 
   // ------------------------------------
   // Fetch Projects & Reports
@@ -324,9 +262,7 @@ export default function DashboardPage() {
   async function fetchProjects() {
     if (!session?.user?.id) return;
     try {
-      const response = await fetch(
-        `/api/user/projects?userId=${session.user.id}`
-      );
+      const response = await fetch(`/api/user/projects?userId=${session.user.id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
       }
@@ -355,45 +291,6 @@ export default function DashboardPage() {
     } finally {
       setLoadingReports(false);
     }
-  }
-
-  // ------------------------------------
-  // Add Sector & Page Type Logic
-  // ------------------------------------
-  function handleSectorSelect(value: string) {
-    if (value === "add-new-sector") {
-      setIsAddSectorDialogOpen(true);
-    } else {
-      setSelectedSector(value);
-    }
-  }
-
-  function handlePageTypeSelect(value: string) {
-    if (value === "add-new-pagetype") {
-      setIsAddPageTypeDialogOpen(true);
-    } else {
-      setSelectedPageType(value);
-    }
-  }
-
-  function handleAddNewSector() {
-    const newSec = newSectorInput.trim();
-    if (newSec && !sectors.includes(newSec)) {
-      setSectors((prev) => [...prev, newSec]);
-      setSelectedSector(newSec);
-    }
-    setNewSectorInput("");
-    setIsAddSectorDialogOpen(false);
-  }
-
-  function handleAddNewPageType() {
-    const newType = newPageTypeInput.trim();
-    if (newType && !pageTypeOptions.includes(newType)) {
-      setPageTypeOptions((prev) => [...prev, newType]);
-      setSelectedPageType(newType);
-    }
-    setNewPageTypeInput("");
-    setIsAddPageTypeDialogOpen(false);
   }
 
   // ------------------------------------
@@ -454,8 +351,7 @@ export default function DashboardPage() {
     setEditProjectDialogOpen(true);
   }
 
-  async function handleEditProjectSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function handleEditProjectSubmit() {
     if (!editProjectData || !editProjectName.trim()) return;
 
     try {
@@ -494,12 +390,9 @@ export default function DashboardPage() {
     if (!selectedProjectToDelete?._id) return;
 
     try {
-      const response = await fetch(
-        `/api/projects?id=${selectedProjectToDelete._id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`/api/projects?id=${selectedProjectToDelete._id}`, {
+        method: "DELETE",
+      });
       if (!response.ok) {
         throw new Error("Error deleting project");
       }
@@ -576,10 +469,8 @@ export default function DashboardPage() {
 
     try {
       // STEP 1
-      setAnalysisSteps((prev) =>
-        prev.map((s, i) => (i === 0 ? { ...s, status: "in-progress" } : s))
-      );
-      let step1Res = await fetch("/api/analyze/step1", {
+      setAnalysisSteps((prev) => prev.map((s, i) => (i === 0 ? { ...s, status: "in-progress" } : s)));
+      const step1Res = await fetch("/api/analyze/step1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -597,15 +488,11 @@ export default function DashboardPage() {
       const screenshot = step1Data.screenshot;
       const truncatedHTML = step1Data.truncatedHTML;
       const rawHTML = step1Data.rawHTML;
-      setAnalysisSteps((prev) =>
-        prev.map((s, i) => (i === 0 ? { ...s, status: "done" } : s))
-      );
+      setAnalysisSteps((prev) => prev.map((s, i) => (i === 0 ? { ...s, status: "done" } : s)));
 
       // STEP 2
-      setAnalysisSteps((prev) =>
-        prev.map((s, i) => (i === 1 ? { ...s, status: "in-progress" } : s))
-      );
-      let step2Res = await fetch("/api/analyze/step2", {
+      setAnalysisSteps((prev) => prev.map((s, i) => (i === 1 ? { ...s, status: "in-progress" } : s)));
+      const step2Res = await fetch("/api/analyze/step2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -618,15 +505,11 @@ export default function DashboardPage() {
         throw new Error(`Step 2 failed: ${step2Res.statusText}`);
       }
       await step2Res.json(); // presumably { success: true }
-      setAnalysisSteps((prev) =>
-        prev.map((s, i) => (i === 1 ? { ...s, status: "done" } : s))
-      );
+      setAnalysisSteps((prev) => prev.map((s, i) => (i === 1 ? { ...s, status: "done" } : s)));
 
       // STEP 3
-      setAnalysisSteps((prev) =>
-        prev.map((s, i) => (i === 2 ? { ...s, status: "in-progress" } : s))
-      );
-      let step3Res = await fetch("/api/analyze/step3", {
+      setAnalysisSteps((prev) => prev.map((s, i) => (i === 2 ? { ...s, status: "in-progress" } : s)));
+      const step3Res = await fetch("/api/analyze/step3", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -652,8 +535,7 @@ export default function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           owner: session.user.id,
-          project:
-            currentProject._id === "all" ? newProjectId : currentProject._id,
+          project: currentProject._id === "all" ? newProjectId : currentProject._id,
           url,
           scores: analysis.scores,
           screenshot,
@@ -668,9 +550,7 @@ export default function DashboardPage() {
 
       const savedReportId = (await storeRes.json())._id;
       setFinalReportId(savedReportId);
-      setAnalysisSteps((prev) =>
-        prev.map((s, i) => (i === 2 ? { ...s, status: "done" } : s))
-      );
+      setAnalysisSteps((prev) => prev.map((s, i) => (i === 2 ? { ...s, status: "done" } : s)));
 
       // If user is normal and not subscribed, increment usage
       if (userRole === "user" && !userSubscribed) {
@@ -691,9 +571,7 @@ export default function DashboardPage() {
       setAnalysisSteps((prev) => {
         const idx = prev.findIndex((s) => s.status === "in-progress");
         if (idx >= 0) {
-          return prev.map((step, i) =>
-            i === idx ? { ...step, status: "error" } : step
-          );
+          return prev.map((step, i) => (i === idx ? { ...step, status: "error" } : step));
         }
         return prev;
       });
@@ -711,12 +589,9 @@ export default function DashboardPage() {
   async function confirmDeleteReport() {
     if (!selectedReportToDelete?._id) return;
     try {
-      const response = await fetch(
-        `/api/report?id=${selectedReportToDelete._id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`/api/report?id=${selectedReportToDelete._id}`, {
+        method: "DELETE",
+      });
       if (!response.ok) {
         throw new Error("Error deleting report");
       }
@@ -744,9 +619,7 @@ export default function DashboardPage() {
   // Derived Data
   // ------------------------------------
   const isAllProjects = currentProject?._id === "all";
-  const projectReports = isAllProjects
-    ? reports
-    : reports.filter((r) => r.project._id === currentProject?._id);
+  const projectReports = isAllProjects ? reports : reports.filter((r) => r.project._id === currentProject?._id);
 
   const reportsByPageType: Record<string, AnalysisReport[]> = {};
   for (const rep of projectReports) {
@@ -769,15 +642,11 @@ export default function DashboardPage() {
             </div>
             <DialogTitle className="text-lg">Free Trial Ended!</DialogTitle>
             <DialogDescription>
-              To keep going, just add your payment details. You’ll only be
-              charged €4.99/month.
+              To keep going, just add your payment details. You’ll only be charged €4.99/month.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              onClick={handleSubscribeNow}
-              className="bg-[#B04E34] text-white w-full"
-            >
+            <Button onClick={handleSubscribeNow} className="bg-[#B04E34] text-white w-full">
               Subscribe Now
             </Button>
           </DialogFooter>
@@ -792,37 +661,25 @@ export default function DashboardPage() {
             <Card className="sticky top-20 shadow-lg border-none bg-white transition-all duration-300 hover:shadow-xl">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-medium">
-                    Projects
-                  </CardTitle>
+                  <CardTitle className="text-lg font-medium">Projects</CardTitle>
                   <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                     <DialogTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 px-2 text-[#B04E34] hover:bg-[#FFF1E0] transition-colors duration-200"
-                      >
+                        className="h-8 px-2 text-[#B04E34] hover:bg-[#FFF1E0] transition-colors duration-200">
                         <Plus className="h-4 w-4 mr-1" />
                         New
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md bg-white shadow-2xl border-none rounded-xl">
                       <DialogHeader>
-                        <DialogTitle className="text-xl">
-                          Create a new Project
-                        </DialogTitle>
-                        <DialogDescription>
-                          Enter details for your new project.
-                        </DialogDescription>
+                        <DialogTitle className="text-xl">Create a new Project</DialogTitle>
+                        <DialogDescription>Enter details for your new project.</DialogDescription>
                       </DialogHeader>
-                      <form
-                        onSubmit={handleCreateProject}
-                        className="space-y-4 mt-4"
-                      >
+                      <form onSubmit={handleCreateProject} className="space-y-4 mt-4">
                         <div>
-                          <label className="block text-sm font-medium mb-1">
-                            Name
-                          </label>
+                          <label className="block text-sm font-medium mb-1">Name</label>
                           <Input
                             type="text"
                             placeholder="Project Name"
@@ -833,9 +690,7 @@ export default function DashboardPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">
-                            Description
-                          </label>
+                          <label className="block text-sm font-medium mb-1">Description</label>
                           <Input
                             type="text"
                             placeholder="Optional"
@@ -849,14 +704,12 @@ export default function DashboardPage() {
                             variant="outline"
                             onClick={() => setOpenDialog(false)}
                             type="button"
-                            className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200"
-                          >
+                            className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200">
                             Cancel
                           </Button>
                           <Button
                             type="submit"
-                            className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200"
-                          >
+                            className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
                             Create
                           </Button>
                         </DialogFooter>
@@ -870,10 +723,7 @@ export default function DashboardPage() {
                 <ScrollArea className="h-[76vh] pr-4 -mr-4">
                   <div className="space-y-1 mt-2">
                     {projects.map((project) => (
-                      <div
-                        key={project._id}
-                        className="group flex items-center justify-between"
-                      >
+                      <div key={project._id} className="group flex items-center justify-between">
                         <button
                           onClick={() => handleProjectClick(project)}
                           className={cn(
@@ -881,8 +731,7 @@ export default function DashboardPage() {
                             currentProject?._id === project._id
                               ? "bg-[#FFF1E0] text-[#B04E34] font-medium shadow-sm"
                               : "hover:bg-gray-100 text-gray-700"
-                          )}
-                        >
+                          )}>
                           {project._id === "all" ? (
                             <Layers className="h-4 w-4 mr-2 flex-shrink-0" />
                           ) : (
@@ -896,16 +745,14 @@ export default function DashboardPage() {
                             <button
                               onClick={() => handleEditProjectClick(project)}
                               className="hidden group-hover:block text-gray-400 hover:text-[#B04E34] transition-colors duration-200"
-                              title="Edit project name"
-                            >
+                              title="Edit project name">
                               <Edit className="h-4 w-4" />
                             </button>
                             {/* Delete Button */}
                             <button
                               onClick={() => handleDeleteProjectClick(project)}
                               className="hidden group-hover:block text-gray-400 hover:text-red-600 transition-colors duration-200"
-                              title="Delete project"
-                            >
+                              title="Delete project">
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -927,21 +774,12 @@ export default function DashboardPage() {
             {!userSubscribed && (within7Days || under10Analyses) && (
               <div className="bg-[#FFF1E0] text-sm text-gray-700  mt-4 mb-2 p-3 rounded-md flex items-center justify-between border border-[#FADBBB]">
                 <div>
-                  <strong className="mr-1">
-                    Your free trial ends in {daysLeft} Days.
-                  </strong>
+                  <strong className="mr-1">Your free trial ends in {daysLeft} Days.</strong>
                   <br />
-                  {
-                    "To keep going, just add your payment details — you’ll only be charged"
-                  }{" "}
-                  <span className="font-semibold">€4.99/month</span>{" "}
-                  {"after your free trial ends."}
+                  {"To keep going, just add your payment details — you’ll only be charged"}{" "}
+                  <span className="font-semibold">€4.99/month</span> {"after your free trial ends."}
                 </div>
-                <Button
-                  onClick={handleSubscribeNow}
-                  variant="ghost"
-                  className="text-[#B04E34] ml-4"
-                >
+                <Button onClick={handleSubscribeNow} variant="ghost" className="text-[#B04E34] ml-4">
                   Subscribe Now
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
@@ -957,17 +795,10 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="mt-4">
-                  <h3 className="text-lg font-medium mb-4">
-                    Generate a New Report
-                  </h3>
-                  <form
-                    onSubmit={handleCreateAnalysis}
-                    className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end"
-                  >
+                  <h3 className="text-lg font-medium mb-4">Generate a New Report</h3>
+                  <form onSubmit={handleCreateAnalysis} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                     <div className="md:col-span-5">
-                      <label className="block text-sm font-medium mb-1.5 ">
-                        Page URL
-                      </label>
+                      <label className="block text-sm font-medium mb-1.5 ">Page URL</label>
                       <div className="relative">
                         <Input
                           type="text"
@@ -983,62 +814,22 @@ export default function DashboardPage() {
 
                     {/* Sector */}
                     <div className="md:col-span-3">
-                      <label className="block text-sm font-medium mb-1.5">
-                        Sector
-                      </label>
-                      <Select
-                        value={selectedSector}
-                        onValueChange={handleSectorSelect}
-                      >
-                        <SelectTrigger className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200">
-                          <SelectValue placeholder="Select Sector" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {sectors.map((sec) => (
-                              <SelectItem key={sec} value={sec}>
-                                {sec}
-                              </SelectItem>
-                            ))}
-                            <SelectItem
-                              value="add-new-sector"
-                              className="text-gray-500 italic"
-                            >
-                              + Add new sector...
-                            </SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                      <SelectElement
+                        label="Sector"
+                        placeholder="Select Sector"
+                        options={sectorOptions}
+                        onValueChange={(item) => setSelectedSector(item.value)}
+                      />
                     </div>
 
                     {/* Page Type */}
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1.5">
-                        Page Type
-                      </label>
-                      <Select
-                        value={selectedPageType}
-                        onValueChange={handlePageTypeSelect}
-                      >
-                        <SelectTrigger className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200">
-                          <SelectValue placeholder="Page Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {pageTypeOptions.map((pt) => (
-                              <SelectItem key={pt} value={pt}>
-                                {pt}
-                              </SelectItem>
-                            ))}
-                            <SelectItem
-                              value="add-new-pagetype"
-                              className="text-gray-500 italic"
-                            >
-                              + Add new page type...
-                            </SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                      <SelectElement
+                        label="Page Type"
+                        placeholder="Select Page Type"
+                        options={pageTypeOptions}
+                        onValueChange={(item) => setSelectedPageType(item.value)}
+                      />
                     </div>
 
                     {/* Generate Button */}
@@ -1047,15 +838,13 @@ export default function DashboardPage() {
                         <Button
                           type="submit"
                           disabled
-                          className="w-full bg-[#B04E34] text-white shadow-md hover:shadow-lg transition-all duration-200"
-                        >
+                          className="w-full bg-[#B04E34] text-white shadow-md hover:shadow-lg transition-all duration-200">
                           Generating...
                         </Button>
                       ) : (
                         <Button
                           type="submit"
-                          className="w-full bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200"
-                        >
+                          className="w-full bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
                           Generate
                         </Button>
                       )}
@@ -1069,129 +858,30 @@ export default function DashboardPage() {
             <Card className="border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl font-medium">
-                    {currentProject?.name}
-                  </CardTitle>
-                  {loadingReports && (
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                      Loading reports...
-                    </div>
-                  )}
+                  <CardTitle className="text-xl font-medium">{currentProject?.name}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
                 {isAllProjects ? (
                   <div className="mt-2">
-                    {!reports.length && !loadingReports && (
-                      <div className="flex flex-col items-center justify-center py-12 text-gray-500 bg-gray-50 rounded-lg shadow-sm">
-                        <FileIcon className="h-16 w-16 mb-4 text-gray-300" />
-                        <p className="text-center text-lg font-medium mb-2">
-                          No reports yet
-                        </p>
-                        <p className="text-center text-gray-400 mb-6">
-                          Generate your first report using the form above
-                        </p>
-                      </div>
-                    )}
-                    {!!reports.length && (
-                      <ScrollArea className="h-[48vh] pr-4 -mr-4">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="hover:bg-transparent">
-                              <TableHead>Report URL</TableHead>
-                              <TableHead>Date Created</TableHead>
-                              <TableHead>Score</TableHead>
-                              <TableHead>Project</TableHead>
-                              <TableHead className="w-[120px]"></TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {reports.map((report) => (
-                              <TableRow
-                                key={report._id}
-                                className="hover:bg-gray-50 transition-colors duration-200"
-                              >
-                                <TableCell className="font-medium max-w-[300px] truncate">
-                                  <Link href={`/report/${report._id}`}>
-                                    {report.url}
-                                  </Link>
-                                </TableCell>
-                                <TableCell className="text-gray-500">
-                                  <div className="flex items-center">
-                                    <Calendar className="h-3 w-3 mr-2 text-gray-400" />
-                                    {new Date(
-                                      report.createdAt!
-                                    ).toLocaleDateString()}
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    className={`${getRatingColor(
-                                      report.overallScore
-                                    )} hover:${getRatingColor(
-                                      report.overallScore
-                                    )} shadow-sm transition-all duration-200`}
-                                  >
-                                    {getRatingLabel(report.overallScore)}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-gray-600">
-                                  {report.project.name}
-                                </TableCell>
-                                <TableCell className="flex space-x-1">
-                                  <Link href={`/report/${report._id}`}>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200"
-                                    >
-                                      <ExternalLink className="h-4 w-4" />
-                                      <span className="sr-only">
-                                        View Report
-                                      </span>
-                                    </Button>
-                                  </Link>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                                    onClick={() =>
-                                      handleDeleteReportClick(report)
-                                    }
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                    <span className="sr-only">
-                                      Delete Report
-                                    </span>
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </ScrollArea>
-                    )}
+                    <ScrollArea className="h-[48vh] pr-4 -mr-4">
+                      <ReportList
+                        isLoading={loadingReports}
+                        reports={reports}
+                        onDeleteReportClick={handleDeleteReportClick}
+                      />
+                    </ScrollArea>
                   </div>
                 ) : (
                   <>
                     {!pageTypes.length && !loadingReports && (
                       <div className="flex flex-col items-center justify-center py-12 text-gray-500 bg-gray-50 rounded-lg shadow-sm">
                         <FolderPlus className="h-16 w-16 mb-4 text-gray-300" />
-                        <p className="text-center text-lg font-medium mb-2">
-                          No reports in this project
-                        </p>
-                        <p className="text-center text-gray-400 mb-6">
-                          Generate your first report for this project
-                        </p>
+                        <p className="text-center text-lg font-medium mb-2">No reports in this project</p>
+                        <p className="text-center text-gray-400 mb-6">Generate your first report for this project</p>
                         <Button
-                          onClick={() =>
-                            document
-                              .querySelector("form")
-                              ?.scrollIntoView({ behavior: "smooth" })
-                          }
-                          className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200"
-                        >
+                          onClick={() => document.querySelector("form")?.scrollIntoView({ behavior: "smooth" })}
+                          className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
                           <Plus className="h-4 w-4 mr-2" />
                           Create Report
                         </Button>
@@ -1204,13 +894,9 @@ export default function DashboardPage() {
                             <TabsTrigger
                               key={pt}
                               value={pt}
-                              className="px-4 rounded-md data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-200"
-                            >
+                              className="px-4 rounded-md data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-200">
                               {pt}{" "}
-                              <Badge
-                                variant="outline"
-                                className="ml-2 bg-white shadow-sm"
-                              >
+                              <Badge variant="outline" className="ml-2 bg-white shadow-sm">
                                 {reportsByPageType[pt].length}
                               </Badge>
                             </TabsTrigger>
@@ -1220,77 +906,10 @@ export default function DashboardPage() {
                           <TabsContent key={pt} value={pt}>
                             <ComparisonScale reports={reportsByPageType[pt]} />
                             <ScrollArea className="h-[350px] mt-4 pr-4 -mr-4">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow className="hover:bg-transparent">
-                                    <TableHead>Report URL</TableHead>
-                                    <TableHead>Date Created</TableHead>
-                                    <TableHead>Score</TableHead>
-                                    <TableHead className="w-[80px]"></TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {reportsByPageType[pt].map((report) => (
-                                    <TableRow
-                                      key={report._id}
-                                      className="hover:bg-gray-50 transition-colors duration-200"
-                                    >
-                                      <TableCell className="font-medium max-w-[400px] truncate">
-                                        {report.url}
-                                      </TableCell>
-                                      <TableCell className="text-gray-500">
-                                        <div className="flex items-center">
-                                          <Calendar className="h-3 w-3 mr-2 text-gray-400" />
-                                          {new Date(
-                                            report.createdAt!
-                                          ).toLocaleDateString()}
-                                        </div>
-                                      </TableCell>
-                                      <TableCell>
-                                        <Badge
-                                          className={`${getRatingColor(
-                                            report.overallScore
-                                          )} hover:${getRatingColor(
-                                            report.overallScore
-                                          )} shadow-sm transition-all duration-200`}
-                                        >
-                                          {getRatingLabel(report.overallScore)}
-                                        </Badge>
-                                      </TableCell>
-                                      <TableCell className="flex space-x-1">
-                                        <Link
-                                          href={`/report/${report._id}`}
-                                          target="_blank"
-                                        >
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200"
-                                          >
-                                            <ExternalLink className="h-4 w-4" />
-                                            <span className="sr-only">
-                                              View Report
-                                            </span>
-                                          </Button>
-                                        </Link>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                                          onClick={() =>
-                                            handleDeleteReportClick(report)
-                                          }
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                          <span className="sr-only">
-                                            Delete Report
-                                          </span>
-                                        </Button>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
+                              <ReportList
+                                reports={reportsByPageType[pt]}
+                                onDeleteReportClick={handleDeleteReportClick}
+                              />
                             </ScrollArea>
                           </TabsContent>
                         ))}
@@ -1308,22 +927,15 @@ export default function DashboardPage() {
           <DialogContent className="sm:max-w-md bg-white shadow-2xl border-none rounded-xl">
             <DialogHeader>
               <DialogTitle className="text-xl text-center">
-                {analysisError ? (
-                  <span className="text-red-500">Analysis Failed</span>
-                ) : (
-                  "Analyzing Your Website..."
-                )}
+                {analysisError ? <span className="text-red-500">Analysis Failed</span> : "Analyzing Your Website..."}
               </DialogTitle>
               <DialogDescription className="text-center">
                 {analysisError ? (
                   <>
-                    <p className="text-red-600 mb-2">
-                      An error occurred during analysis:
-                    </p>
+                    <p className="text-red-600 mb-2">An error occurred during analysis:</p>
                     <p className="text-sm italic">{analysisError}</p>
                     <p className="mt-4 text-sm">
-                      Try checking the URL, ensuring the site is public, or
-                      retrying in a few moments.
+                      Try checking the URL, ensuring the site is public, or retrying in a few moments.
                     </p>
                   </>
                 ) : (
@@ -1339,13 +951,8 @@ export default function DashboardPage() {
                   key={idx}
                   className={cn(
                     "flex items-center p-2 rounded-md transition-all duration-200",
-                    step.status === "in-progress"
-                      ? "bg-blue-50"
-                      : step.status === "error"
-                      ? "bg-red-50"
-                      : "bg-gray-50"
-                  )}
-                >
+                    step.status === "in-progress" ? "bg-blue-50" : step.status === "error" ? "bg-red-50" : "bg-gray-50"
+                  )}>
                   <div className="mr-3">
                     {step.status === "pending" && (
                       <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
@@ -1370,9 +977,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-sm">
                     {step.status === "in-progress" ? (
-                      <span className="font-medium text-blue-600">
-                        {step.label}
-                      </span>
+                      <span className="font-medium text-blue-600">{step.label}</span>
                     ) : step.status === "done" ? (
                       <span className="text-gray-600">{step.label}</span>
                     ) : step.status === "error" ? (
@@ -1389,8 +994,7 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   onClick={() => setShowAnalysisModal(false)}
-                  className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200"
-                >
+                  className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200">
                   Close
                 </Button>
               ) : finalReportId ? (
@@ -1403,8 +1007,7 @@ export default function DashboardPage() {
                 <Button
                   disabled
                   className="bg-gray-200 text-gray-500 cursor-not-allowed"
-                  title="Please wait until the analysis completes."
-                >
+                  title="Please wait until the analysis completes.">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Working...
                 </Button>
@@ -1414,215 +1017,64 @@ export default function DashboardPage() {
         </Dialog>
       </div>
 
-      {/* Dialog for adding new Sector */}
-      <Dialog
-        open={isAddSectorDialogOpen}
-        onOpenChange={setIsAddSectorDialogOpen}
-      >
-        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Add New Sector</DialogTitle>
-            <DialogDescription>
-              Enter a new sector that is not in the list.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-2 space-y-4">
-            <Input
-              type="text"
-              placeholder="e.g. Technology"
-              value={newSectorInput}
-              onChange={(e) => setNewSectorInput(e.target.value)}
-              className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAddSectorDialogOpen(false)}
-              className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddNewSector}
-              className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              Add
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog for adding new Page Type */}
-      <Dialog
-        open={isAddPageTypeDialogOpen}
-        onOpenChange={setIsAddPageTypeDialogOpen}
-      >
-        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Add New Page Type</DialogTitle>
-            <DialogDescription>
-              Enter a new page type that is not in the list.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-2 space-y-4">
-            <Input
-              type="text"
-              placeholder="e.g. Contact"
-              value={newPageTypeInput}
-              onChange={(e) => setNewPageTypeInput(e.target.value)}
-              className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAddPageTypeDialogOpen(false)}
-              className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddNewPageType}
-              className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              Add
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Dialog for editing existing Project */}
-      <Dialog
-        open={editProjectDialogOpen}
-        onOpenChange={setEditProjectDialogOpen}
-      >
-        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Edit Project Name</DialogTitle>
-            <DialogDescription>
-              Update the project name as you wish.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleEditProjectSubmit}>
-            <div className="mt-2 space-y-4 mb-4">
-              <Input
-                type="text"
-                placeholder="Project name"
-                value={editProjectName}
-                onChange={(e) => setEditProjectName(e.target.value)}
-                className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setEditProjectDialogOpen(false)}
-                className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                Update
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationModal
+        title="Edit Project Name"
+        description="Update the project name as you wish."
+        confirmButtonTitle="Update"
+        isOpen={editProjectDialogOpen}
+        onCancel={() => setEditProjectDialogOpen(false)}
+        onConfirm={handleEditProjectSubmit}>
+        <div className="mt-2 space-y-4 mb-4">
+          <Input
+            type="text"
+            placeholder="Project name"
+            value={editProjectName}
+            onChange={(e) => setEditProjectName(e.target.value)}
+            className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
+          />
+        </div>
+      </ConfirmationModal>
 
       {/* Dialog for Deleting Project */}
-      <Dialog
-        open={deleteProjectDialogOpen}
-        onOpenChange={setDeleteProjectDialogOpen}
-      >
-        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg text-red-600">
-              Delete Project
-            </DialogTitle>
-            <DialogDescription>
-              Deleting the project will remove <strong>all reports</strong>{" "}
-              inside it. This action <strong>cannot be undone</strong>.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="mt-4 text-sm">
-            To confirm, type the name of the project below:
-          </div>
-          <div className="mt-2 mb-4">
-            <Input
-              type="text"
-              placeholder="Enter project name"
-              value={deleteProjectName}
-              onChange={(e) => setDeleteProjectName(e.target.value)}
-              className="shadow-sm focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
-            />
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteProjectDialogOpen(false)}
-              className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200"
-            >
-              Cancel
-            </Button>
-            <Button
-              disabled={
-                !selectedProjectToDelete ||
-                deleteProjectName !== selectedProjectToDelete.name
-              }
-              onClick={confirmDeleteProject}
-              className={cn(
-                "bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200",
-                {
-                  "cursor-not-allowed opacity-50":
-                    !selectedProjectToDelete ||
-                    deleteProjectName !== selectedProjectToDelete.name,
-                }
-              )}
-            >
-              Delete Project
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationModal
+        variant="danger"
+        title="Delete Project"
+        description={
+          <>
+            Deleting the project will remove <strong>all reports</strong> inside it. This action{" "}
+            <strong>cannot be undone</strong>.
+          </>
+        }
+        confirmButtonTitle="Delete Project"
+        confirmButtonDisabled={!selectedProjectToDelete || deleteProjectName !== selectedProjectToDelete.name}
+        isOpen={deleteProjectDialogOpen}
+        onConfirm={confirmDeleteProject}
+        onCancel={() => setDeleteProjectDialogOpen(false)}>
+        <div className="mt-4 text-sm">
+          To confirm, type <b>{selectedProjectToDelete?.name}</b> below:
+        </div>
+        <div className="mt-2 mb-4">
+          <Input
+            type="text"
+            placeholder="Enter project name"
+            value={deleteProjectName}
+            onChange={(e) => setDeleteProjectName(e.target.value)}
+            className="shadow-sm focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
+          />
+        </div>
+      </ConfirmationModal>
 
       {/* Dialog for Deleting Report */}
-      <Dialog
-        open={deleteReportDialogOpen}
-        onOpenChange={setDeleteReportDialogOpen}
-      >
-        <DialogContent className="sm:max-w-sm bg-white shadow-2xl border-none rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg text-red-600">
-              Delete Report
-            </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this report? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteReportDialogOpen(false)}
-              className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={confirmDeleteReport}
-              className="bg-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              Delete Report
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationModal
+        variant="danger"
+        title="Delete Report"
+        description="Are you sure you want to delete this report? This action cannot be undone."
+        isOpen={deleteReportDialogOpen}
+        confirmButtonTitle="Delete"
+        onConfirm={confirmDeleteReport}
+        onCancel={() => setDeleteReportDialogOpen(false)}
+      />
     </>
   );
 }

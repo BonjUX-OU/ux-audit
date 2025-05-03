@@ -8,12 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AppBar from "@/components/layout/AppBar";
 import {
   ChevronLeft,
@@ -29,6 +24,8 @@ import {
   List,
   BarChart3,
 } from "lucide-react";
+import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
+import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
 
 type Occurrence = {
   id: string;
@@ -42,104 +39,14 @@ type Issue = {
   occurrences: Occurrence[];
 };
 
-type Heuristic = {
-  id: number;
-  name: string;
-  issues: Issue[];
-};
-
-type HeuristicScore = {
-  id: number;
-  name: string;
-  score: number;
-};
-
-type AnalysisReport = {
-  _id: string;
-  project?: string;
-  url: string;
-  screenshot?: string;
-  snapshotHtml?: string;
-  heuristics: Heuristic[];
-  overallScore: number;
-  scores: HeuristicScore[];
-};
-
-function getQualityLabel(score: number): string {
-  if (score <= 20) return "Very Poor";
-  if (score <= 40) return "Poor";
-  if (score <= 60) return "Mediocre";
-  if (score <= 80) return "Good";
-  return "Very Good";
-}
-
-function getQualityColor(score: number): string {
-  if (score <= 20) return "bg-red-500";
-  if (score <= 40) return "bg-orange-500";
-  if (score <= 60) return "bg-yellow-500";
-  if (score <= 80) return "bg-green-400";
-  return "bg-green-600";
-}
-
-function RatingBar({
-  score,
-  ratingLabel,
-  showLabel = true,
-  height = "h-4",
-}: {
-  score: number;
-  ratingLabel?: string;
-  showLabel?: boolean;
-  height?: string;
-}) {
-  const clampedScore = Math.max(0, Math.min(100, score));
-  return (
-    <div className="mb-4">
-      <div className="flex justify-between text-xs text-gray-600 mb-1">
-        <span>Very Poor</span>
-        <span>Poor</span>
-        <span>Mediocre</span>
-        <span>Good</span>
-        <span>Very Good</span>
-      </div>
-      <div
-        className={`relative ${height} bg-gray-100 rounded-full overflow-hidden`}
-      >
-        <div className="absolute inset-0 flex">
-          <div className="w-1/5 h-full bg-red-500"></div>
-          <div className="w-1/5 h-full bg-orange-500"></div>
-          <div className="w-1/5 h-full bg-yellow-500"></div>
-          <div className="w-1/5 h-full bg-green-400"></div>
-          <div className="w-1/5 h-full bg-green-600"></div>
-        </div>
-        <div
-          className="absolute left-0 top-0 h-full bg-[#B04E34] opacity-70 rounded-full transition-all duration-300"
-          style={{ width: `${clampedScore}%` }}
-        />
-        {/* {showLabel && ratingLabel && (
-          <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-            <Badge className="bg-white text-[#B04E34] border border-[#B04E34]">
-              {ratingLabel}
-            </Badge>
-          </div>
-        )} */}
-      </div>
-    </div>
-  );
-}
-
-export default function AnalysisView({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function AnalysisView({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { data: session }: any = useSession();
 
   const userRole = session?.user?.role;
 
-  const [analysis, setAnalysis] = useState<AnalysisReport | null>(null);
+  const [analysis, setAnalysis] = useState<AnalysisReportType | null>(null);
   const [hoveredIssue, setHoveredIssue] = useState<Issue | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showHighlights, setShowHighlights] = useState(true);
@@ -164,10 +71,9 @@ export default function AnalysisView({
   // Highlight elements in the iframe after it loads.
   useEffect(() => {
     if (!analysis || !iframeRef.current) return;
-    const highlights: { selector: string; label: string; issueId: string }[] =
-      [];
-    analysis.heuristics.forEach((h) => {
-      h.issues.forEach((issue) => {
+    const highlights: { selector: string; label: string; issueId: string }[] = [];
+    analysis.heuristics?.forEach((h) => {
+      h.issues.forEach((issue: Issue) => {
         issue.occurrences?.forEach((occ) => {
           highlights.push({
             selector: occ.selector,
@@ -214,8 +120,8 @@ export default function AnalysisView({
       if (event.data.type === "ISSUE_MOUSEENTER") {
         const issueId = event.data.issueId;
         let found: Issue | null = null;
-        analysis?.heuristics.forEach((h) => {
-          h.issues.forEach((issue) => {
+        analysis?.heuristics?.forEach((h) => {
+          h.issues.forEach((issue: Issue) => {
             if (issue.issue_id === issueId) {
               found = issue;
             }
@@ -237,18 +143,15 @@ export default function AnalysisView({
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#B04E34] border-t-transparent"></div>
-          <p className="mt-4 text-lg font-medium text-gray-700">
-            Loading analysis...
-          </p>
+          <p className="mt-4 text-lg font-medium text-gray-700">Loading analysis...</p>
         </div>
       </div>
     );
   }
 
   const overallScore = analysis.overallScore;
-  const ratingLabel = getQualityLabel(overallScore);
   let totalIssues = 0;
-  analysis.heuristics.forEach((h) => {
+  analysis?.heuristics?.forEach((h) => {
     totalIssues += h.issues.length;
   });
 
@@ -264,16 +167,12 @@ export default function AnalysisView({
                 variant="outline"
                 size="sm"
                 onClick={() => router.push(`/dashboard`)}
-                className="flex items-center gap-1"
-              >
+                className="flex items-center gap-1">
                 <ChevronLeft className="h-4 w-4" />
                 Dashboard
               </Button>
               <h1 className="text-xl font-medium text-gray-800 ml-2">
-                Analysis Report:{" "}
-                <span className="font-normal text-gray-600">
-                  {analysis.url}
-                </span>
+                Analysis Report: <span className="font-normal text-gray-600">{analysis.url}</span>
               </h1>
             </div>
             <div className="flex items-center gap-2">
@@ -281,8 +180,7 @@ export default function AnalysisView({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowHighlights(!showHighlights)}
-                className="flex items-center gap-1"
-              >
+                className="flex items-center gap-1">
                 {showHighlights ? (
                   <>
                     <EyeOff className="h-4 w-4" />
@@ -299,8 +197,7 @@ export default function AnalysisView({
                 variant="outline"
                 size="sm"
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className="flex items-center gap-1"
-              >
+                className="flex items-center gap-1">
                 {isFullscreen ? (
                   <>
                     <Minimize2 className="h-4 w-4" />
@@ -317,66 +214,36 @@ export default function AnalysisView({
                 <Button
                   onClick={() => router.push(`/report/${id}/edit`)}
                   className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
-                  size="sm"
-                >
+                  size="sm">
                   <Edit2 className="h-4 w-4" />
                   <span>Edit Report</span>
                 </Button>
               )}
             </div>
           </div>
+
           {/* Score Card */}
           <Card className="mb-6 border-none shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2">
-                <p className="text-lg font-medium"> Overall Usability Score</p>
-                <Badge className="bg-white text-[#B04E34] border border-[#B04E34] hover:bg-[#B04E34] hover:text-white transition-colors duration-200">
-                  {ratingLabel}
-                </Badge>
+                <p className="text-lg font-medium">Usability Score and Issue Details</p>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col md:flex-row md:items-center gap-6">
-                <div className="flex-1">
-                  <RatingBar score={overallScore} ratingLabel={ratingLabel} />
-                </div>
-                <div className="flex items-center justify-center md:justify-end gap-4">
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-[#B04E34]">
-                      {Math.round(overallScore)}
-                    </div>
-                    <div className="text-sm text-gray-500">out of 100</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-[#B04E34]">
-                      {totalIssues}
-                    </div>
-                    <div className="text-sm text-gray-500">issues found</div>
-                  </div>
-                </div>
-              </div>
+              <ScoreBar overallScore={overallScore} totalIssues={totalIssues} />
             </CardContent>
           </Card>
+
           {/* Main Content */}
-          <div
-            className={`grid ${
-              isFullscreen ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3 gap-6"
-            }`}
-          >
+          <div className={`grid ${isFullscreen ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3 gap-6"}`}>
             {/* Iframe Container */}
-            <div
-              className={`${
-                isFullscreen ? "col-span-1" : "col-span-1 lg:col-span-2"
-              }`}
-            >
+            <div className={`${isFullscreen ? "col-span-1" : "col-span-1 lg:col-span-2"}`}>
               <Card className="border-none shadow-sm overflow-hidden">
                 <CardHeader className="py-3 px-4 bg-gray-50 border-b">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <ExternalLink className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm font-medium truncate max-w-[300px]">
-                        {analysis.url}
-                      </span>
+                      <span className="text-sm font-medium truncate max-w-[300px]">{analysis.url}</span>
                     </div>
                     <TooltipProvider>
                       <Tooltip>
@@ -412,22 +279,17 @@ export default function AnalysisView({
                           left: "50%",
                           transform: "translate(-50%, -50%)",
                           maxWidth: "90%",
-                        }}
-                      >
+                        }}>
                         <div className="space-y-3">
                           <div className="flex items-center gap-2">
                             <div className="bg-amber-100 p-1.5 rounded-full">
                               <AlertTriangle className="h-4 w-4 text-amber-600" />
                             </div>
-                            <p className="font-semibold text-gray-900">
-                              Issue {hoveredIssue.issue_id}
-                            </p>
+                            <p className="font-semibold text-gray-900">Issue {hoveredIssue.issue_id}</p>
                           </div>
                           <Separator />
                           <div>
-                            <p className="text-sm font-medium text-gray-700 mb-1">
-                              Description:
-                            </p>
+                            <p className="text-sm font-medium text-gray-700 mb-1">Description:</p>
                             <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded-md">
                               {hoveredIssue.description}
                             </p>
@@ -452,11 +314,7 @@ export default function AnalysisView({
             {!isFullscreen && (
               <div className="col-span-1">
                 <Card className="border-none shadow-sm h-full">
-                  <Tabs
-                    defaultValue="issues"
-                    onValueChange={setActiveTab}
-                    className="w-full"
-                  >
+                  <Tabs defaultValue="issues" onValueChange={setActiveTab} className="w-full">
                     <CardHeader className="py-3 px-4 border-b">
                       <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="issues" className="text-xs">
@@ -473,47 +331,31 @@ export default function AnalysisView({
                       <ScrollArea className="h-[600px]">
                         <TabsContent value="issues" className="m-0">
                           <div className="p-4">
-                            {analysis.heuristics.flatMap((h) =>
-                              h.issues.map((issue) => (
-                                <div
-                                  key={issue.issue_id}
-                                  className="mb-4 bg-gray-50 rounded-lg p-3"
-                                >
+                            {analysis.heuristics?.flatMap((h) =>
+                              h.issues.map((issue: Issue) => (
+                                <div key={issue.issue_id} className="mb-4 bg-gray-50 rounded-lg p-3">
                                   <div className="flex items-start gap-2">
                                     <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5" />
                                     <div>
-                                      <p className="font-medium text-sm">
-                                        Issue {issue.issue_id}
-                                      </p>
-                                      <p className="text-xs text-gray-600 mt-1">
-                                        {issue.description}
-                                      </p>
+                                      <p className="font-medium text-sm">Issue {issue.issue_id}</p>
+                                      <p className="text-xs text-gray-600 mt-1">{issue.description}</p>
                                       <div className="mt-2 bg-green-50 p-2 rounded border border-green-100">
                                         <p className="text-xs font-medium text-green-700 flex items-center gap-1">
                                           <Lightbulb className="h-3 w-3" />
                                           Solution:
                                         </p>
-                                        <p className="text-xs text-green-800">
-                                          {issue.solution}
-                                        </p>
+                                        <p className="text-xs text-green-800">{issue.solution}</p>
                                       </div>
                                       {issue.occurrences?.length > 0 && (
                                         <div className="mt-2">
-                                          <p className="text-xs font-medium text-gray-700">
-                                            Occurrences:
-                                          </p>
+                                          <p className="text-xs font-medium text-gray-700">Occurrences:</p>
                                           <div className="mt-1 space-y-1">
                                             {issue.occurrences.map((occ) => (
                                               <div
                                                 key={occ.id}
-                                                className="text-xs bg-blue-50 p-1 rounded border border-blue-100"
-                                              >
-                                                <span className="font-medium text-blue-700">
-                                                  {occ.id}:
-                                                </span>{" "}
-                                                <code className="text-blue-800 text-[10px]">
-                                                  {occ.selector}
-                                                </code>
+                                                className="text-xs bg-blue-50 p-1 rounded border border-blue-100">
+                                                <span className="font-medium text-blue-700">{occ.id}:</span>{" "}
+                                                <code className="text-blue-800 text-[10px]">{occ.selector}</code>
                                               </div>
                                             ))}
                                           </div>
@@ -534,36 +376,27 @@ export default function AnalysisView({
                         </TabsContent>
                         <TabsContent value="heuristics" className="m-0">
                           <div className="p-4">
-                            {analysis.heuristics.map((h) => (
+                            {analysis.heuristics?.map((h) => (
                               <div key={h.id} className="mb-4">
                                 <div className="flex items-center gap-2 mb-2">
                                   <Badge
                                     variant="outline"
-                                    className="h-6 w-6 rounded-full p-0 flex items-center justify-center"
-                                  >
+                                    className="h-6 w-6 rounded-full p-0 flex items-center justify-center">
                                     {h.id}
                                   </Badge>
-                                  <p className="font-medium text-sm">
-                                    {h.name}
-                                  </p>
+                                  <p className="font-medium text-sm">{h.name}</p>
                                   <Badge className="ml-auto">
-                                    {h.issues.length}{" "}
-                                    {h.issues.length === 1 ? "issue" : "issues"}
+                                    {h.issues.length} {h.issues.length === 1 ? "issue" : "issues"}
                                   </Badge>
                                 </div>
                                 {h.issues.length > 0 ? (
                                   <div className="pl-8 space-y-2">
-                                    {h.issues.map((issue) => (
+                                    {h.issues.map((issue: Issue) => (
                                       <div
                                         key={issue.issue_id}
-                                        className="text-xs text-gray-700 bg-gray-50 p-2 rounded"
-                                      >
-                                        <p className="font-medium">
-                                          Issue {issue.issue_id}
-                                        </p>
-                                        <p className="mt-1">
-                                          {issue.description}
-                                        </p>
+                                        className="text-xs text-gray-700 bg-gray-50 p-2 rounded">
+                                        <p className="font-medium">Issue {issue.issue_id}</p>
+                                        <p className="mt-1">{issue.description}</p>
                                       </div>
                                     ))}
                                   </div>
