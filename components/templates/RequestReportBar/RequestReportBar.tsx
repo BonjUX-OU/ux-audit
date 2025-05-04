@@ -83,7 +83,7 @@ const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
         userId: session?.user?.id,
         projectId: payloadProjectId,
         url,
-        predefinedIssues: customerIssues.map((issue) => issue.value),
+        predefinedIssues: selectedIssues,
       };
 
       const createdReport = await fetch("/api/report/demand", {
