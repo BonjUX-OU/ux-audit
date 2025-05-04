@@ -19,12 +19,14 @@ export type HeuristicType = DataObjectType & {
 
 export type ReportType = DataObjectType & {
   project: ProjectType;
+  createdBy: UserType;
   assignedTo: UserType;
   url: string;
   sector?: string;
   pageType: string;
   predefinedIssues?: string[];
   score: number;
+  status: "unassigned" | "assigned" | "completed" | "failed";
   heuristics: HeuristicType[];
   snapshotHtml: string;
   humanEdited?: boolean;

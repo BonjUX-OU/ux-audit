@@ -1,6 +1,7 @@
 import { DataObjectType } from "./common.types";
 
 export type UserType = DataObjectType & {
+  id: string;
   email: string;
   password: string;
   name: string;
@@ -12,4 +13,6 @@ export type UserType = DataObjectType & {
   stripeSubscriptionId?: string;
   profileImgUrl?: string;
   createdAt: string;
+  isProfileCompleted?: boolean;
+  isNewUser?: boolean;
 };

@@ -24,6 +24,10 @@ const ReportSchema = new mongoose.Schema<ReportType>(
       ref: "Project",
       required: true,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -37,6 +41,12 @@ const ReportSchema = new mongoose.Schema<ReportType>(
     },
     pageType: {
       type: String,
+    },
+    status: {
+      type: String,
+      enum: ["unassigned", "assigned", "comleted", "failed"],
+      default: "unassigned",
+      required: true,
     },
     score: { type: Number },
     predefinedIssues: { type: [String] },

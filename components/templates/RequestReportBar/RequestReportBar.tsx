@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { OptionType } from "@/types/common.types";
+import { ProjectType } from "@/types/project.types";
+import { ReportType } from "@/types/report.types";
+import { Toast, ToastProvider } from "@radix-ui/react-toast";
 import { Globe } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 type RequestReportBarProps = {
   projectId: string;
@@ -39,19 +42,69 @@ const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
     getConstants();
   }, []);
 
-  const handleRequestReport = async () => {
-    setIsLoading(true);
+  const createUntitledProject = async (): Promise<ProjectType> => {
+    const response = await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        owner: session?.user?.id,
+        name: "Untitled Project",
+        description: "",
+      }),
+    });
+    if (!response.ok) {
+      throw new Error("Error creating untitled project");
+    }
+    return response.json();
+  };
+
+  const handleRequestReport = async (e: FormEvent) => {
+    e.preventDefault();
 
     // TODO: Check if the user allowed to request report - userAllowedTo analyze
 
-    if (!url.trim() || !pageType || (session?.user?.role !== "customer" && !sector)) {
-      alert("Please complete mandatory fields");
+    if (!url.trim()) return;
+    if (!pageType) {
+      alert("Please select Page Type");
+      return;
+    } else if (session?.user?.role !== "customer" && !sector) {
+      alert("Please select Sector");
       return;
     }
 
-    if (!projectId || projectId === "all") {
-      alert("Please create a project first");
-      return;
+    setIsLoading(true);
+    try {
+      let payloadProjectId = "";
+      if (!projectId || projectId === "all") {
+        payloadProjectId = (await createUntitledProject())._id.toString();
+      } else {
+        payloadProjectId = projectId;
+      }
+
+      const payload = {
+        userId: session?.user?.id,
+        projectId: payloadProjectId,
+        url,
+      };
+
+      const createdReport = await fetch("/api/report/demand", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await createdReport.json();
+
+      console.log("Report created", data);
+
+      // TODO: After an empty report created on server
+      //   - Add the recently created report to the reports state (FE)
+      //   - Scrap the given URL on server and add the document string to the related report (BE)
+      //   - Next steps will be discussed and decided
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
