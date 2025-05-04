@@ -37,9 +37,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
-import { SelectItemType } from "@/components/organisms/SelectElement/SelectElement.types";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import ReportList from "@/components/organisms/ReportList/ReportList";
+import { pageTypeOptions, sectorOptions } from "@/constants/common.constants";
+import RequestReportBar from "@/components/templates/RequestReportBar/RequestReportBar";
 
 // ------------------------------------
 // Types
@@ -163,38 +164,6 @@ export default function DashboardPage() {
 
   // Calculate how many days left in trial
   const daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-
-  // ------------------------------------
-  // Sectors and Page Types
-  // ------------------------------------
-  const sectorOptions: SelectItemType[] = [
-    { value: "healt", label: "Healthcare" },
-    { value: "finance", label: "Finance" },
-    { value: "education", label: "Education" },
-    { value: "eCommerce", label: "E-commerce" },
-    { value: "technology", label: "Technology / Software" },
-    { value: "realEstate", label: "Real Estate" },
-    { value: "entertaintment", label: "Entertainment & Media" },
-    { value: "tourism", label: "Tourism & Travel" },
-    { value: "socialNetwork", label: "Social Networking" },
-    { value: "manufacturing", label: "Manufacturing" },
-    { value: "consulting", label: "Consulting & Professional Services" },
-    { value: "nonprofit", label: "Nonprofit/NGO" },
-    { value: "retail", label: "Retail" },
-    { value: "telecom", label: "Telecommunications" },
-    { value: "automotive", label: "Automotive" },
-  ];
-
-  const pageTypeOptions: SelectItemType[] = [
-    { value: "home", label: "Homepage" },
-    { value: "service", label: "Product/Service Page" },
-    { value: "about", label: "About Page" },
-    { value: "blog", label: "Blog Page" },
-    { value: "contact", label: "Contact Page" },
-    { value: "faq", label: "FAQ Page" },
-    { value: "product", label: "E-commerce Product Page" },
-    { value: "pricing", label: "Pricing Page" },
-  ];
 
   // ------------------------------------
   // Projects & Reports
@@ -794,63 +763,7 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mt-4">
-                  <h3 className="text-lg font-medium mb-4">Generate a New Report</h3>
-                  <form onSubmit={handleCreateAnalysis} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                    <div className="md:col-span-5">
-                      <label className="block text-sm font-medium mb-1.5 ">Page URL</label>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          placeholder="https://example.com"
-                          value={url}
-                          onChange={(e) => setUrl(e.target.value)}
-                          required
-                          className="pl-9 shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
-                        />
-                        <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      </div>
-                    </div>
-
-                    {/* Sector */}
-                    <div className="md:col-span-3">
-                      <SelectElement
-                        label="Sector"
-                        placeholder="Select Sector"
-                        options={sectorOptions}
-                        onValueChange={(item) => setSelectedSector(item.value)}
-                      />
-                    </div>
-
-                    {/* Page Type */}
-                    <div className="md:col-span-2">
-                      <SelectElement
-                        label="Page Type"
-                        placeholder="Select Page Type"
-                        options={pageTypeOptions}
-                        onValueChange={(item) => setSelectedPageType(item.value)}
-                      />
-                    </div>
-
-                    {/* Generate Button */}
-                    <div className="md:col-span-2">
-                      {showAnalysisModal ? (
-                        <Button
-                          type="submit"
-                          disabled
-                          className="w-full bg-[#B04E34] text-white shadow-md hover:shadow-lg transition-all duration-200">
-                          Generating...
-                        </Button>
-                      ) : (
-                        <Button
-                          type="submit"
-                          className="w-full bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
-                          Generate
-                        </Button>
-                      )}
-                    </div>
-                  </form>
-                </div>
+                <RequestReportBar projectId={currentProject?._id ?? ""} />
               </CardContent>
             </Card>
 

@@ -1,0 +1,144 @@
+import { MultiSelect } from "@/components/organisms/MultiSelect/MultiSelect";
+import SelectElement from "@/components/organisms/SelectElement/SelectElement";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { OptionType } from "@/types/common.types";
+import { Globe } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+
+type RequestReportBarProps = {
+  projectId: string;
+};
+
+const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
+  const { data: session } = useSession();
+
+  const [url, setUrl] = useState("");
+  const [sectorOptions, setSectorOptions] = useState<OptionType[]>([]);
+  const [pageTypeOptions, setPageTypeOptions] = useState<OptionType[]>([]);
+  const [customerIssues, setCustomerIssues] = useState<OptionType[]>([]);
+
+  const [sector, setSector] = useState("");
+  const [pageType, setPageType] = useState("");
+  const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const getConstants = async () => {
+    const response = await fetch(`/api/constants?target=customerIssues`);
+    const data = await response.json();
+
+    setCustomerIssues(data.customerIssues);
+    setSectorOptions(data.sectorOptions);
+    setPageTypeOptions(data.pageTypeOptions);
+  };
+
+  useEffect(() => {
+    getConstants();
+  }, []);
+
+  const handleRequestReport = async () => {
+    setIsLoading(true);
+
+    // TODO: Check if the user allowed to request report - userAllowedTo analyze
+
+    if (!url.trim() || !pageType || (session?.user?.role !== "customer" && !sector)) {
+      alert("Please complete mandatory fields");
+      return;
+    }
+
+    if (!projectId || projectId === "all") {
+      alert("Please create a project first");
+      return;
+    }
+  };
+
+  return (
+    <div className="mt-4">
+      <h3 className="text-lg font-medium mb-4">Request Report</h3>
+      <form onSubmit={handleRequestReport}>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+          <div className="md:col-span-5">
+            <label className="block text-sm font-medium mb-1.5 ">Page URL</label>
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="https://example.com"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                required
+                className="pl-9 shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
+              />
+              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
+          </div>
+
+          {/* Sector */}
+          {session?.user?.role === "customer" && (
+            <div className="md:col-span-2">
+              <SelectElement
+                label="Sector"
+                placeholder="Select Sector"
+                options={sectorOptions}
+                selected={sector}
+                onValueChange={setSector}
+              />
+            </div>
+          )}
+
+          {/* Page Type */}
+          <div className="md:col-span-2">
+            <SelectElement
+              label="Page Type"
+              placeholder="Select Page Type"
+              options={pageTypeOptions}
+              selected={pageType}
+              onValueChange={setPageType}
+            />
+          </div>
+
+          {/* Issues */}
+          {session?.user?.role !== "customer" && (
+            <div className="md:col-span-3">
+              <MultiSelect
+                label="Issues"
+                placeholder="Select the issues"
+                options={customerIssues}
+                selected={selectedIssues}
+                onChange={setSelectedIssues}
+              />
+            </div>
+          )}
+
+          {/* Generate Button */}
+          <div className="md:col-span-2">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
+              {session?.user?.role === "customer" ? "Request Report" : "Start Analysing"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Additional Notes */}
+        <div className="grid grid-cols-1 md:grid-cols-12 mt-4">
+          <div className="md:col-span-12">
+            <label className="block text-sm font-medium mb-1.5">
+              Additional Notes <span className="font-normal">(Optional)</span>
+            </label>
+            <Textarea
+              placeholder="Please explain your problem more in detail if you have anything"
+              rows={3}
+              style={{ resize: "none" }}
+            />
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default RequestReportBar;

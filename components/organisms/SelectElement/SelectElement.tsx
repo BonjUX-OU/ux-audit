@@ -1,29 +1,26 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SelectItemType } from "./SelectElement.types";
+import { OptionType } from "@/types/common.types";
 import { useState } from "react";
 
 type SelectElementProps = {
   label: string;
-  options: SelectItemType[];
+  options: OptionType[];
+  selected: string;
   placeholder?: string;
-  onValueChange?: (newValue: SelectItemType) => void;
+  onValueChange: (optionValue: string) => void;
 };
 
-const SelectElement = ({ label, options, placeholder = "Please select...", onValueChange }: SelectElementProps) => {
-  const [selectedItem, setSelectedItem] = useState<SelectItemType>();
-
-  const handleValueChange = (newValue: string) => {
-    const itemIndex = options.findIndex((option) => option.value === newValue);
-    if (itemIndex > -1) {
-      setSelectedItem(options[itemIndex]);
-      onValueChange?.(options[itemIndex]);
-    }
-  };
-
+const SelectElement = ({
+  label,
+  selected,
+  options,
+  placeholder = "Please select",
+  onValueChange,
+}: SelectElementProps) => {
   return (
     <>
       {label && <label className="block text-sm font-medium mb-1.5">{label}</label>}
-      <Select value={selectedItem?.value} onValueChange={handleValueChange}>
+      <Select value={selected} onValueChange={onValueChange}>
         <SelectTrigger className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
