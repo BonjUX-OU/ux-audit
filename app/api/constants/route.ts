@@ -1,7 +1,7 @@
 import { OptionType } from "@/types/common.types";
 import { NextResponse } from "next/server";
 
-export const sectorOptions: OptionType[] = [
+const sectorOptions: OptionType[] = [
   { value: "healt", label: "Healthcare" },
   { value: "finance", label: "Finance" },
   { value: "education", label: "Education" },
@@ -19,7 +19,7 @@ export const sectorOptions: OptionType[] = [
   { value: "automotive", label: "Automotive" },
 ] as const;
 
-export const pageTypeOptions: OptionType[] = [
+const pageTypeOptions: OptionType[] = [
   { value: "home", label: "Homepage" },
   { value: "service", label: "Product/Service Page" },
   { value: "about", label: "About Page" },
@@ -30,7 +30,7 @@ export const pageTypeOptions: OptionType[] = [
   { value: "pricing", label: "Pricing Page" },
 ] as const;
 
-export const customerIssues: OptionType[] = [
+const customerIssues: OptionType[] = [
   { value: "keyFeatures", label: "Users are struggling to complete key tasks" },
   { value: "lowConversion", label: "Low conversion rates or sales" },
   { value: "dropOffOrBounce", label: "High drop-off or bounce rates on the page" },
