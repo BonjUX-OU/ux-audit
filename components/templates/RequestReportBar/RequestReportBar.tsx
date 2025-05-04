@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { OptionType } from "@/types/common.types";
 import { ProjectType } from "@/types/project.types";
-import { ReportType } from "@/types/report.types";
-import { Toast, ToastProvider } from "@radix-ui/react-toast";
 import { Globe } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { FormEvent, useEffect, useState } from "react";
@@ -85,6 +83,7 @@ const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
         userId: session?.user?.id,
         projectId: payloadProjectId,
         url,
+        predefinedIssues: customerIssues,
       };
 
       const createdReport = await fetch("/api/report/demand", {
@@ -129,7 +128,7 @@ const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
           </div>
 
           {/* Sector */}
-          {session?.user?.role === "customer" && (
+          {session?.user?.role !== "customer" && (
             <div className="md:col-span-2">
               <SelectElement
                 label="Sector"
@@ -153,7 +152,7 @@ const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
           </div>
 
           {/* Issues */}
-          {session?.user?.role !== "customer" && (
+          {session?.user?.role === "customer" && (
             <div className="md:col-span-3">
               <MultiSelect
                 label="Issues"

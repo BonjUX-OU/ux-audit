@@ -9,7 +9,7 @@ import User from "@/models/User";
 export async function POST(request: Request) {
   try {
     await dbConnect();
-    const { userId, projectId, url, heuristics, scores, overallScore, snapshotHtml, sector, pageType } =
+    const { userId, projectId, url, heuristics, scores, overallScore, predefinedIssues, sector, pageType } =
       await request.json();
 
     if (!projectId || !url) {
@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       heuristics,
       snapshotHtml: "empty",
       status: "unassigned",
+      predefinedIssues,
     });
 
     return NextResponse.json(newReport, { status: 201 });
