@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import FileUploader from "@/components/organisms/FileUploader/FileUploader";
 
 function LoginPage() {
   const [error, setError] = useState("");
@@ -64,6 +65,9 @@ function LoginPage() {
               <ChevronLeft className="h-4 w-4 mr-2" />
               <span>Back to homepage</span>
             </Link>
+
+            <FileUploader>
+            </FileUploader>
 
             <div className="flex-grow flex flex-col justify-center items-center md:items-start">
               <div className="bg-[#E84C30] rounded-full w-32 h-32 flex items-center justify-center mb-8">
