@@ -96,6 +96,25 @@ const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
 
       console.log("Report created", data);
 
+
+
+      //// call web scrapping
+
+      const scrapPayload = {
+        userId: session?.user?.id,
+        projectId: payloadProjectId,
+        url,
+        predefinedIssues: selectedIssues,
+      };
+
+      const scrap = await fetch("/api/analyze/step1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      //// call web scrapping
+
       // TODO: After an empty report created on server
       //   - Add the recently created report to the reports state (FE)
       //   - Scrap the given URL on server and add the document string to the related report (BE)
