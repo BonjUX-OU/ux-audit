@@ -27,7 +27,7 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
   const fetchProjects = async () => {
     if (!session?.user?.id) return;
     try {
-      const response = await fetch(`/api/user/projects?userId=${session.user.id}`);
+      const response = await fetch(`/api/user/projects`);
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
       }
@@ -60,12 +60,23 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
     if (!updateTarget?._id) return;
 
     try {
-      const response = await fetch(`/api/projects?id=${updateTarget._id}`, {
-        method: "DELETE",
-      });
+      let response;
+      if (updateType === "edit") {
+        response = await fetch(`/api/projects?id=${updateTarget._id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            name: confirmedProjectName,
+            description: "updateTarget.description",
+          }),
+        });
+      } else {
+        response = await fetch(`/api/projects?id=${updateTarget._id}`, {
+          method: "DELETE",
+        });
+      }
 
       if (!response.ok) {
-        throw new Error("Error deleting project");
+        throw new Error("Error updating project");
       }
 
       // If the deleted project was currently selected, reset to "All Reports"
@@ -164,29 +175,31 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
         </div>
       </ScrollArea>
 
-      <ConfirmationModal
-        variant={updateType === "edit" ? "default" : "danger"}
-        title={updateType === "edit" ? "Edit Project Name" : "Delete Project"}
-        description={
-          updateType === "edit" ? (
-            "Update the project name as you wish"
-          ) : (
-            <>
-              Deleting the project will remove <strong>all reports</strong> inside it. This action{" "}
-              <strong>cannot be undone</strong>.
-            </>
-          )
-        }
-        confirmButtonDisabled={
-          updateType === "edit"
-            ? confirmedProjectName === updateTarget!.name
-            : confirmedProjectName !== updateTarget!.name
-        }
-        isOpen={isDialogOpen}
-        onConfirm={handleUpdate}
-        onCancel={cancelUpdate}>
-        {updateType === "edit" ? editProjectContent : deleteProjectContent}
-      </ConfirmationModal>
+      {updateTarget && updateType && (
+        <ConfirmationModal
+          variant={updateType === "edit" ? "default" : "danger"}
+          title={updateType === "edit" ? "Edit Project Name" : "Delete Project"}
+          description={
+            updateType === "edit" ? (
+              "Update the project name as you wish"
+            ) : (
+              <>
+                Deleting the project will remove <strong>all reports</strong> inside it. This action{" "}
+                <strong>cannot be undone</strong>.
+              </>
+            )
+          }
+          confirmButtonDisabled={
+            updateType === "edit"
+              ? confirmedProjectName === updateTarget!.name
+              : confirmedProjectName !== updateTarget!.name
+          }
+          isOpen={isDialogOpen}
+          onConfirm={handleUpdate}
+          onCancel={cancelUpdate}>
+          {updateType === "edit" ? editProjectContent : deleteProjectContent}
+        </ConfirmationModal>
+      )}
     </>
   );
 });
