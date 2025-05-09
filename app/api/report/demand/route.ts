@@ -41,8 +41,13 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(newReport, { status: 201 });
-  } catch (error: any) {
-    console.error("Error creating :", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error creating :", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }

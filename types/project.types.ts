@@ -1,7 +1,7 @@
 import { DataObjectType } from "./common.types";
 
 export type ProjectType = DataObjectType & {
-  createdBy: string;
+  createdBy?: string;
   name: string;
   description: string;
 };

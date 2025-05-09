@@ -6,15 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { OptionType } from "@/types/common.types";
 import { ProjectType } from "@/types/project.types";
+import { ReportType } from "@/types/report.types";
 import { Globe } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { FormEvent, useEffect, useState } from "react";
 
-type RequestReportBarProps = {
-  projectId: string;
-};
-
-const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
+const RequestReportBar = ({ project }: { project: ProjectType | null }) => {
   const { data: session } = useSession();
 
   const [url, setUrl] = useState("");
@@ -45,11 +42,11 @@ const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        owner: session?.user?.id,
         name: "Untitled Project",
         description: "",
       }),
     });
+
     if (!response.ok) {
       throw new Error("Error creating untitled project");
     }
@@ -71,18 +68,16 @@ const RequestReportBar = ({ projectId }: RequestReportBarProps) => {
     }
 
     setIsLoading(true);
-    try {
-      let payloadProjectId = "";
-      if (!projectId || projectId === "all") {
-        payloadProjectId = (await createUntitledProject())._id.toString();
-      } else {
-        payloadProjectId = projectId;
-      }
 
-      const payload = {
-        userId: session?.user?.id,
-        projectId: payloadProjectId,
+    try {
+      let payloadProject = !project ? await createUntitledProject() : project;
+
+      const payload: ReportType = {
+        createdBy: session?.user,
+        project: payloadProject,
+        pageType,
         url,
+        status: "unassigned",
         predefinedIssues: selectedIssues,
       };
 
