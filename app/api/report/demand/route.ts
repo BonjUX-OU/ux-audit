@@ -1,25 +1,35 @@
-// app/api/demand/route.ts
-
+// app/api/report/demand/route.ts
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Report from "@/models/Report";
 import Project from "@/models/Project";
 import User from "@/models/User";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/configs/auth/authOptions";
+import mongoose from "mongoose";
 
 export async function POST(request: Request) {
   try {
-    await dbConnect();
-    const { userId, projectId, url, heuristics, scores, overallScore, predefinedIssues, sector, pageType } =
-      await request.json();
+    const { project, url, heuristics, scores, overallScore, predefinedIssues, sector, pageType } = await request.json();
 
-    if (!projectId || !url) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!url) {
+      return NextResponse.json({ error: "URL field is required" }, { status: 400 });
     }
 
-    const project = await Project.findById(projectId);
-    if (!project) {
+    const checkedProject = await Project.findById(project);
+    if (!checkedProject) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
+
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    await dbConnect();
+
+    const userId = new mongoose.Types.ObjectId(session.user?.id);
 
     const createdBy = await User.findById(userId);
     if (!createdBy) {
@@ -28,7 +38,7 @@ export async function POST(request: Request) {
 
     const newReport = await Report.create({
       createdBy,
-      project,
+      project: checkedProject,
       url,
       sector,
       pageType,

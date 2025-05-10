@@ -10,9 +10,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    const reports = await Report.find({ owner: userId })
-      .populate("project")
-      .sort({ createdAt: -1 });
+    const reports = await Report.find({ createdBy: userId }).populate("project").sort({ createdAt: -1 });
+
     return NextResponse.json(reports, { status: 200 });
   } catch (error: any) {
     console.error("Error fetching :", error.message);
