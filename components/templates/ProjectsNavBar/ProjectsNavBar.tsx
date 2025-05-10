@@ -1,6 +1,7 @@
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/useToast";
 import { ProjectType } from "@/types/project.types";
 import clsx from "clsx";
 import { Edit, FileIcon, Layers, Trash2 } from "lucide-react";
@@ -17,6 +18,8 @@ type ProjectsNavBarProps = {
 
 const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ onProjectSelect }, ref) => {
   const { data: session } = useSession();
+  const { toast } = useToast();
+
   const [projects, setProjects] = useState<ProjectType[]>();
   const [selectedProject, setSelectedProject] = useState<ProjectType | null>(null);
   const [updateTarget, setUpdateTarget] = useState<ProjectType | null>(null);
@@ -88,7 +91,7 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
       fetchProjects();
     } catch (error) {
       console.error(error);
-      alert("Failed to delete project. Please try again.");
+      toast({ title: "Error!", description: "Failed to delete project. Please try again.", variant: "destructive" });
     }
   };
 

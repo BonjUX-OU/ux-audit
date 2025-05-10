@@ -21,6 +21,7 @@ export type ReportType = {
   project: ProjectType;
   createdBy?: UserType;
   assignedTo?: UserType;
+  assignedBy?: UserType;
   url: string;
   sector?: string;
   pageType: string;
@@ -30,6 +31,8 @@ export type ReportType = {
   heuristics?: HeuristicType[];
   snapshotHtml?: string;
   humanEdited?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 export type ReportResponseType = DataObjectType & ReportType;

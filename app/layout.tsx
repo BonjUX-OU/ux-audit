@@ -40,10 +40,9 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <SessionProvider session={session}>
-        <body
-          className={`${workSans.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          {children} <Toaster />
+        <body className={`${workSans.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
+          {children}
+          <Toaster />
           <Analytics />
         </body>
       </SessionProvider>

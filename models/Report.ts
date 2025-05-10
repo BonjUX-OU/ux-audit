@@ -32,6 +32,10 @@ const ReportSchema = new mongoose.Schema<ReportType>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    assignedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     url: {
       type: String,
       required: true,
