@@ -30,7 +30,8 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
   const fetchProjects = async () => {
     if (!session?.user?.id) return;
     try {
-      const response = await fetch(`/api/user/projects`);
+      const userId = session.user.id;
+      const response = await fetch(`/api/user/projects?userId=${userId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
       }

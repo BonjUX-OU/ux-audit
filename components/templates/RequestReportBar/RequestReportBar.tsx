@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/useToast";
 import { OptionType } from "@/types/common.types";
 import { ProjectType } from "@/types/project.types";
 import { ReportType } from "@/types/report.types";
+import clsx from "clsx";
 import { Globe } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { FormEvent, useEffect, useState } from "react";
@@ -173,7 +174,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
           )}
 
           {/* Generate Button */}
-          <div className="md:col-span-2">
+          <div className={clsx(session?.user?.role === "customer" ? "md:col-span-2" : "md:col-span-3")}>
             <Button
               type="submit"
               disabled={isLoading}
