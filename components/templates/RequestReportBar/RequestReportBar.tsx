@@ -4,6 +4,7 @@ import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import useSubsribe from "@/hooks/useSubscribe";
 import { useToast } from "@/hooks/useToast";
 import { OptionType } from "@/types/common.types";
 import { ProjectType } from "@/types/project.types";
@@ -19,6 +20,7 @@ type RequestReportBarProps = {
 
 const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps) => {
   const { data: session } = useSession();
+  const { subscribed, daysLeft } = useSubsribe();
   const { toast } = useToast();
 
   const [url, setUrl] = useState("");

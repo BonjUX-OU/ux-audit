@@ -13,7 +13,7 @@ import React, { useState } from "react";
 
 const SubscribeBar = () => {
   const { subscribed, daysLeft, handleSubscribeNow } = useSubsribe();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(!subscribed);
 
   return !subscribed ? (
     <>
