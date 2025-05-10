@@ -1,40 +1,40 @@
 // models/Report.ts
+import { HeuristicType, IssueType, OccurrenceType, ReportType } from "@/types/report.types";
 import mongoose from "mongoose";
 
-const OccurrenceSchema = new mongoose.Schema({
-  id: String,
+const OccurrenceSchema = new mongoose.Schema<OccurrenceType>({
   selector: String,
 });
 
-const IssueSchema = new mongoose.Schema({
-  issue_id: String,
+const IssueSchema = new mongoose.Schema<IssueType>({
   description: String,
   solution: String,
   occurrences: [OccurrenceSchema],
 });
 
-const HeuristicSchema = new mongoose.Schema({
-  id: Number,
+const HeuristicSchema = new mongoose.Schema<HeuristicType>({
   name: String,
   issues: [IssueSchema],
 });
 
-const ScoreSchema = new mongoose.Schema({
-  id: Number,
-  score: String,
-});
-
-const ReportSchema = new mongoose.Schema(
+const ReportSchema = new mongoose.Schema<ReportType>(
   {
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
       required: true,
     },
-    owner: {
+    createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+    },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    assignedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     url: {
       type: String,
@@ -46,11 +46,14 @@ const ReportSchema = new mongoose.Schema(
     pageType: {
       type: String,
     },
-    scores: [ScoreSchema],
-    overallScore: {
-      type: Number,
+    status: {
+      type: String,
+      enum: ["unassigned", "assigned", "comleted", "failed"],
+      default: "unassigned",
       required: true,
     },
+    score: { type: Number },
+    predefinedIssues: { type: [String] },
     heuristics: [HeuristicSchema],
     snapshotHtml: {
       type: String, // store the entire HTML string

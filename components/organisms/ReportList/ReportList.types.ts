@@ -1,15 +1,9 @@
+import { ProjectType } from "@/types/project.types";
+
 export type RatingLabelType = {
   threshold: number;
   label: string;
   color: string;
-};
-
-export type ProjectType = {
-  _id: string;
-  owner?: string;
-  name: string;
-  description?: string;
-  createdAt?: string;
 };
 
 export type HeuristicType = any;

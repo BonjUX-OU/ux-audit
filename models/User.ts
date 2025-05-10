@@ -1,4 +1,5 @@
 // models/User.ts
+import { UserType } from "@/types/user.types";
 import mongoose from "mongoose";
 /**
  * The UserSchema stores all key fields:
@@ -13,7 +14,7 @@ import mongoose from "mongoose";
  * - `preferences` or other fields for expansions (commented out).
  * - Timestamps: we rely on `createdAt` for the 7-day trial logic.
  */
-const UserSchema = new mongoose.Schema(
+const UserSchema = new mongoose.Schema<UserType>(
   {
     email: {
       type: String,
@@ -30,8 +31,9 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin", "tester"],
-      default: "user",
+      enum: ["customer", "validator", "contributor"],
+      default: "customer",
+      required: true,
     },
     subscribed: {
       type: Boolean,
@@ -41,8 +43,8 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    trialStart: {
-      type: Date,
+    trialStartDate: {
+      type: String,
       default: null, // not used in the example below, but available if needed
     },
     stripeCustomerId: {
@@ -53,20 +55,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    // Example future expansions:
-    // preferences: {
-    //   type: Object,
-    //   default: {},
-    // },
-    // notificationsEnabled: {
-    //   type: Boolean,
-    //   default: true,
-    // },
-    // avatarUrl: {
-    //   type: String,
-    //   default: "",
-    // },
-    profile_image: {
+    profileImgUrl: {
       type: String,
       default: "",
     },
