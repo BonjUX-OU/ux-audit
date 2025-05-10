@@ -7,53 +7,21 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useSession } from "next-auth/react";
+import useSubsription from "@/hooks/useSubscribe";
 import { useEffect, useState } from "react";
 
-const paymentLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || "";
-
-// TODO: Create a hook for Subscription & Free Trial Logic
-// TODO: use the hook both in here and SubscribeBar components
 const SubscribeModal = () => {
-  const { data: session } = useSession();
+  const { subscribed, handleSubscribeNow } = useSubsription();
+
   const [isOpen, setIsOpen] = useState(false);
-
-  // ------------------------------------
-  // Subscription & Free Trial Logic
-  // ------------------------------------
-  const userRole = session?.user?.role;
-  const userSubscribed = session?.user?.subscribed;
-  const userUsedAnalyses = session?.user?.usedAnalyses ?? 0;
-  const userCreatedAt = session?.user?.createdAt ? new Date(session.user.createdAt) : new Date(0);
-
-  // 7-day trial calculation
-  const trialEnd = new Date(userCreatedAt.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const now = new Date();
-  const inTrialPeriod = now < trialEnd;
-  const hasCredit = userUsedAnalyses < 10;
-
-  // If user is admin/tester => no limit
-  // If user.subscribed => no limit
-  // Otherwise => must be within7Days && under10Analyses
-  const userAllowedToAnalyze =
-    userRole === "validator" || userRole === "contributor" || userSubscribed || (inTrialPeriod && hasCredit);
 
   // We'll show a forced subscription dialog if user is blocked
   // If blocked from analyzing, open subscription modal
   useEffect(() => {
-    if (session?.user && !userAllowedToAnalyze) {
-      setIsOpen(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, userAllowedToAnalyze]);
+    setIsOpen(subscribed);
 
-  const handleSubscribeNow = () => {
-    if (!paymentLink) {
-      alert("No Payment Link available. Please contact support.");
-      return;
-    }
-    window.location.href = paymentLink;
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subscribed]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
