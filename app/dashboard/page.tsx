@@ -19,11 +19,10 @@ import CreateProjectButton from "@/components/templates/CreateProjectButton/Crea
 import ComparisonScale from "@/components/templates/ComparisonScale/ComparisonScale";
 import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
 import { ProjectType } from "@/types/project.types";
-import { useToast } from "@/hooks/useToast";
+import ValidatorReportsList from "@/components/templates/ValidatorReportsList/ValidatorReportsList";
 
 export default function DashboardPage() {
   const { data: session }: any = useSession();
-  const { toast } = useToast();
 
   const [currentProject, setCurrentProject] = useState<ProjectType | null>(null);
   const [reports, setReports] = useState<AnalysisReportType[]>([]);
@@ -148,6 +147,9 @@ export default function DashboardPage() {
                 />
               </CardContent>
             </Card>
+
+            {/* Validator Reports */}
+            <ValidatorReportsList />
 
             {/* Reports Card */}
             <Card className="border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
