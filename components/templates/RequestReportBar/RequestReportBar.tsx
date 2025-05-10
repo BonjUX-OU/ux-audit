@@ -4,6 +4,7 @@ import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/useToast";
 import { OptionType } from "@/types/common.types";
 import { ProjectType } from "@/types/project.types";
 import { ReportType } from "@/types/report.types";
@@ -11,8 +12,14 @@ import { Globe } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { FormEvent, useEffect, useState } from "react";
 
-const RequestReportBar = ({ project }: { project: ProjectType | null }) => {
+type RequestReportBarProps = {
+  project?: ProjectType | null;
+  onRequestComplete: () => void;
+};
+
+const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps) => {
   const { data: session } = useSession();
+  const { toast } = useToast();
 
   const [url, setUrl] = useState("");
   const [sectorOptions, setSectorOptions] = useState<OptionType[]>([]);
@@ -60,21 +67,21 @@ const RequestReportBar = ({ project }: { project: ProjectType | null }) => {
 
     if (!url.trim()) return;
     if (!pageType) {
-      alert("Please select Page Type");
+      toast({ description: "Please select Page Type", variant: "destructive" });
       return;
     } else if (session?.user?.role !== "customer" && !sector) {
-      alert("Please select Sector");
+      toast({ description: "Please select Sector", variant: "destructive" });
       return;
     }
 
     setIsLoading(true);
 
     try {
-      let payloadProject = !project ? await createUntitledProject() : project;
+      let targetProject = !project ? await createUntitledProject() : project;
 
       const payload: ReportType = {
         createdBy: session?.user,
-        project: payloadProject,
+        project: targetProject,
         pageType,
         url,
         status: "unassigned",
@@ -90,6 +97,10 @@ const RequestReportBar = ({ project }: { project: ProjectType | null }) => {
       const data = await createdReport.json();
 
       console.log("Report created", data);
+
+      toast({ title: "Success!", description: "Your request has been received successfully", variant: "success" });
+
+      onRequestComplete();
 
       // TODO: After an empty report created on server
       //   - Add the recently created report to the reports state (FE)

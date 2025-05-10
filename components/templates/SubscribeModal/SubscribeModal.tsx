@@ -7,11 +7,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import useSubsription from "@/hooks/useSubscribe";
+import useSubsribe from "@/hooks/useSubscribe";
 import { useEffect, useState } from "react";
 
 const SubscribeModal = () => {
-  const { subscribed, handleSubscribeNow } = useSubsription();
+  const { subscribed, handleSubscribeNow } = useSubsribe();
 
   const [isOpen, setIsOpen] = useState(false);
 

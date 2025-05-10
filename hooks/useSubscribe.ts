@@ -48,18 +48,18 @@ const checkSubscription = (user: UserType): SubsriptionState => {
   return result;
 };
 
-const handleSubscribeNow = () => {
-  const { toast } = useToast();
-  if (!paymentLink) {
-    toast({ title: "Error", description: "No Payment Link available. Please contact support." });
-    return;
-  }
-  window.location.href = paymentLink;
-};
-
-const useSubsription = () => {
+const useSubsribe = () => {
   const { data: session } = useSession();
+  const { toast } = useToast();
   const [state, setState] = useState<SubsriptionState>(initialState);
+
+  const handleSubscribeNow = () => {
+    if (!paymentLink) {
+      toast({ title: "Error", description: "No Payment Link available. Please contact support." });
+      return;
+    }
+    window.location.href = paymentLink;
+  };
 
   useEffect(() => {
     if (!session?.user) setState(initialState);
@@ -74,4 +74,4 @@ const useSubsription = () => {
   };
 };
 
-export default useSubsription;
+export default useSubsribe;

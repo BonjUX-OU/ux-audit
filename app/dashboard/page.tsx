@@ -19,10 +19,11 @@ import CreateProjectButton from "@/components/templates/CreateProjectButton/Crea
 import ComparisonScale from "@/components/templates/ComparisonScale/ComparisonScale";
 import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
 import { ProjectType } from "@/types/project.types";
-import SubscribeModal from "@/components/templates/SubscribeModal/SubscribeModal";
+import { useToast } from "@/hooks/useToast";
 
 export default function DashboardPage() {
   const { data: session }: any = useSession();
+  const { toast } = useToast();
 
   const [currentProject, setCurrentProject] = useState<ProjectType | null>(null);
   const [reports, setReports] = useState<AnalysisReportType[]>([]);
@@ -102,9 +103,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      {/* FORCED SUBSCRIBE DIALOG IF BLOCKED */}
-      <SubscribeModal />
-
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <AppBar />
         <div className="flex flex-1 pt-16 px-4 md:px-6 lg:px-8 pb-8">
@@ -129,18 +127,25 @@ export default function DashboardPage() {
             {/* 
               TOP BANNER if user is unsubscribed or still in trial:
               e.g.: "Your free trial ends in X Days. Just add your payment details..."
+              // TODO: Check subscription modal open
             */}
             <SubscribeBar />
 
             {/* Welcome Card */}
-            <Card className="mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
+            <Card className="mt-4 mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
               <CardHeader className="pb-0">
                 <CardTitle className="text-2xl font-normal flex items-center">
                   Welcome, {session?.user?.name?.split(" ")[0]}! 👋
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <RequestReportBar project={currentProject} />
+                <RequestReportBar
+                  project={currentProject}
+                  onRequestComplete={() => {
+                    fetchUserReports();
+                    projectsNavbarRef.current?.fetchProjects();
+                  }}
+                />
               </CardContent>
             </Card>
 
