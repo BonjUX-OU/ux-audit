@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const projectsNavbarRef = useRef<ProjectsNavBarHandle>(null);
 
   async function fetchUserReports() {
-    if (!session?.user?.id) return;
+    if (!session?.user?._id) return;
     setLoadingReports(true);
     try {
       const res = await fetch(`/api/user/reports?userId=${session.user._id}`);
@@ -81,7 +81,7 @@ export default function DashboardPage() {
   // Fetching projects and reports
   // ------------------------------------
   useEffect(() => {
-    if (session?.user?.id) {
+    if (session?.user?._id) {
       projectsNavbarRef.current?.fetchProjects();
       fetchUserReports();
     }
@@ -138,7 +138,6 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {session.user.role === "customer" && (
                   <RequestReportBar
                     project={currentProject}
                     onRequestComplete={() => {
@@ -146,12 +145,8 @@ export default function DashboardPage() {
                       projectsNavbarRef.current?.fetchProjects();
                     }}
                   />
-                )}
               </CardContent>
             </Card>
-
-            {/* Validator Reports */}
-            {session.user.role === "validator" && <ValidatorReportsList />}
 
             {/* Reports Card */}
             <Card className="border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
