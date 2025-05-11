@@ -40,7 +40,7 @@ export default function DashboardPage() {
     if (!session?.user?.id) return;
     setLoadingReports(true);
     try {
-      const res = await fetch(`/api/user/reports?userId=${session.user.id}`);
+      const res = await fetch(`/api/user/reports?userId=${session.user._id}`);
       if (!res.ok) throw new Error("Failed to fetch reports");
       const data = await res.json();
       setReports(data);
@@ -138,18 +138,20 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <RequestReportBar
-                  project={currentProject}
-                  onRequestComplete={() => {
-                    fetchUserReports();
-                    projectsNavbarRef.current?.fetchProjects();
-                  }}
-                />
+                {session.user.role === "customer" && (
+                  <RequestReportBar
+                    project={currentProject}
+                    onRequestComplete={() => {
+                      fetchUserReports();
+                      projectsNavbarRef.current?.fetchProjects();
+                    }}
+                  />
+                )}
               </CardContent>
             </Card>
 
             {/* Validator Reports */}
-            <ValidatorReportsList />
+            {session.user.role === "validator" && <ValidatorReportsList />}
 
             {/* Reports Card */}
             <Card className="border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">

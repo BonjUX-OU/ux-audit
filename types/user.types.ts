@@ -1,7 +1,6 @@
 import { DataObjectType } from "./common.types";
 
 export type UserType = DataObjectType & {
-  id: string;
   email: string;
   password: string;
   name: string;

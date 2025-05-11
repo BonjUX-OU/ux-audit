@@ -8,6 +8,7 @@ type CreateProjectButtonProps = {
   onCreateSuccess: () => void;
 };
 
+// TODO: Inject this component into ProjectNavBar
 const CreateProjectButton = ({ onCreateSuccess }: CreateProjectButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
@@ -31,6 +32,8 @@ const CreateProjectButton = ({ onCreateSuccess }: CreateProjectButtonProps) => {
         alert("Error creating project");
         throw new Error("Error creating project");
       } else {
+        const result = await response.json();
+        console.log(result);
         onCreateSuccess();
       }
     } catch (error) {

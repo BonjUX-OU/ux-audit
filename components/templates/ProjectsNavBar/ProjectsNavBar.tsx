@@ -28,9 +28,9 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
   const [updateType, setUpdateType] = useState<"edit" | "delete" | null>(null);
 
   const fetchProjects = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?._id) return;
     try {
-      const userId = session.user.id;
+      const userId = session.user._id;
       const response = await fetch(`/api/user/projects?userId=${userId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
@@ -140,7 +140,7 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
         <div className="space-y-1 mt-2">
           {projects &&
             projects.map((project) => (
-              <div key={project._id.toString()} className="group flex items-center justify-between">
+              <div key={project._id?.toString()} className="group flex items-center justify-between">
                 <button
                   onClick={() => onProjectSelect(project)}
                   className={clsx(

@@ -1,7 +1,8 @@
 // models/Projects.ts
+import { ProjectType } from "@/types/project.types";
 import mongoose from "mongoose";
 
-const ProjectSchema = new mongoose.Schema(
+const ProjectSchema = new mongoose.Schema<ProjectType>(
   {
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
