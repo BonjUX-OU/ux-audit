@@ -1,6 +1,7 @@
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/useToast";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -10,6 +11,7 @@ type CreateProjectButtonProps = {
 
 // TODO: Inject this component into ProjectNavBar
 const CreateProjectButton = ({ onCreateSuccess }: CreateProjectButtonProps) => {
+  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -28,14 +30,13 @@ const CreateProjectButton = ({ onCreateSuccess }: CreateProjectButtonProps) => {
       });
 
       if (!response.ok) {
-        setIsOpen(false);
-        alert("Error creating project");
+        toast({ title: "Error", description: "Creating project failed!" });
         throw new Error("Error creating project");
       } else {
-        const result = await response.json();
-        console.log(result);
         onCreateSuccess();
       }
+
+      setIsOpen(false);
     } catch (error) {
       console.error(error);
     }
