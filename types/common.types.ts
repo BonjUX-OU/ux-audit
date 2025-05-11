@@ -1,10 +1,13 @@
-import { ObjectId } from "mongoose";
-
 export type DataObjectType = {
-  _id: ObjectId;
+  _id?: string;
 };
 
 export type OptionType = {
   value: string;
   label: string;
+};
+
+export type CodeNamePair = {
+  code: string;
+  name: string;
 };

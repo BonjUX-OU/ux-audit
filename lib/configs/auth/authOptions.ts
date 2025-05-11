@@ -30,10 +30,7 @@ export const authOptions: NextAuthOptions = {
         try {
           const user = await User.findOne({ email: credentials.email });
           if (user) {
-            const isPasswordCorrect = await bcrypt.compare(
-              credentials.password,
-              user.password || ""
-            );
+            const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password || "");
             if (isPasswordCorrect) {
               return user;
             }
@@ -64,20 +61,20 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             isProfileCompleted: false,
-            role: "user",
+            role: "customer",
             subscribed: false,
             usedAnalyses: 0,
           });
           //console.log("New user created:", newUser);
           //change newuser._id from objectId to string
-          user.id = newUser._id;
+          user._id = newUser._id;
           user.role = newUser.role;
           user.subscribed = newUser.subscribed;
           user.usedAnalyses = newUser.usedAnalyses;
           user.createdAt = newUser.createdAt;
           user.isNewUser = true; // Flag to indicate new user
         } else {
-          user.id = existingUser._id;
+          user._id = existingUser._id;
           user.role = existingUser.role;
           user.subscribed = existingUser.subscribed;
           user.usedAnalyses = existingUser.usedAnalyses;
@@ -91,7 +88,7 @@ export const authOptions: NextAuthOptions = {
       // Persist the OAuth access_token and or the user id to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
-        token.id = user._id || user.id;
+        token.id = user._id;
         token.name = user.name;
         token.role = user.role;
         token.subscribed = user.subscribed;
@@ -107,7 +104,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token, user }: any) {
       // Send properties to the client, like an access_token and user id from a provider.
       session.accessToken = token.accessToken;
-      session.user.id = token.id;
+      session.user._id = token.id;
       session.user.name = token.name;
       session.user.role = token.role;
       session.user.subscribed = token.subscribed;

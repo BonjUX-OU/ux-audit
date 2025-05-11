@@ -19,11 +19,10 @@ import CreateProjectButton from "@/components/templates/CreateProjectButton/Crea
 import ComparisonScale from "@/components/templates/ComparisonScale/ComparisonScale";
 import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
 import { ProjectType } from "@/types/project.types";
-import { useToast } from "@/hooks/useToast";
+import ValidatorReportsList from "@/components/templates/ValidatorReportsList/ValidatorReportsList";
 
 export default function DashboardPage() {
   const { data: session }: any = useSession();
-  const { toast } = useToast();
 
   const [currentProject, setCurrentProject] = useState<ProjectType | null>(null);
   const [reports, setReports] = useState<AnalysisReportType[]>([]);
@@ -41,7 +40,7 @@ export default function DashboardPage() {
     if (!session?.user?.id) return;
     setLoadingReports(true);
     try {
-      const res = await fetch(`/api/user/reports?userId=${session.user.id}`);
+      const res = await fetch(`/api/user/reports?userId=${session.user._id}`);
       if (!res.ok) throw new Error("Failed to fetch reports");
       const data = await res.json();
       setReports(data);
@@ -139,15 +138,20 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <RequestReportBar
-                  project={currentProject}
-                  onRequestComplete={() => {
-                    fetchUserReports();
-                    projectsNavbarRef.current?.fetchProjects();
-                  }}
-                />
+                {session.user.role === "customer" && (
+                  <RequestReportBar
+                    project={currentProject}
+                    onRequestComplete={() => {
+                      fetchUserReports();
+                      projectsNavbarRef.current?.fetchProjects();
+                    }}
+                  />
+                )}
               </CardContent>
             </Card>
+
+            {/* Validator Reports */}
+            {session.user.role === "validator" && <ValidatorReportsList />}
 
             {/* Reports Card */}
             <Card className="border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
