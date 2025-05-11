@@ -20,7 +20,7 @@ export async function GET() {
 
     await dbConnect();
 
-    const userId = new mongoose.Types.ObjectId(session.user?.id);
+    const userId = new mongoose.Types.ObjectId(session.user?._id);
 
     const apps = await Project.find({ createdBy: userId }).populate("createdBy").sort({ createdAt: -1 });
 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     await dbConnect();
     const { name, description } = await request.json();
 
-    const objId = new mongoose.Types.ObjectId(session.user?.id);
+    const objId = new mongoose.Types.ObjectId(session.user?._id);
 
     const app = new Project({
       createdBy: objId,

@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     await dbConnect();
 
-    const userId = new mongoose.Types.ObjectId(session.user?.id);
+    const userId = new mongoose.Types.ObjectId(session.user?._id);
 
     const createdBy = await User.findById(userId);
     if (!createdBy) {
