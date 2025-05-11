@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState } from "react";
 import { ReportGroupType } from "./ValidatorReportsList.types";
 import { useSession } from "next-auth/react";
-import { ReportResponseType } from "@/types/report.types";
+import { ReportType } from "@/types/report.types";
 import { Calendar, ImagePlus, Loader, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -31,13 +31,13 @@ const ValidatorReportsList = () => {
 
   const [selectedGroup, setSelectedGroup] = useState<ReportGroupType>(ReportGroups.ALL);
   const [isLoading, setIsLoading] = useState(false);
-  const [reports, setReports] = useState<ReportResponseType[]>();
+  const [reports, setReports] = useState<ReportType[]>();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<string>();
 
   const fetchReports = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?._id) return;
     setIsLoading(true);
     try {
       const res = await fetch(`/api/user/reports`);
