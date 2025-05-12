@@ -3,33 +3,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import {
-  BarChart,
-  LineChart,
-  Search,
-  Users,
-  FileText,
-  Filter,
-  Download,
-  ChevronDown,
-} from "lucide-react";
+import { BarChart, LineChart, Search, Users, FileText, Filter, Download, ChevronDown } from "lucide-react";
 import { subDays, subMonths, subYears } from "date-fns";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,20 +19,8 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -213,7 +179,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (status === "loading") return; // Don't do anything while loading
 
-    if (status === "unauthenticated" || session?.user?.role !== "admin") {
+    if (status === "unauthenticated" || session?.user?.role !== "validator") {
       router.push("/dashboard");
     }
   }, [status, session, router]);
@@ -259,9 +225,7 @@ export default function AdminDashboard() {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
-        (user) =>
-          user.email.toLowerCase().includes(term) ||
-          (user.name && user.name.toLowerCase().includes(term))
+        (user) => user.email.toLowerCase().includes(term) || (user.name && user.name.toLowerCase().includes(term))
       );
     }
 
@@ -375,8 +339,7 @@ export default function AdminDashboard() {
             className="h-8 w-8 animate-spin rounded-full border-4"
             style={{
               borderColor: `${THEME.primary} transparent ${THEME.primary} transparent`,
-            }}
-          ></div>
+            }}></div>
           <p style={{ color: THEME.muted }}>Loading Admin Dashboard...</p>
         </div>
       </div>
@@ -385,20 +348,12 @@ export default function AdminDashboard() {
 
   if (!stats) {
     return (
-      <div
-        className="flex items-center justify-center h-screen"
-        style={{ backgroundColor: THEME.background }}
-      >
+      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: THEME.background }}>
         <div className="text-center">
-          <h2
-            className="text-xl font-semibold mb-2"
-            style={{ color: THEME.text }}
-          >
+          <h2 className="text-xl font-semibold mb-2" style={{ color: THEME.text }}>
             No Data Available
           </h2>
-          <p style={{ color: THEME.muted }}>
-            No admin stats data could be retrieved.
-          </p>
+          <p style={{ color: THEME.muted }}>No admin stats data could be retrieved.</p>
         </div>
       </div>
     );
@@ -438,14 +393,7 @@ export default function AdminDashboard() {
           THEME.chart.humanEdited,
           THEME.chart.aiOnly,
         ],
-        borderColor: [
-          "#ffffff",
-          "#ffffff",
-          "#ffffff",
-          "#ffffff",
-          "#ffffff",
-          "#ffffff",
-        ],
+        borderColor: ["#ffffff", "#ffffff", "#ffffff", "#ffffff", "#ffffff", "#ffffff"],
         borderWidth: 2,
       },
     ],
@@ -482,9 +430,7 @@ export default function AdminDashboard() {
 
   // 5) Heuristic Average Scores Bar
   const heuristicScoreLabels = stats.heuristicScoreAverages.map((h) => h.name);
-  const heuristicScoreValues = stats.heuristicScoreAverages.map(
-    (h) => h.averageScore
-  );
+  const heuristicScoreValues = stats.heuristicScoreAverages.map((h) => h.averageScore);
   const heuristicScoreBarData = {
     labels: heuristicScoreLabels,
     datasets: [
@@ -500,12 +446,7 @@ export default function AdminDashboard() {
   // 6) **Actual** Time Series from `stats.timeSeries` for 30 days
   // We'll store them as "date -> count" or just use the arrays
   // You can do a "time" scale if we convert each label into a date, or just treat them as category labels.
-  const {
-    labels: timeSeriesLabels,
-    users,
-    projects,
-    reports,
-  } = stats.timeSeries;
+  const { labels: timeSeriesLabels, users, projects, reports } = stats.timeSeries;
 
   // If you want a time-based scale with real dates, you'd parse each label into a Date object.
   // For example:
@@ -675,10 +616,7 @@ export default function AdminDashboard() {
           label: (context: any) => {
             const label = context.label || "";
             const value = context.raw || 0;
-            const total = context.dataset.data.reduce(
-              (acc: number, val: number) => acc + val,
-              0
-            );
+            const total = context.dataset.data.reduce((acc: number, val: number) => acc + val, 0);
             const percentage = Math.round((value / total) * 100);
             return `${label}: ${value} (${percentage}%)`;
           },
@@ -693,13 +631,7 @@ export default function AdminDashboard() {
       <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-white px-6">
         <div className="flex items-center gap-2">
           <Link href="/">
-            <Image
-              src="/images/logo.png"
-              alt="UXMust Logo"
-              width={120}
-              height={40}
-              className="w-auto h-8"
-            />
+            <Image src="/images/logo.png" alt="UXMust Logo" width={120} height={40} className="w-auto h-8" />
           </Link>
           <h1 className="text-xl font-semibold" style={{ color: THEME.text }}>
             Admin panel
@@ -707,10 +639,7 @@ export default function AdminDashboard() {
         </div>
         <div className="ml-auto flex items-center gap-4">
           <div className="relative w-64">
-            <Search
-              className="absolute left-2.5 top-2.5 h-4 w-4"
-              style={{ color: THEME.muted }}
-            />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4" style={{ color: THEME.muted }} />
             <Input
               type="search"
               placeholder="Search users..."
@@ -720,14 +649,8 @@ export default function AdminDashboard() {
               style={{ borderColor: "rgba(0, 0, 0, 0.1)" }}
             />
           </div>
-          <Select
-            value={timePeriod}
-            onValueChange={(value) => setTimePeriod(value)}
-          >
-            <SelectTrigger
-              className="w-40"
-              style={{ borderColor: "rgba(0, 0, 0, 0.1)", color: THEME.text }}
-            >
+          <Select value={timePeriod} onValueChange={(value) => setTimePeriod(value)}>
+            <SelectTrigger className="w-40" style={{ borderColor: "rgba(0, 0, 0, 0.1)", color: THEME.text }}>
               <SelectValue placeholder="Select time period" />
             </SelectTrigger>
             <SelectContent>
@@ -747,8 +670,7 @@ export default function AdminDashboard() {
                   style={{
                     borderColor: "rgba(0, 0, 0, 0.1)",
                     color: THEME.text,
-                  }}
-                >
+                  }}>
                   <Download className="h-4 w-4" />
                   <span className="sr-only">Download report</span>
                 </Button>
@@ -763,21 +685,15 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="flex items-center justify-center p-6 lg:px-24">
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-6 w-full"
-        >
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 w-full">
           <TabsList className="grid grid-cols-4 w-full lg:w-1/2">
             <TabsTrigger
               value="overview"
               className="flex items-center gap-2"
               style={{
                 color: activeTab === "overview" ? THEME.primary : THEME.text,
-                backgroundColor:
-                  activeTab === "overview" ? "white" : "transparent",
-              }}
-            >
+                backgroundColor: activeTab === "overview" ? "white" : "transparent",
+              }}>
               <BarChart className="h-4 w-4" />
               <span>Overview</span>
             </TabsTrigger>
@@ -786,10 +702,8 @@ export default function AdminDashboard() {
               className="flex items-center gap-2"
               style={{
                 color: activeTab === "users" ? THEME.primary : THEME.text,
-                backgroundColor:
-                  activeTab === "users" ? "white" : "transparent",
-              }}
-            >
+                backgroundColor: activeTab === "users" ? "white" : "transparent",
+              }}>
               <Users className="h-4 w-4" />
               <span>Users</span>
             </TabsTrigger>
@@ -798,10 +712,8 @@ export default function AdminDashboard() {
               className="flex items-center gap-2"
               style={{
                 color: activeTab === "reports" ? THEME.primary : THEME.text,
-                backgroundColor:
-                  activeTab === "reports" ? "white" : "transparent",
-              }}
-            >
+                backgroundColor: activeTab === "reports" ? "white" : "transparent",
+              }}>
               <FileText className="h-4 w-4" />
               <span>Reports</span>
             </TabsTrigger>
@@ -810,10 +722,8 @@ export default function AdminDashboard() {
               className="flex items-center gap-2"
               style={{
                 color: activeTab === "analytics" ? THEME.primary : THEME.text,
-                backgroundColor:
-                  activeTab === "analytics" ? "white" : "transparent",
-              }}
-            >
+                backgroundColor: activeTab === "analytics" ? "white" : "transparent",
+              }}>
               <LineChart className="h-4 w-4" />
               <span>Analytics</span>
             </TabsTrigger>
@@ -825,36 +735,24 @@ export default function AdminDashboard() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card className="border border-gray-300">
                 <CardHeader className="pb-2">
-                  <CardDescription style={{ color: THEME.muted }}>
-                    Total Users
-                  </CardDescription>
+                  <CardDescription style={{ color: THEME.muted }}>Total Users</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div
-                    className="text-2xl font-bold"
-                    style={{ color: THEME.text }}
-                  >
+                  <div className="text-2xl font-bold" style={{ color: THEME.text }}>
                     {getFilteredStats?.users || stats.totalUsers}
                   </div>
                   <p className="text-xs" style={{ color: THEME.muted }}>
-                    <span style={{ color: THEME.chart.humanEdited }}>
-                      +{stats.dateRangeStats.users["24h"]}
-                    </span>{" "}
-                    in last 24h
+                    <span style={{ color: THEME.chart.humanEdited }}>+{stats.dateRangeStats.users["24h"]}</span> in last
+                    24h
                   </p>
                 </CardContent>
               </Card>
               <Card className="border border-gray-300">
                 <CardHeader className="pb-2">
-                  <CardDescription style={{ color: THEME.muted }}>
-                    Waiting List
-                  </CardDescription>
+                  <CardDescription style={{ color: THEME.muted }}>Waiting List</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div
-                    className="text-2xl font-bold"
-                    style={{ color: THEME.text }}
-                  >
+                  <div className="text-2xl font-bold" style={{ color: THEME.text }}>
                     {stats.totalWaitingList}
                   </div>
                   <p className="text-xs" style={{ color: THEME.muted }}>
@@ -864,43 +762,29 @@ export default function AdminDashboard() {
               </Card>
               <Card className="border border-gray-300">
                 <CardHeader className="pb-2">
-                  <CardDescription style={{ color: THEME.muted }}>
-                    Projects
-                  </CardDescription>
+                  <CardDescription style={{ color: THEME.muted }}>Projects</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div
-                    className="text-2xl font-bold"
-                    style={{ color: THEME.text }}
-                  >
+                  <div className="text-2xl font-bold" style={{ color: THEME.text }}>
                     {getFilteredStats?.projects || stats.totalProjects}
                   </div>
                   <p className="text-xs" style={{ color: THEME.muted }}>
-                    <span style={{ color: THEME.chart.humanEdited }}>
-                      +{stats.dateRangeStats.projects["24h"]}
-                    </span>{" "}
-                    in last 24h
+                    <span style={{ color: THEME.chart.humanEdited }}>+{stats.dateRangeStats.projects["24h"]}</span> in
+                    last 24h
                   </p>
                 </CardContent>
               </Card>
               <Card className="border border-gray-300">
                 <CardHeader className="pb-2">
-                  <CardDescription style={{ color: THEME.muted }}>
-                    Reports
-                  </CardDescription>
+                  <CardDescription style={{ color: THEME.muted }}>Reports</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div
-                    className="text-2xl font-bold"
-                    style={{ color: THEME.text }}
-                  >
+                  <div className="text-2xl font-bold" style={{ color: THEME.text }}>
                     {getFilteredStats?.reports || stats.totalReports}
                   </div>
                   <p className="text-xs" style={{ color: THEME.muted }}>
-                    <span style={{ color: THEME.chart.humanEdited }}>
-                      +{stats.dateRangeStats.reports["24h"]}
-                    </span>{" "}
-                    in last 24h
+                    <span style={{ color: THEME.chart.humanEdited }}>+{stats.dateRangeStats.reports["24h"]}</span> in
+                    last 24h
                   </p>
                 </CardContent>
               </Card>
@@ -910,12 +794,8 @@ export default function AdminDashboard() {
             <Card className="border border-gray-300">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle style={{ color: THEME.text }}>
-                    Growth Trends
-                  </CardTitle>
-                  <CardDescription style={{ color: THEME.muted }}>
-                    Actual daily counts (last 30 days)
-                  </CardDescription>
+                  <CardTitle style={{ color: THEME.text }}>Growth Trends</CardTitle>
+                  <CardDescription style={{ color: THEME.muted }}>Actual daily counts (last 30 days)</CardDescription>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -926,8 +806,7 @@ export default function AdminDashboard() {
                       style={{
                         borderColor: "rgba(0, 0, 0, 0.1)",
                         color: THEME.text,
-                      }}
-                    >
+                      }}>
                       <Filter className="mr-2 h-4 w-4" />
                       Data Series
                       <ChevronDown className="ml-2 h-4 w-4" />
@@ -941,8 +820,7 @@ export default function AdminDashboard() {
                           ...prev,
                           users: !!checked,
                         }))
-                      }
-                    >
+                      }>
                       <span style={{ color: THEME.chart.users }}>●</span> Users
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
@@ -952,10 +830,8 @@ export default function AdminDashboard() {
                           ...prev,
                           reports: !!checked,
                         }))
-                      }
-                    >
-                      <span style={{ color: THEME.chart.reports }}>●</span>{" "}
-                      Reports
+                      }>
+                      <span style={{ color: THEME.chart.reports }}>●</span> Reports
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
                       checked={selectedDataSeries.projects}
@@ -964,10 +840,8 @@ export default function AdminDashboard() {
                           ...prev,
                           projects: !!checked,
                         }))
-                      }
-                    >
-                      <span style={{ color: THEME.chart.projects }}>●</span>{" "}
-                      Projects
+                      }>
+                      <span style={{ color: THEME.chart.projects }}>●</span> Projects
                     </DropdownMenuCheckboxItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -987,17 +861,13 @@ export default function AdminDashboard() {
                 User Management
               </h2>
               <div className="flex items-center gap-2">
-                <Select
-                  value={userTypeFilter}
-                  onValueChange={setUserTypeFilter}
-                >
+                <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
                   <SelectTrigger
                     className="w-40"
                     style={{
                       borderColor: "rgba(0, 0, 0, 0.1)",
                       color: THEME.text,
-                    }}
-                  >
+                    }}>
                     <SelectValue placeholder="Filter by type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1012,8 +882,7 @@ export default function AdminDashboard() {
                   style={{
                     borderColor: "rgba(0, 0, 0, 0.1)",
                     color: THEME.text,
-                  }}
-                >
+                  }}>
                   <Filter className="h-4 w-4" />
                   <span className="sr-only">Filter</span>
                 </Button>
@@ -1024,31 +893,16 @@ export default function AdminDashboard() {
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow
-                      style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
-                    >
+                    <TableRow style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}>
                       <TableHead style={{ color: THEME.text }}>Type</TableHead>
                       <TableHead style={{ color: THEME.text }}>Name</TableHead>
                       <TableHead style={{ color: THEME.text }}>Email</TableHead>
-                      <TableHead style={{ color: THEME.text }}>
-                        Date Joined
-                      </TableHead>
-                      <TableHead style={{ color: THEME.text }}>
-                        Last Updated
-                      </TableHead>
-                      <TableHead style={{ color: THEME.text }}>
-                        Reports
-                      </TableHead>
-                      <TableHead style={{ color: THEME.text }}>
-                        Avg Score
-                      </TableHead>
-                      <TableHead style={{ color: THEME.text }}>
-                        Issues
-                      </TableHead>
-                      <TableHead
-                        className="text-right"
-                        style={{ color: THEME.text }}
-                      >
+                      <TableHead style={{ color: THEME.text }}>Date Joined</TableHead>
+                      <TableHead style={{ color: THEME.text }}>Last Updated</TableHead>
+                      <TableHead style={{ color: THEME.text }}>Reports</TableHead>
+                      <TableHead style={{ color: THEME.text }}>Avg Score</TableHead>
+                      <TableHead style={{ color: THEME.text }}>Issues</TableHead>
+                      <TableHead className="text-right" style={{ color: THEME.text }}>
                         Actions
                       </TableHead>
                     </TableRow>
@@ -1056,11 +910,7 @@ export default function AdminDashboard() {
                   <TableBody>
                     {filteredUsers.length === 0 ? (
                       <TableRow>
-                        <TableCell
-                          colSpan={9}
-                          className="text-center py-6"
-                          style={{ color: THEME.muted }}
-                        >
+                        <TableCell colSpan={9} className="text-center py-6" style={{ color: THEME.muted }}>
                           No users found matching your criteria
                         </TableCell>
                       </TableRow>
@@ -1069,74 +919,37 @@ export default function AdminDashboard() {
                         <TableRow key={user._id}>
                           <TableCell>
                             <Badge
-                              variant={
-                                user.type === "registered"
-                                  ? "default"
-                                  : "secondary"
-                              }
+                              variant={user.type === "registered" ? "default" : "secondary"}
                               style={{
-                                backgroundColor:
-                                  user.type === "registered"
-                                    ? THEME.primary
-                                    : "rgba(0, 0, 0, 0.1)",
-                                color:
-                                  user.type === "registered"
-                                    ? "white"
-                                    : THEME.text,
-                              }}
-                            >
+                                backgroundColor: user.type === "registered" ? THEME.primary : "rgba(0, 0, 0, 0.1)",
+                                color: user.type === "registered" ? "white" : THEME.text,
+                              }}>
                               {user.type === "registered" ? "User" : "Waiting"}
                             </Badge>
                           </TableCell>
-                          <TableCell style={{ color: THEME.text }}>
-                            {user.name ?? "N/A"}
-                          </TableCell>
-                          <TableCell style={{ color: THEME.text }}>
-                            {user.email}
-                          </TableCell>
+                          <TableCell style={{ color: THEME.text }}>{user.name ?? "N/A"}</TableCell>
+                          <TableCell style={{ color: THEME.text }}>{user.email}</TableCell>
                           <TableCell style={{ color: THEME.text }}>
                             {user.createdAt ? formatDate(user.createdAt) : ""}
                           </TableCell>
                           <TableCell style={{ color: THEME.text }}>
-                            {user.type === "registered"
-                              ? formatDate(user.updatedAt)
-                              : "-"}
+                            {user.type === "registered" ? formatDate(user.updatedAt) : "-"}
                           </TableCell>
-                          <TableCell style={{ color: THEME.text }}>
-                            {user.totalReports ?? 0}
-                          </TableCell>
-                          <TableCell style={{ color: THEME.text }}>
-                            {user.averageScore?.toFixed?.(2) ?? 0}
-                          </TableCell>
-                          <TableCell style={{ color: THEME.text }}>
-                            {user.totalIssues ?? 0}
-                          </TableCell>
+                          <TableCell style={{ color: THEME.text }}>{user.totalReports ?? 0}</TableCell>
+                          <TableCell style={{ color: THEME.text }}>{user.averageScore?.toFixed?.(2) ?? 0}</TableCell>
+                          <TableCell style={{ color: THEME.text }}>{user.totalIssues ?? 0}</TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  style={{ color: THEME.primary }}
-                                >
+                                <Button variant="ghost" size="sm" style={{ color: THEME.primary }}>
                                   Actions
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  View Details
-                                </DropdownMenuItem>
-                                {user.type === "waitingList" && (
-                                  <DropdownMenuItem>
-                                    Approve User
-                                  </DropdownMenuItem>
-                                )}
+                                <DropdownMenuItem>View Details</DropdownMenuItem>
+                                {user.type === "waitingList" && <DropdownMenuItem>Approve User</DropdownMenuItem>}
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  style={{ color: THEME.error }}
-                                >
-                                  Delete User
-                                </DropdownMenuItem>
+                                <DropdownMenuItem style={{ color: THEME.error }}>Delete User</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -1148,8 +961,7 @@ export default function AdminDashboard() {
               </CardContent>
               <CardFooter className="flex items-center justify-between border-t p-4">
                 <div className="text-sm" style={{ color: THEME.muted }}>
-                  Showing <strong>{filteredUsers.length}</strong> of{" "}
-                  <strong>{userDetails.length}</strong> users
+                  Showing <strong>{filteredUsers.length}</strong> of <strong>{userDetails.length}</strong> users
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -1159,8 +971,7 @@ export default function AdminDashboard() {
                     style={{
                       borderColor: "rgba(0, 0, 0, 0.1)",
                       color: THEME.text,
-                    }}
-                  >
+                    }}>
                     Previous
                   </Button>
                   <Button
@@ -1170,8 +981,7 @@ export default function AdminDashboard() {
                     style={{
                       borderColor: "rgba(0, 0, 0, 0.1)",
                       color: THEME.text,
-                    }}
-                  >
+                    }}>
                     Next
                   </Button>
                 </div>
@@ -1184,9 +994,7 @@ export default function AdminDashboard() {
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="border border-gray-300">
                 <CardHeader>
-                  <CardTitle style={{ color: THEME.text }}>
-                    Sector Distribution
-                  </CardTitle>
+                  <CardTitle style={{ color: THEME.text }}>Sector Distribution</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
@@ -1196,16 +1004,11 @@ export default function AdminDashboard() {
               </Card>
               <Card className="border border-gray-300">
                 <CardHeader>
-                  <CardTitle style={{ color: THEME.text }}>
-                    Heuristic Issue Distribution
-                  </CardTitle>
+                  <CardTitle style={{ color: THEME.text }}>Heuristic Issue Distribution</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
-                    <Bar
-                      data={heuristicIssueBarData}
-                      options={barChartOptions}
-                    />
+                    <Bar data={heuristicIssueBarData} options={barChartOptions} />
                   </div>
                 </CardContent>
               </Card>
@@ -1214,29 +1017,19 @@ export default function AdminDashboard() {
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="border border-gray-300">
                 <CardHeader>
-                  <CardTitle style={{ color: THEME.text }}>
-                    Heuristic with Most Issues
-                  </CardTitle>
+                  <CardTitle style={{ color: THEME.text }}>Heuristic with Most Issues</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {stats.heuristicStats.mostIssues ? (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span
-                          className="font-medium"
-                          style={{ color: THEME.text }}
-                        >
+                        <span className="font-medium" style={{ color: THEME.text }}>
                           Name:
                         </span>
-                        <span style={{ color: THEME.text }}>
-                          {stats.heuristicStats.mostIssues.name}
-                        </span>
+                        <span style={{ color: THEME.text }}>{stats.heuristicStats.mostIssues.name}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span
-                          className="font-medium"
-                          style={{ color: THEME.text }}
-                        >
+                        <span className="font-medium" style={{ color: THEME.text }}>
                           Total Issues:
                         </span>
                         <Badge
@@ -1245,18 +1038,14 @@ export default function AdminDashboard() {
                           style={{
                             backgroundColor: THEME.error,
                             color: "white",
-                          }}
-                        >
+                          }}>
                           {stats.heuristicStats.mostIssues.totalIssues}
                         </Badge>
                       </div>
-                      <Separator
-                        className="my-4"
-                        style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}
-                      />
+                      <Separator className="my-4" style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }} />
                       <p className="text-sm" style={{ color: THEME.muted }}>
-                        This heuristic has the highest number of issues reported
-                        by users, indicating a potential area for improvement.
+                        This heuristic has the highest number of issues reported by users, indicating a potential area
+                        for improvement.
                       </p>
                     </div>
                   ) : (
@@ -1266,29 +1055,19 @@ export default function AdminDashboard() {
               </Card>
               <Card className="border border-gray-300">
                 <CardHeader>
-                  <CardTitle style={{ color: THEME.text }}>
-                    Heuristic with Least Issues
-                  </CardTitle>
+                  <CardTitle style={{ color: THEME.text }}>Heuristic with Least Issues</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {stats.heuristicStats.leastIssues ? (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span
-                          className="font-medium"
-                          style={{ color: THEME.text }}
-                        >
+                        <span className="font-medium" style={{ color: THEME.text }}>
                           Name:
                         </span>
-                        <span style={{ color: THEME.text }}>
-                          {stats.heuristicStats.leastIssues.name}
-                        </span>
+                        <span style={{ color: THEME.text }}>{stats.heuristicStats.leastIssues.name}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span
-                          className="font-medium"
-                          style={{ color: THEME.text }}
-                        >
+                        <span className="font-medium" style={{ color: THEME.text }}>
                           Total Issues:
                         </span>
                         <Badge
@@ -1297,18 +1076,14 @@ export default function AdminDashboard() {
                           style={{
                             backgroundColor: THEME.chart.humanEdited,
                             color: "white",
-                          }}
-                        >
+                          }}>
                           {stats.heuristicStats.leastIssues.totalIssues}
                         </Badge>
                       </div>
-                      <Separator
-                        className="my-4"
-                        style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }}
-                      />
+                      <Separator className="my-4" style={{ backgroundColor: "rgba(0, 0, 0, 0.1)" }} />
                       <p className="text-sm" style={{ color: THEME.muted }}>
-                        This heuristic has the lowest number of issues reported,
-                        suggesting either good implementation or lower usage.
+                        This heuristic has the lowest number of issues reported, suggesting either good implementation
+                        or lower usage.
                       </p>
                     </div>
                   ) : (
@@ -1320,9 +1095,7 @@ export default function AdminDashboard() {
 
             <Card className="border border-gray-300">
               <CardHeader>
-                <CardTitle style={{ color: THEME.text }}>
-                  Heuristic Average Scores
-                </CardTitle>
+                <CardTitle style={{ color: THEME.text }}>Heuristic Average Scores</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[400px]">
@@ -1343,9 +1116,7 @@ export default function AdminDashboard() {
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="border border-gray-300">
                 <CardHeader>
-                  <CardTitle style={{ color: THEME.text }}>
-                    User Activity by Page Type
-                  </CardTitle>
+                  <CardTitle style={{ color: THEME.text }}>User Activity by Page Type</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[300px]">
@@ -1355,35 +1126,22 @@ export default function AdminDashboard() {
                         .map(([pageType, count]) => (
                           <div key={pageType} className="space-y-2">
                             <div className="flex items-center justify-between">
-                              <span
-                                className="font-medium"
-                                style={{ color: THEME.text }}
-                              >
+                              <span className="font-medium" style={{ color: THEME.text }}>
                                 {pageType}
                               </span>
-                              <span
-                                className="text-sm"
-                                style={{ color: THEME.muted }}
-                              >
+                              <span className="text-sm" style={{ color: THEME.muted }}>
                                 {count} issues
                               </span>
                             </div>
                             <div
                               className="h-2 w-full rounded-full overflow-hidden"
-                              style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                            >
+                              style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}>
                               <div
                                 className="h-full"
                                 style={{
                                   width: `${Math.min(
                                     100,
-                                    (count /
-                                      Math.max(
-                                        ...Object.values(
-                                          stats.pageTypeDistribution
-                                        )
-                                      )) *
-                                      100
+                                    (count / Math.max(...Object.values(stats.pageTypeDistribution))) * 100
                                   )}%`,
                                   backgroundColor: THEME.primary,
                                 }}
@@ -1398,9 +1156,7 @@ export default function AdminDashboard() {
 
               <Card className="border border-gray-300">
                 <CardHeader>
-                  <CardTitle style={{ color: THEME.text }}>
-                    User Activity by Sector
-                  </CardTitle>
+                  <CardTitle style={{ color: THEME.text }}>User Activity by Sector</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[300px]">
@@ -1410,35 +1166,22 @@ export default function AdminDashboard() {
                         .map(([sector, count]) => (
                           <div key={sector} className="space-y-2">
                             <div className="flex items-center justify-between">
-                              <span
-                                className="font-medium"
-                                style={{ color: THEME.text }}
-                              >
+                              <span className="font-medium" style={{ color: THEME.text }}>
                                 {sector}
                               </span>
-                              <span
-                                className="text-sm"
-                                style={{ color: THEME.muted }}
-                              >
+                              <span className="text-sm" style={{ color: THEME.muted }}>
                                 {count} issues
                               </span>
                             </div>
                             <div
                               className="h-2 w-full rounded-full overflow-hidden"
-                              style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                            >
+                              style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}>
                               <div
                                 className="h-full"
                                 style={{
                                   width: `${Math.min(
                                     100,
-                                    (count /
-                                      Math.max(
-                                        ...Object.values(
-                                          stats.sectorDistribution
-                                        )
-                                      )) *
-                                      100
+                                    (count / Math.max(...Object.values(stats.sectorDistribution))) * 100
                                   )}%`,
                                   backgroundColor: THEME.accent,
                                 }}
@@ -1456,9 +1199,7 @@ export default function AdminDashboard() {
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="border border-gray-300">
                 <CardHeader>
-                  <CardTitle style={{ color: THEME.text }}>
-                    Page Type Distribution
-                  </CardTitle>
+                  <CardTitle style={{ color: THEME.text }}>Page Type Distribution</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
@@ -1468,9 +1209,7 @@ export default function AdminDashboard() {
               </Card>
               <Card className="border border-gray-300">
                 <CardHeader>
-                  <CardTitle style={{ color: THEME.text }}>
-                    Human Edited vs AI Only
-                  </CardTitle>
+                  <CardTitle style={{ color: THEME.text }}>Human Edited vs AI Only</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">

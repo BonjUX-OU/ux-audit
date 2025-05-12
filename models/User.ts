@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 /**
  * The UserSchema stores all key fields:
  * - `email`, `password`: standard user credentials (password hashed).
- * - `role`: "user", "admin", or "tester".
+ * - `role`: "customer", "validator", or "contributor".
  * - `subscribed`: if they've paid for the subscription.
  * - `usedAnalyses`: how many total analyses the user has run.
  * - `trialStart`: optional custom field if you want a separate date for trial start (not used below).

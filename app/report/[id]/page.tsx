@@ -210,7 +210,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
                   </>
                 )}
               </Button>
-              {(userRole === "admin" || userRole === "tester") && (
+              {(userRole === "validator" || userRole === "contributor") && (
                 <Button
                   onClick={() => router.push(`/report/${id}/edit`)}
                   className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"

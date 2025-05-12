@@ -5,30 +5,12 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertTriangle,
   Plus,
@@ -114,9 +96,7 @@ function RatingBar({
         <span>Good</span>
         <span>Very Good</span>
       </div>
-      <div
-        className={`relative ${height} bg-gray-100 rounded-full overflow-hidden`}
-      >
+      <div className={`relative ${height} bg-gray-100 rounded-full overflow-hidden`}>
         <div className="absolute inset-0 flex">
           <div className="w-1/5 h-full bg-red-500"></div>
           <div className="w-1/5 h-full bg-orange-500"></div>
@@ -130,9 +110,7 @@ function RatingBar({
         />
         {showLabel && ratingLabel && (
           <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-            <Badge className="bg-white text-[#B04E34] border border-[#B04E34]">
-              {ratingLabel}
-            </Badge>
+            <Badge className="bg-white text-[#B04E34] border border-[#B04E34]">{ratingLabel}</Badge>
           </div>
         )}
       </div>
@@ -152,16 +130,14 @@ export default function EditReportPage() {
     //if user is not admin or tester redirect to dashboard
     if (!session) {
       router.push("/signin");
-    } else if (userRole !== "admin" && userRole !== "tester") {
+    } else if (userRole !== "validator" && userRole !== "contributor") {
       router.push("/dashboard");
     }
   }, [session, userRole, router]);
   // States
 
   // Original report loaded from the API
-  const [originalReport, setOriginalReport] = useState<AnalysisReport | null>(
-    null
-  );
+  const [originalReport, setOriginalReport] = useState<AnalysisReport | null>(null);
   // Edits in progress (heuristics and overall score)
   const [editedHeuristics, setEditedHeuristics] = useState<Heuristic[]>([]);
   const [overallScore, setOverallScore] = useState<number>(0);
@@ -231,32 +207,20 @@ export default function EditReportPage() {
   // ----------------------------
   useEffect(() => {
     if (iframeRef.current) {
-      iframeRef.current.contentWindow?.postMessage(
-        { type: "TOGGLE_EDIT_MODE", edit: editMode },
-        "*"
-      );
+      iframeRef.current.contentWindow?.postMessage({ type: "TOGGLE_EDIT_MODE", edit: editMode }, "*");
     }
   }, [editMode]);
 
   // -----------------------------------------
   // 4. HELPER FUNCTIONS TO UPDATE OUR STATE
   // -----------------------------------------
-  function handleHeuristicChange(
-    index: number,
-    field: keyof Heuristic,
-    value: any
-  ) {
+  function handleHeuristicChange(index: number, field: keyof Heuristic, value: any) {
     const newHeuristics = [...editedHeuristics];
     newHeuristics[index] = { ...newHeuristics[index], [field]: value };
     setEditedHeuristics(newHeuristics);
   }
 
-  function handleIssueChange(
-    heuristicIndex: number,
-    issueIndex: number,
-    field: keyof Issue,
-    value: any
-  ) {
+  function handleIssueChange(heuristicIndex: number, issueIndex: number, field: keyof Issue, value: any) {
     const newHeuristics = [...editedHeuristics];
     const updatedIssues = [...newHeuristics[heuristicIndex].issues];
     updatedIssues[issueIndex] = {
@@ -275,9 +239,7 @@ export default function EditReportPage() {
     value: any
   ) {
     const newHeuristics = [...editedHeuristics];
-    const updatedOccurrences = [
-      ...newHeuristics[hIndex].issues[iIndex].occurrences,
-    ];
+    const updatedOccurrences = [...newHeuristics[hIndex].issues[iIndex].occurrences];
     updatedOccurrences[occIndex] = {
       ...updatedOccurrences[occIndex],
       [field]: value,
@@ -314,9 +276,7 @@ export default function EditReportPage() {
 
   const removeIssue = (hIndex: number, iIndex: number) => {
     const newHeuristics = [...editedHeuristics];
-    newHeuristics[hIndex].issues = newHeuristics[hIndex].issues.filter(
-      (_, i) => i !== iIndex
-    );
+    newHeuristics[hIndex].issues = newHeuristics[hIndex].issues.filter((_, i) => i !== iIndex);
     setEditedHeuristics(newHeuristics);
   };
 
@@ -330,15 +290,11 @@ export default function EditReportPage() {
     setEditedHeuristics(newHeuristics);
   };
 
-  const removeOccurrence = (
-    hIndex: number,
-    iIndex: number,
-    occIndex: number
-  ) => {
+  const removeOccurrence = (hIndex: number, iIndex: number, occIndex: number) => {
     const newHeuristics = [...editedHeuristics];
-    newHeuristics[hIndex].issues[iIndex].occurrences = newHeuristics[
-      hIndex
-    ].issues[iIndex].occurrences.filter((_, i) => i !== occIndex);
+    newHeuristics[hIndex].issues[iIndex].occurrences = newHeuristics[hIndex].issues[iIndex].occurrences.filter(
+      (_, i) => i !== occIndex
+    );
     setEditedHeuristics(newHeuristics);
   };
 
@@ -434,10 +390,7 @@ export default function EditReportPage() {
     }
     // Now post a message to the iframe
     if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        { type: "SET_SCALE", scale },
-        "*"
-      );
+      iframeRef.current.contentWindow.postMessage({ type: "SET_SCALE", scale }, "*");
     }
   }, []);
 
@@ -467,9 +420,7 @@ export default function EditReportPage() {
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#B04E34] border-t-transparent"></div>
-          <p className="mt-4 text-lg font-medium text-gray-700">
-            Loading report for editing...
-          </p>
+          <p className="mt-4 text-lg font-medium text-gray-700">Loading report for editing...</p>
         </div>
       </div>
     );
@@ -483,20 +434,12 @@ export default function EditReportPage() {
           {/* Header */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.back()}
-                className="flex items-center gap-1"
-              >
+              <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-1">
                 <ChevronLeft className="h-4 w-4" />
                 Back
               </Button>
               <h1 className="text-xl font-medium text-gray-800 ml-2">
-                Edit Analysis:{" "}
-                <span className="font-normal text-gray-600">
-                  {originalReport.url}
-                </span>
+                Edit Analysis: <span className="font-normal text-gray-600">{originalReport.url}</span>
               </h1>
             </div>
             <div className="flex items-center gap-2">
@@ -504,10 +447,7 @@ export default function EditReportPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setEditMode(!editMode)}
-                className={`flex items-center gap-1 ${
-                  editMode ? "bg-amber-50 text-amber-600 border-amber-300" : ""
-                }`}
-              >
+                className={`flex items-center gap-1 ${editMode ? "bg-amber-50 text-amber-600 border-amber-300" : ""}`}>
                 {editMode ? (
                   <>
                     <Pencil className="h-4 w-4" />
@@ -524,8 +464,7 @@ export default function EditReportPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className="flex items-center gap-1"
-              >
+                className="flex items-center gap-1">
                 {isFullscreen ? (
                   <>
                     <Minimize2 className="h-4 w-4" />
@@ -542,8 +481,7 @@ export default function EditReportPage() {
                 onClick={handleSave}
                 disabled={isSaving}
                 className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
-                size="sm"
-              >
+                size="sm">
                 {isSaving ? (
                   <>
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
@@ -560,30 +498,18 @@ export default function EditReportPage() {
           </div>
 
           {/* Main Content */}
-          <div
-            className={`grid ${
-              isFullscreen ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3 gap-6"
-            }`}
-          >
+          <div className={`grid ${isFullscreen ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3 gap-6"}`}>
             {/* Iframe Container */}
-            <div
-              ref={iframeContainerRef}
-              className={`${
-                isFullscreen ? "col-span-1" : "col-span-1 lg:col-span-2"
-              }`}
-            >
+            <div ref={iframeContainerRef} className={`${isFullscreen ? "col-span-1" : "col-span-1 lg:col-span-2"}`}>
               <Card className="border-none shadow-sm overflow-hidden">
                 <CardHeader className="py-3 px-4 bg-gray-50 border-b flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="text-base font-medium">
-                      Webpage Preview
-                    </CardTitle>
+                    <CardTitle className="text-base font-medium">Webpage Preview</CardTitle>
                     <CardDescription className="text-xs">
                       {editMode ? (
                         <span className="text-amber-600 flex items-center gap-1">
                           <AlertTriangle className="h-3 w-3" />
-                          Edit mode active. Click and drag to highlight
-                          elements.
+                          Edit mode active. Click and drag to highlight elements.
                         </span>
                       ) : (
                         "View the webpage and its issues"
@@ -591,10 +517,7 @@ export default function EditReportPage() {
                     </CardDescription>
                   </div>
                   {editMode && (
-                    <Badge
-                      variant="outline"
-                      className="bg-amber-50 text-amber-600 border-amber-200"
-                    >
+                    <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
                       Highlight Mode Active
                     </Badge>
                   )}
@@ -619,42 +542,29 @@ export default function EditReportPage() {
                 <Tabs defaultValue="score" className="w-full">
                   <TabsList className="w-full grid grid-cols-2">
                     <TabsTrigger value="score">Overall Score</TabsTrigger>
-                    <TabsTrigger value="heuristics">
-                      Heuristics & Issues
-                    </TabsTrigger>
+                    <TabsTrigger value="heuristics">Heuristics & Issues</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="score" className="mt-4">
                     <Card className="border-none shadow-sm">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-medium">
-                          Overall Usability Score
-                        </CardTitle>
-                        <CardDescription>
-                          Adjust the overall score for this analysis
-                        </CardDescription>
+                        <CardTitle className="text-lg font-medium">Overall Usability Score</CardTitle>
+                        <CardDescription>Adjust the overall score for this analysis</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-6">
                           <div>
                             <div className="flex justify-between mb-2">
-                              <label className="text-sm font-medium text-gray-700">
-                                Score Value
-                              </label>
+                              <label className="text-sm font-medium text-gray-700">Score Value</label>
                               <Badge
-                                className={`${getQualityColor(
-                                  overallScore
-                                )} hover:${getQualityColor(overallScore)}`}
-                              >
+                                className={`${getQualityColor(overallScore)} hover:${getQualityColor(overallScore)}`}>
                                 {getQualityLabel(overallScore)}
                               </Badge>
                             </div>
                             <Input
                               type="number"
                               value={overallScore}
-                              onChange={(e) =>
-                                setOverallScore(Number(e.target.value))
-                              }
+                              onChange={(e) => setOverallScore(Number(e.target.value))}
                               className="mb-2"
                               min="0"
                               max="100"
@@ -666,29 +576,22 @@ export default function EditReportPage() {
                             <div className="flex items-start gap-2">
                               <Info className="h-4 w-4 text-blue-500 mt-0.5" />
                               <div>
-                                <p className="font-medium text-blue-700 mb-2">
-                                  Score Interpretation
-                                </p>
+                                <p className="font-medium text-blue-700 mb-2">Score Interpretation</p>
                                 <ul className="space-y-1 text-blue-800">
                                   <li>
-                                    <strong>0-20:</strong> Very Poor - Critical
-                                    usability issues
+                                    <strong>0-20:</strong> Very Poor - Critical usability issues
                                   </li>
                                   <li>
-                                    <strong>21-40:</strong> Poor - Significant
-                                    improvements needed
+                                    <strong>21-40:</strong> Poor - Significant improvements needed
                                   </li>
                                   <li>
-                                    <strong>41-60:</strong> Mediocre - Several
-                                    improvements recommended
+                                    <strong>41-60:</strong> Mediocre - Several improvements recommended
                                   </li>
                                   <li>
-                                    <strong>61-80:</strong> Good - Minor
-                                    improvements possible
+                                    <strong>61-80:</strong> Good - Minor improvements possible
                                   </li>
                                   <li>
-                                    <strong>81-100:</strong> Very Good -
-                                    Excellent usability
+                                    <strong>81-100:</strong> Very Good - Excellent usability
                                   </li>
                                 </ul>
                               </div>
@@ -703,18 +606,10 @@ export default function EditReportPage() {
                     <Card className="border-none shadow-sm">
                       <CardHeader className="pb-2 flex flex-row items-center justify-between">
                         <div>
-                          <CardTitle className="text-lg font-medium">
-                            Heuristics & Issues
-                          </CardTitle>
-                          <CardDescription>
-                            Manage heuristics and their associated issues
-                          </CardDescription>
+                          <CardTitle className="text-lg font-medium">Heuristics & Issues</CardTitle>
+                          <CardDescription>Manage heuristics and their associated issues</CardDescription>
                         </div>
-                        <Button
-                          onClick={addHeuristic}
-                          size="sm"
-                          className="bg-[#B04E34] hover:bg-[#963F28] text-white"
-                        >
+                        <Button onClick={addHeuristic} size="sm" className="bg-[#B04E34] hover:bg-[#963F28] text-white">
                           <Plus className="h-4 w-4 mr-1" />
                           Add
                         </Button>
@@ -725,8 +620,7 @@ export default function EditReportPage() {
                             {editedHeuristics.map((heuristic, hIndex) => (
                               <div
                                 key={heuristic.id}
-                                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-                              >
+                                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                                 <div className="p-3 bg-gray-50 border-b border-gray-200">
                                   <div className="flex items-center justify-between">
                                     <div className="flex-1 mr-4">
@@ -736,13 +630,7 @@ export default function EditReportPage() {
                                       <Input
                                         type="text"
                                         value={heuristic.name}
-                                        onChange={(e) =>
-                                          handleHeuristicChange(
-                                            hIndex,
-                                            "name",
-                                            e.target.value
-                                          )
-                                        }
+                                        onChange={(e) => handleHeuristicChange(hIndex, "name", e.target.value)}
                                         placeholder="Enter heuristic name"
                                       />
                                     </div>
@@ -750,8 +638,7 @@ export default function EditReportPage() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => removeHeuristic(hIndex)}
-                                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0 mt-6"
-                                    >
+                                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0 mt-6">
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </div>
@@ -759,10 +646,7 @@ export default function EditReportPage() {
 
                                 <div className="p-3 space-y-4">
                                   {heuristic.issues.map((issue, iIndex) => (
-                                    <div
-                                      key={iIndex}
-                                      className="bg-gray-50 rounded-lg p-3 space-y-3"
-                                    >
+                                    <div key={iIndex} className="bg-gray-50 rounded-lg p-3 space-y-3">
                                       <div className="flex items-center justify-between">
                                         <div className="flex-1 mr-4">
                                           <label className="text-sm font-medium text-gray-700 mb-1 block">
@@ -772,12 +656,7 @@ export default function EditReportPage() {
                                             type="text"
                                             value={issue.issue_id}
                                             onChange={(e) =>
-                                              handleIssueChange(
-                                                hIndex,
-                                                iIndex,
-                                                "issue_id",
-                                                e.target.value
-                                              )
+                                              handleIssueChange(hIndex, iIndex, "issue_id", e.target.value)
                                             }
                                             placeholder="e.g., 1.1"
                                           />
@@ -785,11 +664,8 @@ export default function EditReportPage() {
                                         <Button
                                           variant="ghost"
                                           size="sm"
-                                          onClick={() =>
-                                            removeIssue(hIndex, iIndex)
-                                          }
-                                          className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0 mt-6"
-                                        >
+                                          onClick={() => removeIssue(hIndex, iIndex)}
+                                          className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0 mt-6">
                                           <Trash2 className="h-4 w-4" />
                                         </Button>
                                       </div>
@@ -801,12 +677,7 @@ export default function EditReportPage() {
                                         <Textarea
                                           value={issue.description}
                                           onChange={(e) =>
-                                            handleIssueChange(
-                                              hIndex,
-                                              iIndex,
-                                              "description",
-                                              e.target.value
-                                            )
+                                            handleIssueChange(hIndex, iIndex, "description", e.target.value)
                                           }
                                           className="min-h-[80px]"
                                           placeholder="Describe the issue"
@@ -821,12 +692,7 @@ export default function EditReportPage() {
                                         <Textarea
                                           value={issue.solution}
                                           onChange={(e) =>
-                                            handleIssueChange(
-                                              hIndex,
-                                              iIndex,
-                                              "solution",
-                                              e.target.value
-                                            )
+                                            handleIssueChange(hIndex, iIndex, "solution", e.target.value)
                                           }
                                           className="min-h-[80px]"
                                           placeholder="Suggest a solution"
@@ -840,82 +706,59 @@ export default function EditReportPage() {
                                             Occurrences
                                           </label>
                                           <Button
-                                            onClick={() =>
-                                              addOccurrence(hIndex, iIndex)
-                                            }
+                                            onClick={() => addOccurrence(hIndex, iIndex)}
                                             size="sm"
                                             variant="outline"
-                                            className="h-7 text-xs"
-                                          >
+                                            className="h-7 text-xs">
                                             <Plus className="h-3 w-3 mr-1" />
                                             Add
                                           </Button>
                                         </div>
 
                                         <div className="space-y-2">
-                                          {issue.occurrences.map(
-                                            (occ, occIndex) => (
-                                              <div
-                                                key={occ.id}
-                                                className="flex items-center gap-2 bg-white p-2 rounded border border-gray-200"
-                                              >
-                                                <Input
-                                                  type="text"
-                                                  placeholder="ID"
-                                                  value={occ.id}
-                                                  onChange={(e) =>
-                                                    handleOccurrenceChange(
-                                                      hIndex,
-                                                      iIndex,
-                                                      occIndex,
-                                                      "id",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  className="w-24 flex-shrink-0"
-                                                />
-                                                <Input
-                                                  type="text"
-                                                  placeholder="CSS Selector"
-                                                  value={occ.selector}
-                                                  onChange={(e) =>
-                                                    handleOccurrenceChange(
-                                                      hIndex,
-                                                      iIndex,
-                                                      occIndex,
-                                                      "selector",
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  className="flex-1"
-                                                />
-                                                <Button
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  onClick={() =>
-                                                    removeOccurrence(
-                                                      hIndex,
-                                                      iIndex,
-                                                      occIndex
-                                                    )
-                                                  }
-                                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                                                >
-                                                  <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                              </div>
-                                            )
-                                          )}
+                                          {issue.occurrences.map((occ, occIndex) => (
+                                            <div
+                                              key={occ.id}
+                                              className="flex items-center gap-2 bg-white p-2 rounded border border-gray-200">
+                                              <Input
+                                                type="text"
+                                                placeholder="ID"
+                                                value={occ.id}
+                                                onChange={(e) =>
+                                                  handleOccurrenceChange(hIndex, iIndex, occIndex, "id", e.target.value)
+                                                }
+                                                className="w-24 flex-shrink-0"
+                                              />
+                                              <Input
+                                                type="text"
+                                                placeholder="CSS Selector"
+                                                value={occ.selector}
+                                                onChange={(e) =>
+                                                  handleOccurrenceChange(
+                                                    hIndex,
+                                                    iIndex,
+                                                    occIndex,
+                                                    "selector",
+                                                    e.target.value
+                                                  )
+                                                }
+                                                className="flex-1"
+                                              />
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => removeOccurrence(hIndex, iIndex, occIndex)}
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0">
+                                                <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+                                          ))}
                                         </div>
                                       </div>
                                     </div>
                                   ))}
 
-                                  <Button
-                                    onClick={() => addIssue(hIndex)}
-                                    variant="outline"
-                                    className="w-full mt-2"
-                                  >
+                                  <Button onClick={() => addIssue(hIndex)} variant="outline" className="w-full mt-2">
                                     <Plus className="h-4 w-4 mr-2" />
                                     Add Issue
                                   </Button>
@@ -927,11 +770,7 @@ export default function EditReportPage() {
                               <div className="flex flex-col items-center justify-center py-8 text-gray-500">
                                 <AlertTriangle className="h-12 w-12 text-amber-500 mb-2" />
                                 <p>No heuristics defined yet.</p>
-                                <Button
-                                  onClick={addHeuristic}
-                                  variant="outline"
-                                  className="mt-4"
-                                >
+                                <Button onClick={addHeuristic} variant="outline" className="mt-4">
                                   <Plus className="h-4 w-4 mr-2" />
                                   Add Your First Heuristic
                                 </Button>
@@ -949,8 +788,7 @@ export default function EditReportPage() {
                   <Button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex-1 bg-[#B04E34] hover:bg-[#963F28] text-white"
-                  >
+                    className="flex-1 bg-[#B04E34] hover:bg-[#963F28] text-white">
                     {isSaving ? (
                       <>
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
@@ -963,11 +801,7 @@ export default function EditReportPage() {
                       </>
                     )}
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.back()}
-                    className="flex-1"
-                  >
+                  <Button variant="outline" onClick={() => router.back()} className="flex-1">
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
@@ -990,9 +824,7 @@ export default function EditReportPage() {
 
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Assign to Heuristic
-              </label>
+              <label className="text-sm font-medium text-gray-700">Assign to Heuristic</label>
               <Select
                 value={newIssueData.heuristicIndex.toString()}
                 onValueChange={(value) =>
@@ -1000,8 +832,7 @@ export default function EditReportPage() {
                     ...prev,
                     heuristicIndex: Number(value),
                   }))
-                }
-              >
+                }>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a heuristic" />
                 </SelectTrigger>
@@ -1016,23 +847,17 @@ export default function EditReportPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Issue ID
-              </label>
+              <label className="text-sm font-medium text-gray-700">Issue ID</label>
               <Input
                 type="text"
                 value={newIssueData.issue_id}
-                onChange={(e) =>
-                  setNewIssueData({ ...newIssueData, issue_id: e.target.value })
-                }
+                onChange={(e) => setNewIssueData({ ...newIssueData, issue_id: e.target.value })}
                 placeholder="e.g., 1.1"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Description
-              </label>
+              <label className="text-sm font-medium text-gray-700">Description</label>
               <Textarea
                 value={newIssueData.description}
                 onChange={(e) =>
@@ -1053,9 +878,7 @@ export default function EditReportPage() {
               </label>
               <Textarea
                 value={newIssueData.solution}
-                onChange={(e) =>
-                  setNewIssueData({ ...newIssueData, solution: e.target.value })
-                }
+                onChange={(e) => setNewIssueData({ ...newIssueData, solution: e.target.value })}
                 className="min-h-[80px]"
                 placeholder="Suggest a solution"
               />
@@ -1078,14 +901,10 @@ export default function EditReportPage() {
               onClick={() => {
                 setShowNewIssueModal(false);
                 setNewIssueSelector("");
-              }}
-            >
+              }}>
               Cancel
             </Button>
-            <Button
-              onClick={handleCreateNewIssue}
-              className="bg-[#B04E34] hover:bg-[#963F28] text-white"
-            >
+            <Button onClick={handleCreateNewIssue} className="bg-[#B04E34] hover:bg-[#963F28] text-white">
               Save Issue
             </Button>
           </DialogFooter>

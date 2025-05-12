@@ -40,7 +40,7 @@ const ValidatorReportsList = () => {
     if (!session?.user?._id) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/user/reports`);
+      const res = await fetch(`/api/user/reports?userId=${session.user._id}`);
       if (!res.ok) throw new Error("Failed to fetch reports");
       const data = await res.json();
 
@@ -125,7 +125,7 @@ const ValidatorReportsList = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setIsUploadModalOpen(true)}
+                          onClick={() => setIsAssignModalOpen(true)}
                           className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
                           <ImagePlus />
                           <span className="sr-only">Upload Image</span>
@@ -133,7 +133,7 @@ const ValidatorReportsList = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setIsAssignModalOpen(true)}
+                          onClick={() => setIsUploadModalOpen(true)}
                           className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
                           <UserPlus />
                           <span className="sr-only">Assign To Contributor</span>
