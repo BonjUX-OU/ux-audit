@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Report from "@/models/Report";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/configs/auth/authOptions";
 
 export const revalidate = 0;
 export async function GET(request: Request) {
@@ -10,7 +12,22 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    const reports = await Report.find({ createdBy: userId }).populate("project").sort({ createdAt: -1 });
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    }
+
+    let reports;
+    if (session.user?.role && session.user?.role !== "customer") {
+      reports = await Report.find({ createdBy: userId }).sort({ createdAt: -1 });
+    } else {
+      reports = await Report.find({ createdBy: userId }).populate("project").sort({ createdAt: -1 });
+    }
 
     return NextResponse.json(reports, { status: 200 });
   } catch (error: any) {

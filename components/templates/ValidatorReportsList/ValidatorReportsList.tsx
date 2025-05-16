@@ -106,7 +106,7 @@ const ValidatorReportsList = () => {
                       key={JSON.stringify(report._id)}
                       className="hover:bg-gray-50 transition-colors duration-200">
                       <TableCell width={600} className="text-gray-500 font-medium max-w-[600px] truncate">
-                        <Link href={`/report/${report._id}`}>{report.url}</Link>
+                        <Link href={`/report/${report._id}/edit`}>{report.url}</Link>
                       </TableCell>
                       <TableCell>{report.assignedTo?.name ?? "Not Assigned"}</TableCell>
                       <TableCell width={200}>
