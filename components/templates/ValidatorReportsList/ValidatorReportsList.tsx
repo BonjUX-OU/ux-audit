@@ -14,6 +14,7 @@ import FileUploader from "@/components/organisms/FileUploader/FileUploader";
 import { Select } from "@/components/ui/select";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { OptionType } from "@/types/common.types";
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 
 const mockUsers: OptionType[] = [
   { label: "User 1 Bisey", value: "id1" },
@@ -41,6 +42,29 @@ const ValidatorReportsList = () => {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/user/reports?userId=${session.user._id}`);
+      if (!res.ok) throw new Error("Failed to fetch reports");
+      const data = await res.json();
+
+      setReports(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchReportsByFilter = async () => {
+    if (!session?.user?._id) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/user/reports", {
+        method: "POST",
+        body: JSON.stringify({
+          userId: session.user._id,
+          reportStatus: ReportStatus.NotStarted,
+          page: { pageNumber: 1, pageItemsCount: 1 },
+        }),
+      });
       if (!res.ok) throw new Error("Failed to fetch reports");
       const data = await res.json();
 

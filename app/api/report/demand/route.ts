@@ -7,6 +7,7 @@ import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/auth/authOptions";
 import mongoose from "mongoose";
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 
 export async function POST(request: Request) {
   try {
@@ -45,8 +46,7 @@ export async function POST(request: Request) {
       scores,
       overallScore,
       heuristics,
-      snapshotHtml: "empty",
-      status: "unassigned",
+      status: ReportStatus.Unassigned,
       predefinedIssues,
     });
 

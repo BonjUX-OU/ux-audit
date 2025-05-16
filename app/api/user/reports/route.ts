@@ -4,6 +4,8 @@ import dbConnect from "@/lib/dbConnect";
 import Report from "@/models/Report";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/auth/authOptions";
+import { ReportRequestType } from "@/components/organisms/ReportList/ReportList.types";
+import { NextApiRequest } from "next";
 
 export const revalidate = 0;
 export async function GET(request: Request) {
@@ -35,3 +37,38 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+interface ExtendedNextApiRequest extends Request {
+}
+
+export async function POST(request: Request) {
+  try {
+    await dbConnect();
+    
+    const requestBody = await request.json() as ReportRequestType;
+
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!requestBody.userId) {
+      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    }
+
+    let reports;
+    if (session.user?.role && session.user?.role !== "customer") {
+      reports = await Report.find({ createdBy: requestBody.userId ,status:requestBody.reportStatus }).sort({ createdAt: -1 });
+    } else {
+      reports = await Report.find({ createdBy: requestBody.userId }).populate("project").sort({ createdAt: -1 });
+    }
+
+    return NextResponse.json(reports, { status: 200 });
+  } catch (error: any) {
+    console.error("Error fetching :", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+

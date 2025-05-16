@@ -1,4 +1,5 @@
 import { MultiSelect } from "@/components/organisms/MultiSelect/MultiSelect";
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 
 import { Button } from "@/components/ui/button";
@@ -87,7 +88,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
         project: targetProject,
         pageType,
         url,
-        status: "unassigned",
+        status: ReportStatus.Unassigned,
         predefinedIssues: selectedIssues,
       };
 

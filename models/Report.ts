@@ -1,4 +1,5 @@
 // models/Report.ts
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import { ReportType } from "@/types/report.types";
 import mongoose from "mongoose";
 
@@ -18,8 +19,8 @@ const ReportSchema = new mongoose.Schema<ReportType>(
     },
     status: {
       type: String,
-      enum: ["unassigned", "assigned", "comleted", "failed"],
-      default: "unassigned",
+      enum: ReportStatus,
+      default: ReportStatus.Unassigned,
       required: true,
     },
     createdBy: {
