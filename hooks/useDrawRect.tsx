@@ -14,6 +14,7 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
   const [isDrawingEnabled, setIsDrawingEnabled] = useState(false);
   // const [rectangles, setRectangles] = useState<IssueRectangleData[]>([]);
   const [rectangle, setRectangle] = useState<IssueRectangleData | null>();
+  const [isCropping, setIsCropping] = useState(false);
 
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const rectDivRef = useRef<HTMLDivElement | null>(null);
@@ -78,6 +79,8 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
     const handleMouseUp = async () => {
       if (!rectDivRef.current || !startRef.current || !container) return;
 
+      setIsCropping(true);
+
       const rect = rectDivRef.current.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
 
@@ -140,6 +143,7 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
       startRef.current = null;
       isMouseDownRef.current = false;
       setIsDrawingEnabled(false); // Disable after one draw
+      setIsCropping(false);
     };
 
     window.addEventListener("mousedown", handleMouseDown);
@@ -153,5 +157,5 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
     };
   }, [isDrawingEnabled, containerRef]);
 
-  return { enableDrawing, isDrawingEnabled, rectangle, clearRectangle };
+  return { enableDrawing, isDrawingEnabled, rectangle, isCropping, clearRectangle };
 }

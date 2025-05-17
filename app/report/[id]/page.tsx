@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
 import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
+import { UserRoleType } from "@/types/user.types";
 
 type Occurrence = {
   id: string;
@@ -210,7 +211,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
                   </>
                 )}
               </Button>
-              {(userRole === "validator" || userRole === "contributor") && (
+              {(userRole === UserRoleType.Validator || userRole === UserRoleType.Contributor) && (
                 <Button
                   onClick={() => router.push(`/report/${id}/edit`)}
                   className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"

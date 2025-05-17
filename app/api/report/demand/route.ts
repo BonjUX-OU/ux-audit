@@ -48,6 +48,7 @@ export async function POST(request: Request) {
       heuristics,
       status: ReportStatus.Unassigned,
       predefinedIssues,
+      screenshotImgUrl: "",
     });
 
     return NextResponse.json(newReport, { status: 201 });

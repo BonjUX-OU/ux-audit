@@ -19,10 +19,13 @@ import CreateProjectButton from "@/components/templates/CreateProjectButton/Crea
 import ComparisonScale from "@/components/templates/ComparisonScale/ComparisonScale";
 import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
 import { ProjectType } from "@/types/project.types";
-import ValidatorReportsList from "@/components/templates/ValidatorReportsList/ValidatorReportsList";
+import ValidatorReportsList, {
+  ValidatorReportsListHandle,
+} from "@/components/templates/ValidatorReportsList/ValidatorReportsList";
+import { UserRoleType } from "@/types/user.types";
 
 export default function DashboardPage() {
-  const { data: session }: any = useSession();
+  const { data: session } = useSession();
 
   const [currentProject, setCurrentProject] = useState<ProjectType | null>(null);
   const [reports, setReports] = useState<AnalysisReportType[]>([]);
@@ -35,6 +38,7 @@ export default function DashboardPage() {
   const [selectedReportToDelete, setSelectedReportToDelete] = useState<AnalysisReportType | null>(null);
 
   const projectsNavbarRef = useRef<ProjectsNavBarHandle>(null);
+  const validatorReportsRef = useRef<ValidatorReportsListHandle>(null);
 
   async function fetchUserReports() {
     if (!session?.user?._id) return;
@@ -110,7 +114,7 @@ export default function DashboardPage() {
             <Card className="sticky top-20 shadow-lg border-none bg-white transition-all duration-300 hover:shadow-xl">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  {session?.user?.role === "customer" ? (
+                  {session?.user?.role === UserRoleType.Customer ? (
                     <>
                       <CardTitle className="text-lg font-medium">Projects</CardTitle>
                       <CreateProjectButton onCreateSuccess={() => projectsNavbarRef.current?.fetchProjects()} />
@@ -122,7 +126,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <Separator className="my-2" />
-                {session?.user?.role === "customer" && (
+                {session?.user?.role === UserRoleType.Customer && (
                   <ProjectsNavBar ref={projectsNavbarRef} onProjectSelect={setCurrentProject} />
                 )}
               </CardContent>
@@ -149,7 +153,11 @@ export default function DashboardPage() {
                 <RequestReportBar
                   project={currentProject}
                   onRequestComplete={() => {
-                    fetchUserReports();
+                    if (session?.user?.role === UserRoleType.Customer) {
+                      fetchUserReports();
+                    } else {
+                      validatorReportsRef.current?.fetchReports();
+                    }
                     projectsNavbarRef.current?.fetchProjects();
                   }}
                 />
@@ -157,11 +165,11 @@ export default function DashboardPage() {
             </Card>
 
             {/* Validator Reports */}
-            {session?.user?.role === "validator" && <ValidatorReportsList />}
+            {session?.user?.role === UserRoleType.Validator && <ValidatorReportsList ref={validatorReportsRef} />}
 
             {/* Reports Card */}
 
-            {session?.user?.role === "customer" && (
+            {session?.user?.role === UserRoleType.Customer && (
               <Card className="border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">

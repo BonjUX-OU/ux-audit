@@ -1,23 +1,21 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReportGroups } from "./ValidatorReportsList.constants";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { ReportGroupType } from "./ValidatorReportsList.types";
 import { useSession } from "next-auth/react";
 import { ReportType } from "@/types/report.types";
-import { Calendar, ImagePlus, Loader, UserPlus } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Loader } from "lucide-react";
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
 import FileUploader from "@/components/organisms/FileUploader/FileUploader";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { OptionType } from "@/types/common.types";
-import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
-
+// import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
+import ValidatorReportListTableRows from "./ValidatorReportListTableRows";
 
 // Get the contributers from database and list on dropdown.
-// 
+//
 const mockUsers: OptionType[] = [
   { label: "User 1 Bisey", value: "id1" },
   { label: "User 2 Bisey", value: "id2" },
@@ -29,7 +27,11 @@ const mockUsers: OptionType[] = [
   { label: "User 8 Bisey", value: "id8" },
 ];
 
-const ValidatorReportsList = () => {
+export type ValidatorReportsListHandle = {
+  fetchReports: () => void;
+};
+
+const ValidatorReportsList = forwardRef((props, ref) => {
   const { data: session } = useSession();
 
   const [selectedGroup, setSelectedGroup] = useState<ReportGroupType>(ReportGroups.ALL);
@@ -39,6 +41,12 @@ const ValidatorReportsList = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<string>();
+  const [selectedReportId, setSelectedReportId] = useState<string>();
+
+  // Expose the function to parent via ref
+  useImperativeHandle(ref, () => ({
+    fetchReports,
+  }));
 
   const fetchReports = async () => {
     if (!session?.user?._id) return;
@@ -56,34 +64,45 @@ const ValidatorReportsList = () => {
     }
   };
 
-  const fetchReportsByFilter = async () => {
-    if (!session?.user?._id) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/user/reports", {
-        method: "POST",
-        body: JSON.stringify({
-          userId: session.user._id,
-          reportStatus: ReportStatus.NotStarted,
-          page: { pageNumber: 1, pageItemsCount: 1 },
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to fetch reports");
-      const data = await res.json();
+  // const fetchReportsByFilter = async () => {
+  //   if (!session?.user?._id) return;
+  //   setIsLoading(true);
+  //   try {
+  //     const res = await fetch("/api/user/reports", {
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         userId: session.user._id,
+  //         reportStatus: ReportStatus.NotStarted,
+  //         page: { pageNumber: 1, pageItemsCount: 1 },
+  //       }),
+  //     });
+  //     if (!res.ok) throw new Error("Failed to fetch reports");
+  //     const data = await res.json();
 
-      setReports(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     setReports(data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleUploadImage = () => {
     console.log("upload image flow initialized");
   };
-  const handleAssignReport = () => {
-    console.log("assign report flow initialized");
+
+  const handleAssignReport = (reportId: string) => {
+    setSelectedReportId(reportId);
+    setIsAssignModalOpen(true);
+  };
+
+  const handleUpdateReportSuccess = async () => {
+    setIsUploadModalOpen(false);
+    setIsAssignModalOpen(false);
+    setAssignTarget(undefined);
+    setSelectedReportId(undefined);
+    setSelectedGroup(ReportGroups.ALL);
+    await fetchReports();
   };
 
   useEffect(() => {
@@ -133,87 +152,11 @@ const ValidatorReportsList = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedGroup === ReportGroups.ALL
-                    ? reports?.map((report) => (
-                        <TableRow
-                          key={JSON.stringify(report._id)}
-                          className="hover:bg-gray-50 transition-colors duration-200">
-                          <TableCell width={600} className="text-gray-500 font-medium max-w-[600px] truncate">
-                            <Link href={`/report/${report._id}/edit`}>{report.url}</Link>
-                          </TableCell>
-                          <TableCell>{report.assignedTo?.name ?? "Not Assigned"}</TableCell>
-                          <TableCell width={200}>
-                            <div className="flex items-center text-gray-500">
-                              <Calendar className="h-3 w-3 mr-2 text-gray-400" />
-                              {report.createdAt ? new Date(report.createdAt!).toLocaleDateString() : "-"}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span>{report.score ?? "-"}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span>{report.status ?? "-"}</span>
-                          </TableCell>
-                          <TableCell className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setIsUploadModalOpen(true)}
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                              <ImagePlus />
-                              <span className="sr-only">Upload Image</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setIsAssignModalOpen(true)}
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                              <UserPlus />
-                              <span className="sr-only">Assign To Contributor</span>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    : filteredByStatusReports?.map((report) => (
-                        <TableRow
-                          key={JSON.stringify(report._id)}
-                          className="hover:bg-gray-50 transition-colors duration-200">
-                          <TableCell width={600} className="text-gray-500 font-medium max-w-[600px] truncate">
-                            <Link href={`/report/${report._id}/edit`}>{report.url}</Link>
-                          </TableCell>
-                          <TableCell>{report.assignedTo?.name ?? "Not Assigned"}</TableCell>
-                          <TableCell width={200}>
-                            <div className="flex items-center text-gray-500">
-                              <Calendar className="h-3 w-3 mr-2 text-gray-400" />
-                              {report.createdAt ? new Date(report.createdAt!).toLocaleDateString() : "-"}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span>{report.score ?? "-"}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span>{report.status ?? "-"}</span>
-                          </TableCell>
-                          <TableCell className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setIsUploadModalOpen(true)}
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                              <ImagePlus />
-                              <span className="sr-only">Upload Image</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setIsAssignModalOpen(true)}
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                              <UserPlus />
-                              <span className="sr-only">Assign To Contributor</span>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                  <ValidatorReportListTableRows
+                    reports={selectedGroup === ReportGroups.ALL ? reports! : filteredByStatusReports!}
+                    handleUploadImage={handleUploadImage}
+                    handleAssignReport={handleAssignReport}
+                  />
                 </TableBody>
               </Table>
             )}
@@ -222,14 +165,14 @@ const ValidatorReportsList = () => {
       </Card>
 
       {/* Upload Report Image Dialog */}
-      <ConfirmationModal
-        title="Upload Screenshot"
-        description="Upload screenshot of the website"
-        isOpen={isUploadModalOpen}
-        onCancel={() => setIsUploadModalOpen(false)}
-        onConfirm={handleUploadImage}>
-        <FileUploader />
-      </ConfirmationModal>
+      {isUploadModalOpen && (
+        <FileUploader
+          isOpen
+          targetReportId={selectedReportId!}
+          onSuccess={handleUpdateReportSuccess}
+          onClose={() => setIsUploadModalOpen(false)}
+        />
+      )}
 
       {/* Assign Report Dialog */}
       <ConfirmationModal
@@ -237,7 +180,7 @@ const ValidatorReportsList = () => {
         description="Select a contributor to assign the report"
         isOpen={isAssignModalOpen}
         onCancel={() => setIsAssignModalOpen(false)}
-        onConfirm={handleAssignReport}>
+        onConfirm={() => setIsAssignModalOpen(false)}>
         <SelectElement
           label="Conributors"
           options={mockUsers}
@@ -247,6 +190,8 @@ const ValidatorReportsList = () => {
       </ConfirmationModal>
     </>
   );
-};
+});
+
+ValidatorReportsList.displayName = "ValidatorReportsList";
 
 export default ValidatorReportsList;

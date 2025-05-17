@@ -16,23 +16,24 @@ import CreateIsseModal from "@/components/organisms/CreateIssueModal/CreateIsseM
 import { ReportIssueType } from "@/types/reportIssue.types";
 import { getHeuristicColor } from "@/helpers/getColorHelper";
 import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
+import { UserRoleType } from "@/types/user.types";
 
 export default function EditReportPage() {
   const router = useRouter();
   const params = useParams();
-  const { data: session }: any = useSession();
+  const { data: session } = useSession();
   const { id } = params; // The report ID to edit
   const userRole = session?.user?.role;
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const { rectangle, enableDrawing, isDrawingEnabled, clearRectangle } = useDrawRect(containerRef);
+  const { rectangle, enableDrawing, isDrawingEnabled, clearRectangle, isCropping } = useDrawRect(containerRef);
 
   useEffect(() => {
     //if user is not logged redirect to login page
     //if user is not admin or tester redirect to dashboard
     if (!session) {
       router.push("/signin");
-    } else if (userRole !== "validator" && userRole !== "contributor") {
+    } else if (userRole !== UserRoleType.Validator && userRole !== UserRoleType.Contributor) {
       router.push("/dashboard");
     }
   }, [session, userRole, router]);
@@ -134,6 +135,14 @@ export default function EditReportPage() {
   return (
     <>
       <AppBar />
+      {isCropping && (
+        <div className="absoute top-0 left-0 w-screen h-screen flex items-center justify-center bg-gray-50 z-50">
+          <div className="flex flex-col items-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#B04E34] border-t-transparent"></div>
+            <p className="mt-4 text-lg font-medium text-gray-700">Cropping the image...</p>
+          </div>
+        </div>
+      )}
       <div className="min-h-screen bg-gray-50 pt-16">
         <div className="container mx-auto px-4 py-6">
           {/* Stepper Breadcrumb */}
@@ -260,14 +269,16 @@ export default function EditReportPage() {
       </div>
 
       {/* New Issue Modal */}
-      <CreateIsseModal
-        isOpen={showNewIssueModal}
-        targetReport={originalReport}
-        issueOrder={1}
-        issueRectangle={rectangle!}
-        onSaveIssue={handleCreateNewIssue}
-        onClose={setShowNewIssueModal}
-      />
+      {showNewIssueModal && (
+        <CreateIsseModal
+          isOpen
+          targetReport={originalReport}
+          issueOrder={1}
+          issueRectangle={rectangle!}
+          onSaveIssue={handleCreateNewIssue}
+          onClose={setShowNewIssueModal}
+        />
+      )}
 
       {/* Issue Detail Modal */}
       {selectedIssue && (
