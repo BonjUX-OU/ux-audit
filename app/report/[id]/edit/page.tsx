@@ -16,6 +16,7 @@ import CreateIsseModal from "@/components/organisms/CreateIssueModal/CreateIsseM
 import { ReportIssueType } from "@/types/reportIssue.types";
 import { getHeuristicColor } from "@/helpers/getColorHelper";
 import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
+import { UserRoleType } from "@/types/user.types";
 
 export default function EditReportPage() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function EditReportPage() {
     //if user is not admin or tester redirect to dashboard
     if (!session) {
       router.push("/signin");
-    } else if (userRole !== "validator" && userRole !== "contributor") {
+    } else if (userRole !== UserRoleType.Validator && userRole !== UserRoleType.Contributor) {
       router.push("/dashboard");
     }
   }, [session, userRole, router]);

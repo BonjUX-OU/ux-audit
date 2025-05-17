@@ -1,5 +1,5 @@
 // models/User.ts
-import { UserType } from "@/types/user.types";
+import { UserRoleType, UserType } from "@/types/user.types";
 import mongoose from "mongoose";
 /**
  * The UserSchema stores all key fields:
@@ -31,8 +31,8 @@ const UserSchema = new mongoose.Schema<UserType>(
     },
     role: {
       type: String,
-      enum: ["customer", "validator", "contributor"],
-      default: "customer",
+      enum: UserRoleType,
+      default: UserRoleType.Customer,
       required: true,
     },
     subscribed: {
