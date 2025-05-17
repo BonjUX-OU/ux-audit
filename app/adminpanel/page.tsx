@@ -179,7 +179,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (status === "loading") return; // Don't do anything while loading
 
-    if (status === "unauthenticated" || session?.user?.role !== "validator") {
+    if (status === "unauthenticated" || session?.user?.role !== UserRoleType.Validator) {
       router.push("/dashboard");
     }
   }, [status, session, router]);

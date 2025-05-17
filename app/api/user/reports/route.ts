@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/auth/authOptions";
 import { ReportRequestType } from "@/components/organisms/ReportList/ReportList.types";
 import { NextApiRequest } from "next";
+import { UserRoleType } from "@/types/user.types";
 
 export const revalidate = 0;
 export async function GET(request: Request) {
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
     }
 
     let reports;
-    if (session.user?.role && session.user?.role !== "customer") {
+    if (session.user?.role && session.user?.role !== UserRoleType.Customer) {
       reports = await Report.find({ createdBy: userId }).sort({ createdAt: -1 });
     } else {
       reports = await Report.find({ createdBy: userId }).populate("project").sort({ createdAt: -1 });
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     let reports;
-    if (session.user?.role && session.user?.role !== "customer") {
+    if (session.user?.role && session.user?.role !== UserRoleType.Customer) {
       reports = await Report.find({ createdBy: requestBody.userId, status: requestBody.reportStatus }).sort({
         createdAt: -1,
       });
