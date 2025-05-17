@@ -1,19 +1,18 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReportGroups } from "./ValidatorReportsList.constants";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { ReportGroupType } from "./ValidatorReportsList.types";
 import { useSession } from "next-auth/react";
 import { ReportType } from "@/types/report.types";
-import { Calendar, ImagePlus, Loader, UserPlus } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Loader } from "lucide-react";
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
 import FileUploader from "@/components/organisms/FileUploader/FileUploader";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { OptionType } from "@/types/common.types";
-import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
+// import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
+import ValidatorReportListTableRows from "./ValidatorReportListTableRows";
 
 // Get the contributers from database and list on dropdown.
 //
@@ -65,28 +64,28 @@ const ValidatorReportsList = forwardRef((props, ref) => {
     }
   };
 
-  const fetchReportsByFilter = async () => {
-    if (!session?.user?._id) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/user/reports", {
-        method: "POST",
-        body: JSON.stringify({
-          userId: session.user._id,
-          reportStatus: ReportStatus.NotStarted,
-          page: { pageNumber: 1, pageItemsCount: 1 },
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to fetch reports");
-      const data = await res.json();
+  // const fetchReportsByFilter = async () => {
+  //   if (!session?.user?._id) return;
+  //   setIsLoading(true);
+  //   try {
+  //     const res = await fetch("/api/user/reports", {
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         userId: session.user._id,
+  //         reportStatus: ReportStatus.NotStarted,
+  //         page: { pageNumber: 1, pageItemsCount: 1 },
+  //       }),
+  //     });
+  //     if (!res.ok) throw new Error("Failed to fetch reports");
+  //     const data = await res.json();
 
-      setReports(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     setReports(data);
+  //   } catch (err) {
+  //     console.error(err);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleUploadImage = () => {
     console.log("upload image flow initialized");
@@ -153,87 +152,11 @@ const ValidatorReportsList = forwardRef((props, ref) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {selectedGroup === ReportGroups.ALL
-                    ? reports?.map((report) => (
-                        <TableRow
-                          key={JSON.stringify(report._id)}
-                          className="hover:bg-gray-50 transition-colors duration-200">
-                          <TableCell width={600} className="text-gray-500 font-medium max-w-[600px] truncate">
-                            <Link href={`/report/${report._id}/edit`}>{report.url}</Link>
-                          </TableCell>
-                          <TableCell>{report.assignedTo?.name ?? "Not Assigned"}</TableCell>
-                          <TableCell width={200}>
-                            <div className="flex items-center text-gray-500">
-                              <Calendar className="h-3 w-3 mr-2 text-gray-400" />
-                              {report.createdAt ? new Date(report.createdAt!).toLocaleDateString() : "-"}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span>{report.score ?? "-"}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span>{report.status ?? "-"}</span>
-                          </TableCell>
-                          <TableCell className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleUploadImage(report._id!)}
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                              <ImagePlus />
-                              <span className="sr-only">Upload Image</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleAssignReport(report._id!)}
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                              <UserPlus />
-                              <span className="sr-only">Assign To Contributor</span>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    : filteredByStatusReports?.map((report) => (
-                        <TableRow
-                          key={JSON.stringify(report._id)}
-                          className="hover:bg-gray-50 transition-colors duration-200">
-                          <TableCell width={600} className="text-gray-500 font-medium max-w-[600px] truncate">
-                            <Link href={`/report/${report._id}/edit`}>{report.url}</Link>
-                          </TableCell>
-                          <TableCell>{report.assignedTo?.name ?? "Not Assigned"}</TableCell>
-                          <TableCell width={200}>
-                            <div className="flex items-center text-gray-500">
-                              <Calendar className="h-3 w-3 mr-2 text-gray-400" />
-                              {report.createdAt ? new Date(report.createdAt!).toLocaleDateString() : "-"}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span>{report.score ?? "-"}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span>{report.status ?? "-"}</span>
-                          </TableCell>
-                          <TableCell className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleUploadImage(report._id!)}
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                              <ImagePlus />
-                              <span className="sr-only">Upload Image</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleAssignReport(report._id!)}
-                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                              <UserPlus />
-                              <span className="sr-only">Assign To Contributor</span>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                  <ValidatorReportListTableRows
+                    reports={selectedGroup === ReportGroups.ALL ? reports! : filteredByStatusReports!}
+                    handleUploadImage={handleUploadImage}
+                    handleAssignReport={handleAssignReport}
+                  />
                 </TableBody>
               </Table>
             )}
@@ -268,5 +191,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
     </>
   );
 });
+
+ValidatorReportsList.displayName = "ValidatorReportsList";
 
 export default ValidatorReportsList;
