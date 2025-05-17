@@ -42,6 +42,7 @@ import { Bar, Line, Pie } from "react-chartjs-2";
 import "chartjs-adapter-date-fns";
 import Link from "next/link";
 import Image from "next/image";
+import { UserRoleType } from "@/types/user.types";
 
 // Register ChartJS components
 ChartJS.register(

@@ -5,10 +5,11 @@ import Report from "@/models/Report";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/auth/authOptions";
 import { ReportRequestType } from "@/components/organisms/ReportList/ReportList.types";
-import { NextApiRequest } from "next";
 import { UserRoleType } from "@/types/user.types";
 
 export const revalidate = 0;
+
+// To fetch all reports.
 export async function GET(request: Request) {
   try {
     await dbConnect();
@@ -39,13 +40,12 @@ export async function GET(request: Request) {
   }
 }
 
-// To fetch reports by status
+// To fetch all by filter that passed by request body. Filtering,pagination..
+// fetchReportsByFilter method is calling this endpoint with sample payload.
 export async function POST(request: Request) {
   try {
     await dbConnect();
-
     const requestBody = (await request.json()) as ReportRequestType;
-
     const session = await getServerSession(authOptions);
 
     if (!session) {
