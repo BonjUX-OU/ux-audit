@@ -1,12 +1,10 @@
 import { MultiSelect } from "@/components/organisms/MultiSelect/MultiSelect";
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
-import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import useSubsribe from "@/hooks/useSubscribe";
 import { useToast } from "@/hooks/useToast";
 import { OptionType } from "@/types/common.types";
 import { ProjectType } from "@/types/project.types";
@@ -24,7 +22,6 @@ type RequestReportBarProps = {
 
 const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps) => {
   const { data: session } = useSession();
-  const { subscribed, daysLeft } = useSubsribe();
   const { toast } = useToast();
 
   const [url, setUrl] = useState("");
@@ -91,7 +88,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
     setIsLoading(true);
 
     try {
-      let targetProject = !project ? await createUntitledProject() : project;
+      const targetProject = !project ? await createUntitledProject() : project;
 
       const payload: ReportType = {
         createdBy: session?.user,

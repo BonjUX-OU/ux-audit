@@ -25,7 +25,7 @@ import ValidatorReportsList, {
 import { UserRoleType } from "@/types/user.types";
 
 export default function DashboardPage() {
-  const { data: session }: any = useSession();
+  const { data: session } = useSession();
 
   const [currentProject, setCurrentProject] = useState<ProjectType | null>(null);
   const [reports, setReports] = useState<AnalysisReportType[]>([]);
@@ -153,9 +153,11 @@ export default function DashboardPage() {
                 <RequestReportBar
                   project={currentProject}
                   onRequestComplete={() => {
-                    session?.user?.role === "customer"
-                      ? fetchUserReports()
-                      : validatorReportsRef.current?.fetchReports();
+                    if (session?.user?.role === UserRoleType.Customer) {
+                      fetchUserReports();
+                    } else {
+                      validatorReportsRef.current?.fetchReports();
+                    }
                     projectsNavbarRef.current?.fetchProjects();
                   }}
                 />
