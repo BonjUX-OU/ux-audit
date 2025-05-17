@@ -35,6 +35,14 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
   const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const resetState = () => {
+    setUrl("");
+    setSector("");
+    setPageType("");
+    setSelectedIssues([]);
+    setIsLoading(false);
+  };
+
   const getConstants = async () => {
     const response = await fetch(`/api/constants?target=customerIssues`);
     const data = await response.json();
@@ -104,6 +112,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
 
       toast({ title: "Success!", description: "Your request has been received successfully", variant: "success" });
 
+      resetState();
       onRequestComplete();
 
       // TODO: After an empty report created on server
@@ -180,7 +189,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
               type="submit"
               disabled={isLoading}
               className="w-full bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
-              {session?.user?.role === "customer" ? "Request Report" : "Start Analysing"}
+              {session?.user?.role === "customer" ? "Request Report" : "Create Report"}
             </Button>
           </div>
         </div>

@@ -19,7 +19,9 @@ import CreateProjectButton from "@/components/templates/CreateProjectButton/Crea
 import ComparisonScale from "@/components/templates/ComparisonScale/ComparisonScale";
 import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
 import { ProjectType } from "@/types/project.types";
-import ValidatorReportsList from "@/components/templates/ValidatorReportsList/ValidatorReportsList";
+import ValidatorReportsList, {
+  ValidatorReportsListHandle,
+} from "@/components/templates/ValidatorReportsList/ValidatorReportsList";
 
 export default function DashboardPage() {
   const { data: session }: any = useSession();
@@ -35,6 +37,7 @@ export default function DashboardPage() {
   const [selectedReportToDelete, setSelectedReportToDelete] = useState<AnalysisReportType | null>(null);
 
   const projectsNavbarRef = useRef<ProjectsNavBarHandle>(null);
+  const validatorReportsRef = useRef<ValidatorReportsListHandle>(null);
 
   async function fetchUserReports() {
     if (!session?.user?._id) return;
@@ -149,7 +152,9 @@ export default function DashboardPage() {
                 <RequestReportBar
                   project={currentProject}
                   onRequestComplete={() => {
-                    fetchUserReports();
+                    session?.user?.role === "customer"
+                      ? fetchUserReports()
+                      : validatorReportsRef.current?.fetchReports();
                     projectsNavbarRef.current?.fetchProjects();
                   }}
                 />
@@ -157,7 +162,7 @@ export default function DashboardPage() {
             </Card>
 
             {/* Validator Reports */}
-            {session?.user?.role === "validator" && <ValidatorReportsList />}
+            {session?.user?.role === "validator" && <ValidatorReportsList ref={validatorReportsRef} />}
 
             {/* Reports Card */}
 

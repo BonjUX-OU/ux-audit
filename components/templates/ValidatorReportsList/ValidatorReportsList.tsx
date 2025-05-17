@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { ReportGroups } from "./ValidatorReportsList.constants";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { ReportGroupType } from "./ValidatorReportsList.types";
 import { useSession } from "next-auth/react";
 import { ReportType } from "@/types/report.types";
@@ -28,7 +28,11 @@ const mockUsers: OptionType[] = [
   { label: "User 8 Bisey", value: "id8" },
 ];
 
-const ValidatorReportsList = () => {
+export type ValidatorReportsListHandle = {
+  fetchReports: () => void;
+};
+
+const ValidatorReportsList = forwardRef((props, ref) => {
   const { data: session } = useSession();
 
   const [selectedGroup, setSelectedGroup] = useState<ReportGroupType>(ReportGroups.ALL);
@@ -39,6 +43,11 @@ const ValidatorReportsList = () => {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<string>();
   const [selectedReportId, setSelectedReportId] = useState<string>();
+
+  // Expose the function to parent via ref
+  useImperativeHandle(ref, () => ({
+    fetchReports,
+  }));
 
   const fetchReports = async () => {
     if (!session?.user?._id) return;
@@ -259,6 +268,6 @@ const ValidatorReportsList = () => {
       </ConfirmationModal>
     </>
   );
-};
+});
 
 export default ValidatorReportsList;
