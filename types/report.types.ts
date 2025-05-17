@@ -1,3 +1,4 @@
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import { DataObjectType } from "./common.types";
 import { ProjectType } from "./project.types";
 import { UserType } from "./user.types";
@@ -6,7 +7,7 @@ export type ReportType = DataObjectType & {
   project: ProjectType;
   url: string;
   pageType: string;
-  status: "unassigned" | "assigned" | "completed" | "failed";
+  status: ReportStatus;
   sector?: string;
   score?: number;
   createdBy?: UserType;

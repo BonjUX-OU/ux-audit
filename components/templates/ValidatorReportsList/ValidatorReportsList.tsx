@@ -11,10 +11,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
 import FileUploader from "@/components/organisms/FileUploader/FileUploader";
-import { Select } from "@/components/ui/select";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { OptionType } from "@/types/common.types";
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 
+
+// Get the contributers from database and list on dropdown.
+// 
 const mockUsers: OptionType[] = [
   { label: "User 1 Bisey", value: "id1" },
   { label: "User 2 Bisey", value: "id2" },
@@ -32,6 +35,7 @@ const ValidatorReportsList = () => {
   const [selectedGroup, setSelectedGroup] = useState<ReportGroupType>(ReportGroups.ALL);
   const [isLoading, setIsLoading] = useState(false);
   const [reports, setReports] = useState<ReportType[]>();
+  const [filteredByStatusReports, setFilteredByStatusReports] = useState<ReportType[]>();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<string>();
@@ -52,6 +56,29 @@ const ValidatorReportsList = () => {
     }
   };
 
+  const fetchReportsByFilter = async () => {
+    if (!session?.user?._id) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/user/reports", {
+        method: "POST",
+        body: JSON.stringify({
+          userId: session.user._id,
+          reportStatus: ReportStatus.NotStarted,
+          page: { pageNumber: 1, pageItemsCount: 1 },
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to fetch reports");
+      const data = await res.json();
+
+      setReports(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleUploadImage = () => {
     console.log("upload image flow initialized");
   };
@@ -60,8 +87,13 @@ const ValidatorReportsList = () => {
   };
 
   useEffect(() => {
-    fetchReports();
-  }, []);
+    if (selectedGroup === ReportGroups.ALL) {
+      fetchReports();
+    } else if (selectedGroup && selectedGroup !== ReportGroups.ALL) {
+      const filteredData = reports?.filter((report) => report.status === selectedGroup.status);
+      setFilteredByStatusReports(filteredData);
+    }
+  }, [selectedGroup]);
 
   return (
     <>
@@ -96,51 +128,92 @@ const ValidatorReportsList = () => {
                     <TableHead>Contributor</TableHead>
                     <TableHead>Report Generated</TableHead>
                     <TableHead>Score</TableHead>
-                    <TableHead>Approval</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {reports?.map((report) => (
-                    <TableRow
-                      key={JSON.stringify(report._id)}
-                      className="hover:bg-gray-50 transition-colors duration-200">
-                      <TableCell width={600} className="text-gray-500 font-medium max-w-[600px] truncate">
-                        <Link href={`/report/${report._id}/edit`}>{report.url}</Link>
-                      </TableCell>
-                      <TableCell>{report.assignedTo?.name ?? "Not Assigned"}</TableCell>
-                      <TableCell width={200}>
-                        <div className="flex items-center text-gray-500">
-                          <Calendar className="h-3 w-3 mr-2 text-gray-400" />
-                          {report.createdAt ? new Date(report.createdAt!).toLocaleDateString() : "-"}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span>{report.score ?? "-"}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span>{report.status ?? "-"}</span>
-                      </TableCell>
-                      <TableCell className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsAssignModalOpen(true)}
-                          className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                          <ImagePlus />
-                          <span className="sr-only">Upload Image</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsUploadModalOpen(true)}
-                          className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
-                          <UserPlus />
-                          <span className="sr-only">Assign To Contributor</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {selectedGroup === ReportGroups.ALL
+                    ? reports?.map((report) => (
+                        <TableRow
+                          key={JSON.stringify(report._id)}
+                          className="hover:bg-gray-50 transition-colors duration-200">
+                          <TableCell width={600} className="text-gray-500 font-medium max-w-[600px] truncate">
+                            <Link href={`/report/${report._id}/edit`}>{report.url}</Link>
+                          </TableCell>
+                          <TableCell>{report.assignedTo?.name ?? "Not Assigned"}</TableCell>
+                          <TableCell width={200}>
+                            <div className="flex items-center text-gray-500">
+                              <Calendar className="h-3 w-3 mr-2 text-gray-400" />
+                              {report.createdAt ? new Date(report.createdAt!).toLocaleDateString() : "-"}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span>{report.score ?? "-"}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span>{report.status ?? "-"}</span>
+                          </TableCell>
+                          <TableCell className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setIsUploadModalOpen(true)}
+                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
+                              <ImagePlus />
+                              <span className="sr-only">Upload Image</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setIsAssignModalOpen(true)}
+                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
+                              <UserPlus />
+                              <span className="sr-only">Assign To Contributor</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : filteredByStatusReports?.map((report) => (
+                        <TableRow
+                          key={JSON.stringify(report._id)}
+                          className="hover:bg-gray-50 transition-colors duration-200">
+                          <TableCell width={600} className="text-gray-500 font-medium max-w-[600px] truncate">
+                            <Link href={`/report/${report._id}/edit`}>{report.url}</Link>
+                          </TableCell>
+                          <TableCell>{report.assignedTo?.name ?? "Not Assigned"}</TableCell>
+                          <TableCell width={200}>
+                            <div className="flex items-center text-gray-500">
+                              <Calendar className="h-3 w-3 mr-2 text-gray-400" />
+                              {report.createdAt ? new Date(report.createdAt!).toLocaleDateString() : "-"}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span>{report.score ?? "-"}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span>{report.status ?? "-"}</span>
+                          </TableCell>
+                          <TableCell className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setIsUploadModalOpen(true)}
+                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
+                              <ImagePlus />
+                              <span className="sr-only">Upload Image</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setIsAssignModalOpen(true)}
+                              className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
+                              <UserPlus />
+                              <span className="sr-only">Assign To Contributor</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                 </TableBody>
               </Table>
             )}
@@ -148,12 +221,12 @@ const ValidatorReportsList = () => {
         </CardContent>
       </Card>
 
-      {/* Assign Report Dialog */}
+      {/* Upload Report Image Dialog */}
       <ConfirmationModal
         title="Upload Screenshot"
         description="Upload screenshot of the website"
-        isOpen={isAssignModalOpen}
-        onCancel={() => setIsAssignModalOpen(false)}
+        isOpen={isUploadModalOpen}
+        onCancel={() => setIsUploadModalOpen(false)}
         onConfirm={handleUploadImage}>
         <FileUploader />
       </ConfirmationModal>
@@ -162,8 +235,8 @@ const ValidatorReportsList = () => {
       <ConfirmationModal
         title="Assign Report"
         description="Select a contributor to assign the report"
-        isOpen={isUploadModalOpen}
-        onCancel={() => setIsUploadModalOpen(false)}
+        isOpen={isAssignModalOpen}
+        onCancel={() => setIsAssignModalOpen(false)}
         onConfirm={handleAssignReport}>
         <SelectElement
           label="Conributors"
