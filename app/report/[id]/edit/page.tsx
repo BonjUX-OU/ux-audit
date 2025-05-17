@@ -1,12 +1,15 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChevronLeft, Eye, Plus } from "lucide-react";
 import { ChevronLeft, Eye, Plus } from "lucide-react";
 import AppBar from "@/components/layout/AppBar";
 import StepperBreadCrumb from "@/components/organisms/StepperBreadCrumb/StepperBreadCrumb";
@@ -16,6 +19,7 @@ import CreateIsseModal from "@/components/organisms/CreateIssueModal/CreateIsseM
 import { ReportIssueType } from "@/types/reportIssue.types";
 import { getHeuristicColor } from "@/helpers/getColorHelper";
 import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
+import { UserRoleType } from "@/types/user.types";
 
 export default function EditReportPage() {
   const router = useRouter();
@@ -27,12 +31,15 @@ export default function EditReportPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { rectangle, enableDrawing, isDrawingEnabled, clearRectangle, isCropping } = useDrawRect(containerRef);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { rectangle, enableDrawing, isDrawingEnabled, clearRectangle } = useDrawRect(containerRef);
+
   useEffect(() => {
     //if user is not logged redirect to login page
     //if user is not admin or tester redirect to dashboard
     if (!session) {
       router.push("/signin");
-    } else if (userRole !== "validator" && userRole !== "contributor") {
+    } else if (userRole !== UserRoleType.Validator && userRole !== UserRoleType.Contributor) {
       router.push("/dashboard");
     }
   }, [session, userRole, router]);
@@ -41,7 +48,52 @@ export default function EditReportPage() {
   const [originalReport, setOriginalReport] = useState<ReportType | null>(null);
   const [snapshotUrl, setSnapshotUrl] = useState<string | undefined>();
   const [reportIssues, setReportIssues] = useState<ReportIssueType[]>([]);
+  const [originalReport, setOriginalReport] = useState<ReportType | null>(null);
+  const [snapshotUrl, setSnapshotUrl] = useState<string | undefined>();
+  const [reportIssues, setReportIssues] = useState<ReportIssueType[]>([]);
   const [showNewIssueModal, setShowNewIssueModal] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
+
+  async function fetchReport() {
+    try {
+      const res = await fetch(`/api/report?id=${id}`);
+      if (!res.ok) throw new Error("Failed to fetch report");
+      const data: ReportType = await res.json();
+      setOriginalReport(data);
+      // setEditedHeuristics(data.iss); // !IMPORANT: ReportIssues and Reports need to binded somehow
+      setSnapshotUrl(data.screenshotImgUrl);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const fetchReportIssues = async () => {
+    try {
+      const res = await fetch(`/api/report/issue?reportId=${id}`);
+
+      if (!res.ok) throw new Error("Failed to fetch report issues");
+
+      const data: ReportIssueType[] = await res.json();
+
+      setReportIssues(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // ---------------------------
+  // 1. LOAD TARGET REPORT
+  // ---------------------------
+  useEffect(() => {
+    if (id) {
+      fetchReport()
+        .then(() => {
+          fetchReportIssues();
+        })
+        .catch((error) => {
+          console.error("Error fetching report:", error);
+        });
+    }
   const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
 
   async function fetchReport() {
@@ -92,7 +144,16 @@ export default function EditReportPage() {
     }
   }, [rectangle]);
 
+    if (rectangle) {
+      setShowNewIssueModal(true);
+    }
+  }, [rectangle]);
+
   useEffect(() => {
+    if (!showNewIssueModal) {
+      clearRectangle();
+    }
+  }, [showNewIssueModal]);
     if (!showNewIssueModal) {
       clearRectangle();
     }
@@ -104,9 +165,20 @@ export default function EditReportPage() {
   // ------------------------------------------------------
   function handleCreateNewIssue(issue: ReportIssueType) {
     setReportIssues((prev) => [...prev, issue]);
+  function handleCreateNewIssue(issue: ReportIssueType) {
+    setReportIssues((prev) => [...prev, issue]);
     setShowNewIssueModal(false);
   }
 
+  // -----------------------------
+  // Recent added codes starts here
+  // -----------------------------
+  const breadcrumbsteps = [
+    { label: "Heuristic Evaluation", value: "heuristic" },
+    { label: "Report Summary", value: "summary" },
+  ];
+
+  const completeAndSeeSummary = () => {};
   // -----------------------------
   // Recent added codes starts here
   // -----------------------------

@@ -13,14 +13,17 @@ export async function GET(request: Request) {
 
     if (id) {
       const single = await Report.findById(id);
+      const single = await Report.findById(id);
       if (!single) {
         return NextResponse.json({ error: " not found" }, { status: 404 });
       }
       return NextResponse.json(single, { status: 200 });
     } else if (projectId) {
       const reports = await Report.find({ project: projectId }).populate("project").sort({ createdAt: -1 });
+      const reports = await Report.find({ project: projectId }).populate("project").sort({ createdAt: -1 });
       return NextResponse.json(reports, { status: 200 });
     } else {
+      const all = await Report.find().populate("project").sort({ createdAt: -1 });
       const all = await Report.find().populate("project").sort({ createdAt: -1 });
       return NextResponse.json(all, { status: 200 });
     }
@@ -86,6 +89,7 @@ export async function PUT(request: Request) {
     const updated = await Report.findByIdAndUpdate(id, updatedReport);
     if (!updated) {
       return NextResponse.json({ error: "Analysis report not found" }, { status: 404 });
+      return NextResponse.json({ error: "Analysis report not found" }, { status: 404 });
     }
     return NextResponse.json(updated, { status: 200 });
   } catch (error: any) {
@@ -104,13 +108,16 @@ export async function DELETE(request: Request) {
     const id = searchParams.get("id");
     if (!id) {
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
+      return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
     const deleted = await Report.findByIdAndDelete(id);
     if (!deleted) {
       return NextResponse.json({ error: "Analysis report not found" }, { status: 404 });
+      return NextResponse.json({ error: "Analysis report not found" }, { status: 404 });
     }
 
+    return NextResponse.json({ message: "Analysis report deleted successfully" }, { status: 200 });
     return NextResponse.json({ message: "Analysis report deleted successfully" }, { status: 200 });
   } catch (error: any) {
     console.error("Error deleting Analysis report:", error.message);

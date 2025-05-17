@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
 import dbConnect from "@/lib/dbConnect";
+import { UserRoleType } from "@/types/user.types";
 
 // Define custom types for the NextAuth user
 interface UserSession extends NextAuthUser {
@@ -61,7 +62,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             isProfileCompleted: false,
-            role: "customer",
+            role: UserRoleType.Customer,
             subscribed: false,
             usedAnalyses: 0,
           });

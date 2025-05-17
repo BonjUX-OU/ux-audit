@@ -1,4 +1,4 @@
-import { UserType } from "@/types/user.types";
+import { UserRoleType, UserType } from "@/types/user.types";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useToast } from "./useToast";
@@ -25,7 +25,7 @@ const checkSubscription = (user: UserType): SubsriptionState => {
 
   // If user is admin/tester => no limit
   // If user.subscribed => no limit
-  if (userRole === "validator" || userRole === "contributor" || userSubscribed) {
+  if (userRole === UserRoleType.Validator || userRole === UserRoleType.Contributor || userSubscribed) {
     result.subscribed = true;
   } else {
     // Otherwise => must be within7Days && under10Analyses

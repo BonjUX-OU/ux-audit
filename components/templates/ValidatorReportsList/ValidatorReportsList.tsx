@@ -88,9 +88,8 @@ const ValidatorReportsList = forwardRef((props, ref) => {
     }
   };
 
-  const handleUploadImage = (reportId: string) => {
-    setSelectedReportId(reportId);
-    setIsUploadModalOpen(true);
+  const handleUploadImage = () => {
+    console.log("upload image flow initialized");
   };
 
   const handleAssignReport = (reportId: string) => {

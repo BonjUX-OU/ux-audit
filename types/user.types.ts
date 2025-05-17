@@ -4,7 +4,7 @@ export type UserType = DataObjectType & {
   email: string;
   password: string;
   name: string;
-  role: "customer" | "validator" | "contributor";
+  role: UserRoleType;
   subscribed?: boolean;
   usedAnalyses?: number;
   trialStartDate?: string;
@@ -15,3 +15,11 @@ export type UserType = DataObjectType & {
   isProfileCompleted?: boolean;
   isNewUser?: boolean;
 };
+
+
+export enum UserRoleType {
+  Customer = "CUSTOMER",
+  Validator = "VALIDATOR",
+  Contributor = "CONTRIBUTOR",
+
+}

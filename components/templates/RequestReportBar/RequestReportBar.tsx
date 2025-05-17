@@ -1,5 +1,6 @@
 import { MultiSelect } from "@/components/organisms/MultiSelect/MultiSelect";
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { useToast } from "@/hooks/useToast";
 import { OptionType } from "@/types/common.types";
 import { ProjectType } from "@/types/project.types";
 import { ReportType } from "@/types/report.types";
+import { UserRoleType } from "@/types/user.types";
 import clsx from "clsx";
 import { Globe } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -81,7 +83,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
     if (!pageType) {
       toast({ description: "Please select Page Type", variant: "destructive" });
       return;
-    } else if (session?.user?.role !== "customer" && !sector) {
+    } else if (session?.user?.role !== UserRoleType.Customer && !sector) {
       toast({ description: "Please select Sector", variant: "destructive" });
       return;
     }
@@ -147,7 +149,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
           </div>
 
           {/* Sector */}
-          {session?.user?.role !== "customer" && (
+          {session?.user?.role !== UserRoleType.Customer && (
             <div className="md:col-span-2">
               <SelectElement
                 label="Sector"
@@ -171,7 +173,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
           </div>
 
           {/* Issues */}
-          {session?.user?.role === "customer" && (
+          {session?.user?.role === UserRoleType.Customer && (
             <div className="md:col-span-3">
               <MultiSelect
                 label="Issues"
@@ -184,12 +186,12 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
           )}
 
           {/* Generate Button */}
-          <div className={clsx(session?.user?.role === "customer" ? "md:col-span-2" : "md:col-span-3")}>
+          <div className={clsx(session?.user?.role === UserRoleType.Customer ? "md:col-span-2" : "md:col-span-3")}>
             <Button
               type="submit"
               disabled={isLoading}
               className="w-full bg-[#B04E34] hover:bg-[#963F28] text-white shadow-md hover:shadow-lg transition-all duration-200">
-              {session?.user?.role === "customer" ? "Request Report" : "Create Report"}
+              {session?.user?.role === UserRoleType.Customer ? "Request Report" : "Start Analysing"}
             </Button>
           </div>
         </div>
