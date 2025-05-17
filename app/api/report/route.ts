@@ -33,10 +33,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await dbConnect();
-    const { owner, project, url, heuristics, scores, overallScore, snapshotHtml, sector, pageType } =
-      await request.json();
+    const { owner, project, url, scores, overallScore, screenshotImgUrl, sector, pageType } = await request.json();
 
-    if (!project || !url || !heuristics || !snapshotHtml) {
+    if (!project || !url) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -48,8 +47,7 @@ export async function POST(request: Request) {
       pageType,
       scores,
       overallScore,
-      heuristics,
-      snapshotHtml,
+      screenshotImgUrl: screenshotImgUrl ?? "",
     });
 
     return NextResponse.json(newReport, { status: 201 });
@@ -64,12 +62,28 @@ export async function PUT(request: Request) {
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
+
     if (!id) {
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
+    const existingReport = await Report.findById(id);
+    if (!existingReport) {
+      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+    }
+
     const data = await request.json();
-    const updated = await Report.findByIdAndUpdate(id, data, { new: true });
+
+    console.log("Data to update:", data);
+
+    const updatedReport = {
+      ...existingReport.toObject(),
+      ...data,
+    };
+
+    console.log("Updated report data:", updatedReport);
+
+    const updated = await Report.findByIdAndUpdate(id, updatedReport);
     if (!updated) {
       return NextResponse.json({ error: "Analysis report not found" }, { status: 404 });
     }

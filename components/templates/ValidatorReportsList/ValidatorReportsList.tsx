@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { ReportGroups } from "./ValidatorReportsList.constants";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,9 +15,8 @@ import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { OptionType } from "@/types/common.types";
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 
-
 // Get the contributers from database and list on dropdown.
-// 
+//
 const mockUsers: OptionType[] = [
   { label: "User 1 Bisey", value: "id1" },
   { label: "User 2 Bisey", value: "id2" },
@@ -39,6 +38,7 @@ const ValidatorReportsList = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<string>();
+  const [selectedReportId, setSelectedReportId] = useState<string>();
 
   const fetchReports = async () => {
     if (!session?.user?._id) return;
@@ -79,11 +79,23 @@ const ValidatorReportsList = () => {
     }
   };
 
-  const handleUploadImage = () => {
-    console.log("upload image flow initialized");
+  const handleUploadImage = (reportId: string) => {
+    setSelectedReportId(reportId);
+    setIsUploadModalOpen(true);
   };
-  const handleAssignReport = () => {
-    console.log("assign report flow initialized");
+
+  const handleAssignReport = (reportId: string) => {
+    setSelectedReportId(reportId);
+    setIsAssignModalOpen(true);
+  };
+
+  const handleUpdateReportSuccess = async () => {
+    setIsUploadModalOpen(false);
+    setIsAssignModalOpen(false);
+    setAssignTarget(undefined);
+    setSelectedReportId(undefined);
+    setSelectedGroup(ReportGroups.ALL);
+    await fetchReports();
   };
 
   useEffect(() => {
@@ -158,7 +170,7 @@ const ValidatorReportsList = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setIsUploadModalOpen(true)}
+                              onClick={() => handleUploadImage(report._id!)}
                               className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
                               <ImagePlus />
                               <span className="sr-only">Upload Image</span>
@@ -166,7 +178,7 @@ const ValidatorReportsList = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setIsAssignModalOpen(true)}
+                              onClick={() => handleAssignReport(report._id!)}
                               className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
                               <UserPlus />
                               <span className="sr-only">Assign To Contributor</span>
@@ -198,7 +210,7 @@ const ValidatorReportsList = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setIsUploadModalOpen(true)}
+                              onClick={() => handleUploadImage(report._id!)}
                               className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
                               <ImagePlus />
                               <span className="sr-only">Upload Image</span>
@@ -206,7 +218,7 @@ const ValidatorReportsList = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setIsAssignModalOpen(true)}
+                              onClick={() => handleAssignReport(report._id!)}
                               className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
                               <UserPlus />
                               <span className="sr-only">Assign To Contributor</span>
@@ -222,14 +234,14 @@ const ValidatorReportsList = () => {
       </Card>
 
       {/* Upload Report Image Dialog */}
-      <ConfirmationModal
-        title="Upload Screenshot"
-        description="Upload screenshot of the website"
-        isOpen={isUploadModalOpen}
-        onCancel={() => setIsUploadModalOpen(false)}
-        onConfirm={handleUploadImage}>
-        <FileUploader />
-      </ConfirmationModal>
+      {isUploadModalOpen && (
+        <FileUploader
+          isOpen
+          targetReportId={selectedReportId!}
+          onSuccess={handleUpdateReportSuccess}
+          onClose={() => setIsUploadModalOpen(false)}
+        />
+      )}
 
       {/* Assign Report Dialog */}
       <ConfirmationModal
@@ -237,7 +249,7 @@ const ValidatorReportsList = () => {
         description="Select a contributor to assign the report"
         isOpen={isAssignModalOpen}
         onCancel={() => setIsAssignModalOpen(false)}
-        onConfirm={handleAssignReport}>
+        onConfirm={() => setIsAssignModalOpen(false)}>
         <SelectElement
           label="Conributors"
           options={mockUsers}

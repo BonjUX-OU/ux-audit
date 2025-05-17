@@ -8,6 +8,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const blob = await put(filename!, request.body!, {
     access: "public",
+    allowOverwrite: true,
   });
 
   return NextResponse.json(blob);
@@ -19,6 +20,7 @@ export async function PUT(request: Request) {
   const blob = await put(file.name, file, {
     access: "public",
     addRandomSuffix: true,
+    allowOverwrite: true,
   });
 
   return Response.json(blob);
