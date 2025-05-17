@@ -12,20 +12,16 @@ export async function GET(request: Request) {
     const projectId = searchParams.get("projectId");
 
     if (id) {
-      const single = await Report.findById(id).populate("project");
+      const single = await Report.findById(id);
       if (!single) {
         return NextResponse.json({ error: " not found" }, { status: 404 });
       }
       return NextResponse.json(single, { status: 200 });
     } else if (projectId) {
-      const reports = await Report.find({ project: projectId })
-        .populate("project")
-        .sort({ createdAt: -1 });
+      const reports = await Report.find({ project: projectId }).populate("project").sort({ createdAt: -1 });
       return NextResponse.json(reports, { status: 200 });
     } else {
-      const all = await Report.find()
-        .populate("project")
-        .sort({ createdAt: -1 });
+      const all = await Report.find().populate("project").sort({ createdAt: -1 });
       return NextResponse.json(all, { status: 200 });
     }
   } catch (error: any) {
@@ -37,23 +33,11 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await dbConnect();
-    const {
-      owner,
-      project,
-      url,
-      heuristics,
-      scores,
-      overallScore,
-      snapshotHtml,
-      sector,
-      pageType,
-    } = await request.json();
+    const { owner, project, url, heuristics, scores, overallScore, snapshotHtml, sector, pageType } =
+      await request.json();
 
     if (!project || !url || !heuristics || !snapshotHtml) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const newReport = await Report.create({
@@ -81,19 +65,13 @@ export async function PUT(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) {
-      return NextResponse.json(
-        { error: "Report ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
     const data = await request.json();
     const updated = await Report.findByIdAndUpdate(id, data, { new: true });
     if (!updated) {
-      return NextResponse.json(
-        { error: "Analysis report not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Analysis report not found" }, { status: 404 });
     }
     return NextResponse.json(updated, { status: 200 });
   } catch (error: any) {
@@ -111,24 +89,15 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) {
-      return NextResponse.json(
-        { error: "Report ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
     const deleted = await Report.findByIdAndDelete(id);
     if (!deleted) {
-      return NextResponse.json(
-        { error: "Analysis report not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Analysis report not found" }, { status: 404 });
     }
 
-    return NextResponse.json(
-      { message: "Analysis report deleted successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Analysis report deleted successfully" }, { status: 200 });
   } catch (error: any) {
     console.error("Error deleting Analysis report:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });

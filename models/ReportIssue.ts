@@ -10,7 +10,7 @@ const SeverityLevelSchema = new Schema({
   code: { type: String, enum: ["1", "2", "3", "4"], required: true },
   name: {
     type: String,
-    enum: ["Minor(1)", "Moderate(2)", "Major(3)", "Critical(4)"],
+    enum: ["Minor (1)", "Moderate (2)", "Major (3)", "Critical (4)"],
     required: true,
   },
 });
@@ -63,6 +63,9 @@ const ReportIssueSchema = new Schema(
     },
     description: {
       type: String,
+    },
+    tags: {
+      type: [String],
     },
   },
   { timestamps: true }

@@ -92,6 +92,16 @@ const config: Config = {
     "text-yellow-500",
     "text-green-400",
     "text-green-600",
+    "bg-[#4C83EE]",
+    "bg-[#5EC169]",
+    "bg-[#EAB30A]",
+    "bg-[#EF4444]",
+    "bg-[#A854F7]",
+    "bg-[#DA5697]",
+    "bg-[#6269E9]",
+    "bg-[#E97A35]",
+    "bg-[#54B5A6]",
+    "bg-[#51B4D0]",
   ],
 };
 export default config;
