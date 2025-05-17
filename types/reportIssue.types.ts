@@ -4,7 +4,6 @@ import { UserType } from "./user.types";
 
 export type HeuristicType = CodeNamePair & {
   description: string;
-  color?: string;
 };
 
 export type SeverityLevelsType = {

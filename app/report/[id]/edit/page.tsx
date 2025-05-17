@@ -1,23 +1,21 @@
 "use client";
 import { useSession } from "next-auth/react";
-import { useEffect, useState, useRef, useCallback, use } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Lightbulb, Code, ChevronLeft, Eye, Plus } from "lucide-react";
+import { ChevronLeft, Eye, Plus } from "lucide-react";
 import AppBar from "@/components/layout/AppBar";
 import StepperBreadCrumb from "@/components/organisms/StepperBreadCrumb/StepperBreadCrumb";
 import { ReportType } from "@/types/report.types";
 import { useDrawRect } from "@/hooks/useDrawRect";
-import clsx from "clsx";
 import CreateIsseModal from "@/components/organisms/CreateIssueModal/CreateIsseModal";
 import { ReportIssueType } from "@/types/reportIssue.types";
+import { getHeuristicColor } from "@/helpers/getColorHelper";
+import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
 
 export default function EditReportPage() {
   const router = useRouter();
@@ -44,44 +42,49 @@ export default function EditReportPage() {
   const [snapshotUrl, setSnapshotUrl] = useState<string | undefined>();
   const [reportIssues, setReportIssues] = useState<ReportIssueType[]>([]);
   const [showNewIssueModal, setShowNewIssueModal] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
+
+  async function fetchReport() {
+    try {
+      const res = await fetch(`/api/report?id=${id}`);
+      if (!res.ok) throw new Error("Failed to fetch report");
+      const data: ReportType = await res.json();
+      setOriginalReport(data);
+      // setEditedHeuristics(data.iss); // !IMPORANT: ReportIssues and Reports need to binded somehow
+      setSnapshotUrl(data.screenshotImgUrl);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const fetchReportIssues = async () => {
+    try {
+      const res = await fetch(`/api/report/issue?reportId=${id}`);
+
+      if (!res.ok) throw new Error("Failed to fetch report issues");
+
+      const data: ReportIssueType[] = await res.json();
+
+      setReportIssues(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   // ---------------------------
   // 1. LOAD TARGET REPORT
   // ---------------------------
   useEffect(() => {
-    async function fetchReport() {
-      try {
-        const res = await fetch(`/api/report?id=${id}`);
-        if (!res.ok) throw new Error("Failed to fetch report");
-        const data: ReportType = await res.json();
-        setOriginalReport(data);
-        // setEditedHeuristics(data.iss); // !IMPORANT: ReportIssues and Reports need to binded somehow
-        setSnapshotUrl(data.screenshotImgUrl);
-      } catch (error) {
-        console.error(error);
-      }
+    if (id) {
+      fetchReport()
+        .then(() => {
+          fetchReportIssues();
+        })
+        .catch((error) => {
+          console.error("Error fetching report:", error);
+        });
     }
-    if (id) fetchReport();
   }, [id]);
-
-  // --------------------------------------
-  // 2. LISTEN FOR "ELEMENT_SELECTED" IN IFRAME
-  //    AND OPEN THE NEW ISSUE MODAL
-  // --------------------------------------
-  useEffect(() => {
-    function handleMessage(event: MessageEvent) {
-      if (!event.data) return;
-      if (event.data.type === "ELEMENT_SELECTED") {
-        const selectedSelector = event.data.selector;
-        if (selectedSelector) {
-        }
-      }
-    }
-    window.addEventListener("message", handleMessage);
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
-  }, []);
 
   useEffect(() => {
     if (rectangle) {
@@ -202,7 +205,6 @@ export default function EditReportPage() {
                   <h3 className="text-lg font-medium mb-4">Screenshot/Website Preview</h3>
                   <Button
                     onClick={enableDrawing}
-                    // onClick={() => setShowNewIssueModal(true)}
                     className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
                     disabled={isDrawingEnabled}
                     size="sm">
@@ -231,11 +233,21 @@ export default function EditReportPage() {
                         userSelect: "none",
                       }}
                     />
-                    {/* <div
-                      className={clsx(
-                        "w-full h-full bg-white absolute z-10 top-0 left-0",
-                        isDrawingEnabled ? "opacity-40" : "opacity-0"
-                      )}></div> */}
+                    <div className="w-full h-full bg-transparent absolute top-0 left-0">
+                      {reportIssues.map((issue, index) => (
+                        <div
+                          key={index}
+                          className="w-10 h-10 text-white absolute rounded-full shadow-md flex items-center justify-center cursor-pointer"
+                          onClick={() => setSelectedIssue(issue)}
+                          style={{
+                            backgroundColor: getHeuristicColor(issue.heuristic.code),
+                            top: issue.snapshotLocation.top,
+                            left: issue.snapshotLocation.left,
+                          }}>
+                          <h4 className="text-lg font-semibold">{issue.heuristic.code}</h4>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </TabsContent>
                 <TabsContent value="list" className="mt-4">
@@ -256,6 +268,11 @@ export default function EditReportPage() {
         onSaveIssue={handleCreateNewIssue}
         onClose={setShowNewIssueModal}
       />
+
+      {/* Issue Detail Modal */}
+      {selectedIssue && (
+        <IssueDetailModal isOpen issue={selectedIssue!} issueOrder={1} onClose={() => setSelectedIssue(null)} />
+      )}
     </>
   );
 }

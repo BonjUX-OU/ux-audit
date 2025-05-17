@@ -1,21 +1,18 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertTriangle, CircleX, Code, Divide, Lightbulb, Plus } from "lucide-react";
-import { use, useEffect, useState } from "react";
-import { HeuristicType } from "../ReportList/ReportList.types";
+import { CircleX, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Heuristics, SeverityLevels } from "@/constants/reportIssue.constants";
 import clsx from "clsx";
-import { ReportIssueType, SnapshotType } from "@/types/reportIssue.types";
+import { HeuristicType, ReportIssueType, SnapshotType } from "@/types/reportIssue.types";
 import { ReportType } from "@/types/report.types";
-import { UserType } from "@/types/user.types";
 import { useToast } from "@/hooks/useToast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { IssueRectangleData } from "@/hooks/useDrawRect";
 import { base64ToBlob } from "@/helpers/base64toBlob";
+import { getHeuristicColor } from "@/helpers/getColorHelper";
 
 type CreateIssueModalProps = {
   isOpen: boolean;
@@ -84,7 +81,7 @@ const CreateIsseModal = ({
   const handleContinueToIssue = () => {
     const newIssue: ReportIssueType = {
       report: targetReport,
-      heuristic: selectedHeuristic,
+      heuristic: selectedHeuristic!,
       severityLevel: SeverityLevels.MINOR,
       description: "",
       suggestedFix: "",
@@ -162,8 +159,16 @@ const CreateIsseModal = ({
     }));
   };
 
+  const handleClose = () => {
+    setSelectedHeuristic(null);
+    setNewIssueData(undefined);
+    setNewTag("");
+    setIssueStep("heuristic");
+    onClose(false);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="p-0 gap-0">
         <DialogHeader className="border-b">
           <DialogTitle></DialogTitle>
@@ -182,7 +187,9 @@ const CreateIsseModal = ({
                 onClick={() => setSelectedHeuristic(heuristic)}>
                 <div className="w-full flex gap-2 items-center mb-1">
                   <span
-                    className={`w-6 h-6 text-center rounded-full bg-[${heuristic.color}] text-white text-md font-medium`}>
+                    className={`w-6 h-6 text-center rounded-full bg-[${getHeuristicColor(
+                      heuristic.code
+                    )}] text-white text-md font-medium`}>
                     {heuristic.code}
                   </span>
                   <span className="text-md font-bold">{heuristic.name}</span>
