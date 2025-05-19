@@ -21,6 +21,7 @@ import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
 import IssueListView from "@/components/templates/IssueListView/IssueListView";
 import { IssueOrdersInitState } from "@/constants/reportIssue.constants";
 import { OptionType } from "@/types/common.types";
+import ScreenshowView from "@/components/templates/ScreenshowView/ScreenshowView";
 
 export default function EditReportPage() {
   const router = useRouter();
@@ -44,9 +45,7 @@ export default function EditReportPage() {
 
   // Original report loaded from the API
   const [originalReport, setOriginalReport] = useState<ReportType | null>(null);
-  const [snapshotUrl, setSnapshotUrl] = useState<string | undefined>();
   const [reportIssues, setReportIssues] = useState<ReportIssueType[]>([]);
-  const [showNewIssueModal, setShowNewIssueModal] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
   const [issueOrders, setIssueOrders] = useState<IssueOrdersType>(IssueOrdersInitState);
   const [pageTypes, setPageTypes] = useState<OptionType[]>();
@@ -70,8 +69,6 @@ export default function EditReportPage() {
       if (!res.ok) throw new Error("Failed to fetch report");
       const data: ReportType = await res.json();
       setOriginalReport(data);
-      // setEditedHeuristics(data.iss); // !IMPORANT: ReportIssues and Reports need to binded somehow
-      setSnapshotUrl(data.screenshotImgUrl);
     } catch (error) {
       console.error(error);
     }
@@ -107,19 +104,6 @@ export default function EditReportPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  useEffect(() => {
-    if (rectangle) {
-      setShowNewIssueModal(true);
-    }
-  }, [rectangle]);
-
-  useEffect(() => {
-    if (!showNewIssueModal) {
-      clearRectangle();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showNewIssueModal]);
-
   // ------------------------------------------------------
   // 6. *NEW* FUNCTION: ADDING A BRAND NEW ISSUE & OCCURRENCE
   //    WHEN USER FINISHES HIGHLIGHTING AND FILLS THE MODAL
@@ -127,7 +111,6 @@ export default function EditReportPage() {
   function handleCreateNewIssue(issue: ReportIssueType) {
     setReportIssues((prev) => [...prev, issue]);
     setIssueOrders((prev) => ({ ...prev, [issue.heuristic.code]: issue.order }));
-    setShowNewIssueModal(false);
   }
 
   // -----------------------------
@@ -157,14 +140,6 @@ export default function EditReportPage() {
   return (
     <>
       <AppBar />
-      {isCropping && (
-        <div className="fixed top-0 left-0 w-screen h-screen flex items-center justify-center bg-gray-50 z-50 bg-opacity-50">
-          <div className="flex flex-col items-center">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#B04E34] border-t-transparent"></div>
-            <p className="mt-4 text-lg font-medium text-gray-700">Cropping the image...</p>
-          </div>
-        </div>
-      )}
       <div className="min-h-screen bg-gray-50 pt-16">
         <div className="container mx-auto px-4 py-6">
           {/* Stepper Breadcrumb */}
@@ -238,14 +213,6 @@ export default function EditReportPage() {
               <CardHeader className="pb-0">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                   <h3 className="text-lg font-medium mb-4">Screenshot/Website Preview</h3>
-                  <Button
-                    onClick={enableDrawing}
-                    className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
-                    disabled={isDrawingEnabled}
-                    size="sm">
-                    <Plus className="h-4 w-4" />
-                    <span>Draw Issue Area</span>
-                  </Button>
                   <div className="flex items-center">
                     <TabsList className="w-full grid grid-cols-2">
                       <TabsTrigger value="screenshot">Screenshot View</TabsTrigger>
@@ -256,38 +223,13 @@ export default function EditReportPage() {
               </CardHeader>
               <CardContent>
                 <TabsContent value="screenshot" className="mt-4">
-                  <div ref={containerRef} className="w-full h-max border-none relative">
-                    <img
-                      src={snapshotUrl}
-                      alt="Dynamic height content"
-                      style={{
-                        width: "100%",
-                        height: "auto", // This allows the image to maintain its natural height
-                        display: "block",
-                        pointerEvents: "none",
-                        userSelect: "none",
-                      }}
-                    />
-                    {!isDrawingEnabled && (
-                      <div className="w-full h-full bg-transparent absolute top-0 left-0">
-                        {reportIssues.map((issue, index) => (
-                          <div
-                            key={index}
-                            className="w-10 h-10 text-white absolute rounded-full shadow-md flex items-center justify-center cursor-pointer"
-                            onClick={() => setSelectedIssue(issue)}
-                            style={{
-                              backgroundColor: getHeuristicColor(issue.heuristic.code),
-                              top: issue.snapshotLocation.top,
-                              left: issue.snapshotLocation.left,
-                            }}>
-                            <h4 className="text-lg font-semibold">
-                              {issue.heuristic.code}.{issue.order ?? 0}
-                            </h4>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <ScreenshowView
+                    report={originalReport}
+                    reportIssues={reportIssues}
+                    issueOrders={issueOrders}
+                    onIssueClick={setSelectedIssue}
+                    onIssueCreate={handleCreateNewIssue}
+                  />
                 </TabsContent>
                 <TabsContent value="list" className="mt-4">
                   <IssueListView issues={reportIssues} />
@@ -297,18 +239,6 @@ export default function EditReportPage() {
           </Card>
         </div>
       </div>
-
-      {/* New Issue Modal */}
-      {showNewIssueModal && (
-        <CreateIsseModal
-          isOpen
-          targetReport={originalReport}
-          issueOrders={issueOrders}
-          issueRectangle={rectangle!}
-          onSaveIssue={handleCreateNewIssue}
-          onClose={setShowNewIssueModal}
-        />
-      )}
 
       {/* Issue Detail Modal */}
       {selectedIssue && (
