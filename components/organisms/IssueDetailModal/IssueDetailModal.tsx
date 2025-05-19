@@ -5,12 +5,11 @@ import { Badge } from "@/components/ui/badge";
 type CreateIssueModalProps = {
   isOpen: boolean;
   issue: ReportIssueType;
-  issueOrder: number;
   onClose: (isOpen: boolean) => void;
 };
 
-const IssueDetailModal = ({ isOpen, issue, issueOrder, onClose }: CreateIssueModalProps) => {
-  const issueOptionNumber = `Issue ${issue.heuristic.code}.${issueOrder}`;
+const IssueDetailModal = ({ isOpen, issue, onClose }: CreateIssueModalProps) => {
+  const issueOptionNumber = `Issue ${issue.heuristic.code}.${issue.order}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -24,6 +24,22 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
   const clearRectangle = () => setRectangle(null);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsDrawingEnabled(false); // Or whatever your cancel logic is
+      }
+    };
+
+    if (isDrawingEnabled) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDrawingEnabled]);
+
+  useEffect(() => {
     if (!isDrawingEnabled) return;
 
     const container = containerRef.current;

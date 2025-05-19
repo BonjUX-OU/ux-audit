@@ -11,27 +11,27 @@ import { ChevronLeft, Eye, Plus } from "lucide-react";
 import AppBar from "@/components/layout/AppBar";
 import StepperBreadCrumb from "@/components/organisms/StepperBreadCrumb/StepperBreadCrumb";
 import { ReportType } from "@/types/report.types";
-import { useDrawRect } from "@/hooks/useDrawRect";
-import CreateIsseModal from "@/components/organisms/CreateIssueModal/CreateIsseModal";
 import { IssueOrdersType, ReportIssueType } from "@/types/reportIssue.types";
-import { getHeuristicColor } from "@/helpers/getColorHelper";
-import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
 import { UserRoleType } from "@/types/user.types";
 import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
 import IssueListView from "@/components/templates/IssueListView/IssueListView";
 import { IssueOrdersInitState } from "@/constants/reportIssue.constants";
 import { OptionType } from "@/types/common.types";
-import ScreenshowView from "@/components/templates/ScreenshowView/ScreenshowView";
+import ScreenshotView, { AddIssueButtonRef } from "@/components/templates/ScreenshotView/ScreenshotView";
+import LoadingOverlay from "@/components/layout/LoadingOverlay";
+
+const breadcrumbsteps = [
+  { label: "Heuristic Evaluation", value: "heuristic" },
+  { label: "Report Summary", value: "summary" },
+];
 
 export default function EditReportPage() {
   const router = useRouter();
   const params = useParams();
   const { data: session } = useSession();
-  const { id } = params; // The report ID to edit
+  const { id: reportId } = params;
   const userRole = session?.user?.role;
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { rectangle, enableDrawing, isDrawingEnabled, clearRectangle, isCropping } = useDrawRect(containerRef);
+  const screenshotViewRef = useRef<AddIssueButtonRef>(null);
 
   useEffect(() => {
     //if user is not logged redirect to login page
@@ -46,7 +46,6 @@ export default function EditReportPage() {
   // Original report loaded from the API
   const [originalReport, setOriginalReport] = useState<ReportType | null>(null);
   const [reportIssues, setReportIssues] = useState<ReportIssueType[]>([]);
-  const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
   const [issueOrders, setIssueOrders] = useState<IssueOrdersType>(IssueOrdersInitState);
   const [pageTypes, setPageTypes] = useState<OptionType[]>();
   const [customerIssues, setCustomerIssues] = useState<OptionType[]>();
@@ -59,24 +58,20 @@ export default function EditReportPage() {
     setPageTypes(data.pageTypeOptions);
   };
 
-  useEffect(() => {
-    getConstants();
-  }, []);
-
-  async function fetchReport() {
+  const fetchReport = async () => {
     try {
-      const res = await fetch(`/api/report?id=${id}`);
+      const res = await fetch(`/api/report?id=${reportId}`);
       if (!res.ok) throw new Error("Failed to fetch report");
       const data: ReportType = await res.json();
       setOriginalReport(data);
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   const fetchReportIssues = async () => {
     try {
-      const res = await fetch(`/api/report/issue?reportId=${id}`);
+      const res = await fetch(`/api/report/issue?reportId=${reportId}`);
 
       if (!res.ok) throw new Error("Failed to fetch report issues");
 
@@ -88,11 +83,10 @@ export default function EditReportPage() {
     }
   };
 
-  // ---------------------------
-  // 1. LOAD TARGET REPORT
-  // ---------------------------
   useEffect(() => {
-    if (id) {
+    if (reportId) {
+      getConstants();
+
       fetchReport()
         .then(() => {
           fetchReportIssues();
@@ -102,40 +96,16 @@ export default function EditReportPage() {
         });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, []);
 
-  // ------------------------------------------------------
-  // 6. *NEW* FUNCTION: ADDING A BRAND NEW ISSUE & OCCURRENCE
-  //    WHEN USER FINISHES HIGHLIGHTING AND FILLS THE MODAL
-  // ------------------------------------------------------
   function handleCreateNewIssue(issue: ReportIssueType) {
     setReportIssues((prev) => [...prev, issue]);
     setIssueOrders((prev) => ({ ...prev, [issue.heuristic.code]: issue.order }));
   }
 
-  // -----------------------------
-  // Recent added codes starts here
-  // -----------------------------
-  const breadcrumbsteps = [
-    { label: "Heuristic Evaluation", value: "heuristic" },
-    { label: "Report Summary", value: "summary" },
-  ];
-
   const completeAndSeeSummary = () => {};
 
-  // --------------
-  // RENDER LOGIC
-  // --------------
-  if (!originalReport) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 bg-opacity-50">
-        <div className="flex flex-col items-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#B04E34] border-t-transparent"></div>
-          <p className="mt-4 text-lg font-medium text-gray-700">Loading report for editing...</p>
-        </div>
-      </div>
-    );
-  }
+  if (!originalReport) return <LoadingOverlay message="Loading report for editing..." />;
 
   return (
     <>
@@ -213,6 +183,13 @@ export default function EditReportPage() {
               <CardHeader className="pb-0">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                   <h3 className="text-lg font-medium mb-4">Screenshot/Website Preview</h3>
+                  <Button
+                    onClick={screenshotViewRef.current?.enableDrawMode}
+                    className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
+                    size="sm">
+                    <Plus className="h-4 w-4" />
+                    <span>Draw Issue Area</span>
+                  </Button>
                   <div className="flex items-center">
                     <TabsList className="w-full grid grid-cols-2">
                       <TabsTrigger value="screenshot">Screenshot View</TabsTrigger>
@@ -223,11 +200,11 @@ export default function EditReportPage() {
               </CardHeader>
               <CardContent>
                 <TabsContent value="screenshot" className="mt-4">
-                  <ScreenshowView
+                  <ScreenshotView
+                    ref={screenshotViewRef}
                     report={originalReport}
                     reportIssues={reportIssues}
                     issueOrders={issueOrders}
-                    onIssueClick={setSelectedIssue}
                     onIssueCreate={handleCreateNewIssue}
                   />
                 </TabsContent>
@@ -239,11 +216,6 @@ export default function EditReportPage() {
           </Card>
         </div>
       </div>
-
-      {/* Issue Detail Modal */}
-      {selectedIssue && (
-        <IssueDetailModal isOpen issue={selectedIssue!} issueOrder={1} onClose={() => setSelectedIssue(null)} />
-      )}
     </>
   );
 }
