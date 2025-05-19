@@ -44,12 +44,10 @@ export async function GET() {
         sumIssues += reportIssueCount;
 
         const pt = rep.pageType || "Unknown";
-        pageTypeDistribution[pt] =
-          (pageTypeDistribution[pt] || 0) + reportIssueCount;
+        pageTypeDistribution[pt] = (pageTypeDistribution[pt] || 0) + reportIssueCount;
 
         const sec = rep.sector || "Unknown";
-        sectorDistribution[sec] =
-          (sectorDistribution[sec] || 0) + reportIssueCount;
+        sectorDistribution[sec] = (sectorDistribution[sec] || 0) + reportIssueCount;
       }
 
       const averageScore = totalReports > 0 ? sumScore / totalReports : 0;
@@ -70,25 +68,28 @@ export async function GET() {
     }
 
     const waitingListEmails = await Email.find().sort({ createdAt: -1 });
-    const adminWaitingUsers: AdminUserDetails[] = waitingListEmails.map(
-      (wl) => ({
-        _id: wl._id.toString(),
-        type: "waitingList",
-        email: wl.email,
-        createdAt: wl.createdAt,
-        updatedAt: wl.updatedAt,
-        totalReports: 0,
-        averageScore: 0,
-        totalIssues: 0,
-        pageTypeDistribution: {},
-        sectorDistribution: {},
-      })
-    );
+    const adminWaitingUsers: AdminUserDetails[] = waitingListEmails.map((wl) => ({
+      _id: wl._id.toString(),
+      type: "waitingList",
+      email: wl.email,
+      createdAt: wl.createdAt,
+      updatedAt: wl.updatedAt,
+      totalReports: 0,
+      averageScore: 0,
+      totalIssues: 0,
+      pageTypeDistribution: {},
+      sectorDistribution: {},
+    }));
 
     const combined = [...adminRegisteredUsers, ...adminWaitingUsers];
     return NextResponse.json(combined, { status: 200 });
-  } catch (error: any) {
-    console.error("Error fetching admin user details:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error fetching admin user details:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }

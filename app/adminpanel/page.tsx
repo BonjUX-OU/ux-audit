@@ -152,7 +152,7 @@ const THEME = {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { data: session, status }: any = useSession();
+  const { data: session, status } = useSession();
 
   const [stats, setStats] = useState<AdminStatsResponse | null>(null);
   const [userDetails, setUserDetails] = useState<AdminUserDetails[]>([]);
@@ -614,6 +614,7 @@ export default function AdminDashboard() {
         borderColor: "rgba(0, 0, 0, 0.1)",
         borderWidth: 1,
         callbacks: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           label: (context: any) => {
             const label = context.label || "";
             const value = context.raw || 0;

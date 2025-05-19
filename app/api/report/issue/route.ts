@@ -21,9 +21,14 @@ export async function GET(request: Request) {
     const reportIssues = await ReportIssue.find({ report: reportId }).sort({ createdAt: -1 });
 
     return NextResponse.json(reportIssues, { status: 200 });
-  } catch (error: any) {
-    console.error("Error fetching :", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error fetching issues:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }
 

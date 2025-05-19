@@ -26,16 +26,12 @@ function highlightScript() {
     if (element.id) return `#${CSS.escape(element.id)}`;
     const parent = element.parentElement;
     if (!parent) return element.tagName.toLowerCase();
-    const siblings = Array.from(parent.children).filter(
-      (node) => node.tagName === element.tagName
-    );
+    const siblings = Array.from(parent.children).filter((node) => node.tagName === element.tagName);
     const index = siblings.indexOf(element) + 1;
     const tagName = element.tagName.toLowerCase();
     const nth = index > 1 ? `${tagName}:nth-of-type(${index})` : tagName;
     const parentSelector = getUniqueSelector(parent);
-    return parentSelector && parentSelector !== "html"
-      ? `${parentSelector} > ${nth}`
-      : `html > ${nth}`;
+    return parentSelector && parentSelector !== "html" ? `${parentSelector} > ${nth}` : `html > ${nth}`;
   }
 
   function removeOverlay() {
@@ -89,10 +85,7 @@ function highlightScript() {
     const el = document.elementFromPoint(centerX, centerY) as HTMLElement;
     if (el) {
       const uniqueSelector = getUniqueSelector(el);
-      window.parent.postMessage(
-        { type: "ELEMENT_SELECTED", selector: uniqueSelector },
-        "*"
-      );
+      window.parent.postMessage({ type: "ELEMENT_SELECTED", selector: uniqueSelector }, "*");
     }
     e.preventDefault();
   }
@@ -106,6 +99,7 @@ function highlightScript() {
     } else if (type === "HIGHLIGHT") {
       // Highlight known issues and add hover listeners.
       const highlights = event.data.highlights || [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       highlights.forEach((h: any) => {
         const label = h.label || "";
         const selector = h.selector || "";
@@ -171,7 +165,7 @@ export async function OPTIONS() {
     },
   });
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function GET(request: NextRequest, { params }: any) {
   const { analysisId } = params;
   if (!analysisId) {
@@ -188,21 +182,12 @@ export async function GET(request: NextRequest, { params }: any) {
       return new NextResponse("No snapshot HTML stored", { status: 404 });
     }
     // Remove external scripts that might break the page.
-    snapshotHtml = snapshotHtml.replace(
-      /<script[^>]+src=['"]?[^'"]*_vercel\/insights\/view[^>]*><\/script>/gi,
-      ""
-    );
+    snapshotHtml = snapshotHtml.replace(/<script[^>]+src=['"]?[^'"]*_vercel\/insights\/view[^>]*><\/script>/gi, "");
     // Remove or rewrite <meta name="viewport"> to avoid forced mobile scaling.
-    snapshotHtml = snapshotHtml.replace(
-      /<meta[^>]+name=["']viewport["'][^>]*>/gi,
-      ""
-    );
+    snapshotHtml = snapshotHtml.replace(/<meta[^>]+name=["']viewport["'][^>]*>/gi, "");
     // Insert a <base> tag so relative URLs load properly.
     if (report.url) {
-      snapshotHtml = snapshotHtml.replace(
-        /<head([^>]*)>/i,
-        `<head$1><base href="${report.url}">`
-      );
+      snapshotHtml = snapshotHtml.replace(/<head([^>]*)>/i, `<head$1><base href="${report.url}">`);
     }
     // Inject the highlight/drag script before </body>.
     const injection = `<script>(${highlightScript.toString()})()</script></body>`;
@@ -216,6 +201,7 @@ export async function GET(request: NextRequest, { params }: any) {
         "Access-Control-Allow-Headers": "Content-Type",
       },
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error(err);
     return new NextResponse(err.message, { status: 500 });

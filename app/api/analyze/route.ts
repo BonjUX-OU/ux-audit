@@ -10,8 +10,10 @@ import { zodResponseFormat } from "openai/helpers/zod";
 import Report from "@/models/Report";
 import dbConnect from "@/lib/dbConnect";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let puppeteerModule: any = puppeteer;
 if (process.env.NODE_ENV === "development") {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   puppeteerModule = require("puppeteer");
 }
 
@@ -26,6 +28,7 @@ const openai = new OpenAI({ apiKey: API_KEY });
 // 4 -> GPT writes new CSS code to highlight issues
 // 5 -> GPT generates final analysis & storing report
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sseEvent(writer: WritableStreamDefaultWriter<Uint8Array>, data: any) {
   const text = `data: ${JSON.stringify(data)}\n\n`;
   const encoder = new TextEncoder();
@@ -76,10 +79,7 @@ export async function POST(request: Request) {
     browser = await puppeteerModule.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath:
-        process.env.NODE_ENV === "development"
-          ? undefined
-          : await chromium.executablePath(),
+      executablePath: process.env.NODE_ENV === "development" ? undefined : await chromium.executablePath(),
       headless: chromium.headless,
       ignoreHTTPSErrors: true,
     });
@@ -158,7 +158,7 @@ export async function POST(request: Request) {
               type: "image_url",
               image_url: { url: `data:image/png;base64,${screenshotBase64}` },
             },
-          ] as any,
+          ],
         },
       ],
       response_format: zodResponseFormat(AnalysisSchema, "analysis"),
@@ -193,10 +193,8 @@ export async function POST(request: Request) {
     });
     let overallScore = 0;
     if (parsedAnalysis.scores?.length) {
-      overallScore = parsedAnalysis.scores.reduce(
-        (acc: number, s: any) => acc + Number(s.score),
-        0
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      overallScore = parsedAnalysis.scores.reduce((acc: number, s: any) => acc + Number(s.score), 0);
     }
     const newReport = new Report({
       owner: ownerId,
@@ -216,6 +214,7 @@ export async function POST(request: Request) {
     sseEvent(writer, { event: "step-update", stepIndex: 5, status: "done" });
 
     sseEvent(writer, { event: "final", reportId: newReport._id });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error("Analysis error:", err);
     sseEvent(writer, { event: "error", message: err.message, stepIndex: 0 });

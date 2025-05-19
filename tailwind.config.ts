@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindAnimate from "tailwindcss-animate";
 
 const config: Config = {
   darkMode: ["class"],
@@ -80,7 +81,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindAnimate],
   safelist: [
     "bg-red-500",
     "bg-orange-500",
@@ -102,6 +103,12 @@ const config: Config = {
     "bg-[#E97A35]",
     "bg-[#54B5A6]",
     "bg-[#51B4D0]",
+    "from-red-500",
+    "via-orange-500",
+    "to-yellow-500",
+    "from-yellow-500",
+    "via-green-400",
+    "to-green-600",
   ],
 };
 export default config;

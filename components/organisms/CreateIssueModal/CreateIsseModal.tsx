@@ -5,7 +5,7 @@ import { CircleX, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Heuristics, SeverityLevels } from "@/constants/reportIssue.constants";
 import clsx from "clsx";
-import { HeuristicType, ReportIssueType, SnapshotType } from "@/types/reportIssue.types";
+import { HeuristicType, ReportIssueType } from "@/types/reportIssue.types";
 import { ReportType } from "@/types/report.types";
 import { useToast } from "@/hooks/useToast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { IssueRectangleData } from "@/hooks/useDrawRect";
 import { base64ToBlob } from "@/helpers/base64toBlob";
 import { getHeuristicColor } from "@/helpers/getColorHelper";
+import Image from "next/image";
 
 type CreateIssueModalProps = {
   isOpen: boolean;
@@ -50,7 +51,7 @@ const CreateIsseModal = ({
         throw new Error("Invalid screenshot data");
       }
 
-      const fileName = `issue-${newIssueData?.heuristic?.code}.${issueOrder ?? 1}`;
+      const fileName = `issue-${newIssueData?.heuristic?.code}.${issueOrder ?? 1}-${Date.now()}`;
       const file = new File([blob], fileName, { type: blob.type });
 
       const formData = new FormData();
@@ -200,8 +201,8 @@ const CreateIsseModal = ({
           ) : (
             <div className="flex flex-col gap-4">
               <div className="w-full flex items-center justify-center">
-                {issueRectangle && (
-                  <img
+                {issueRectangle && issueRectangle.screenshot && (
+                  <Image
                     src={issueRectangle.screenshot}
                     alt="Snapshot"
                     style={{ width: 100, border: "1px solid #ccc" }}
@@ -219,8 +220,6 @@ const CreateIsseModal = ({
                   onChange={(e) => setNewIssueData({ ...newIssueData!, description: e.target.value })}
                   className="min-h-[80px] my-2"
                   placeholder="Describe the usability issue you-ve identified..."
-                  rows={3}
-                  style={{ resize: "none" }}
                 />
               </div>
               <div className="w-full text-md">
@@ -253,8 +252,6 @@ const CreateIsseModal = ({
                   onChange={(e) => setNewIssueData({ ...newIssueData!, suggestedFix: e.target.value })}
                   className="min-h-[80px] my-2"
                   placeholder="Suggest a fix for the issue..."
-                  rows={3}
-                  style={{ resize: "none" }}
                 />
               </div>
               <div className="w-full text-md">
@@ -268,6 +265,7 @@ const CreateIsseModal = ({
                     onKeyUp={(e) => addNewTag(e)}
                   />
                   <div
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     onClick={() => addNewTag({ key: "Enter" } as any)} // Simulate Enter key press
                     className={clsx("w-[20%] flex items-center gap-2 cursor-pointer", !newTag.length && "opacity-40")}>
                     <Plus className={"h-4 w-4 text-[#B04E43]"} />

@@ -51,8 +51,13 @@ export function GET() {
       customerIssues,
     };
     return NextResponse.json(responseObject, { status: 200 });
-  } catch (error: any) {
-    console.error("Error fetching issues list:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error fetching issues list:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }

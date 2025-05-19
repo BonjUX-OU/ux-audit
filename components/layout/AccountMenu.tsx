@@ -3,7 +3,6 @@
 import React, { useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { CircleUser } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +15,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 function AccountMenu() {
-  const { data: session }: any = useSession();
+  const { data: session } = useSession();
 
   useEffect(() => {
     if (!session) {
@@ -24,12 +23,6 @@ function AccountMenu() {
     }
     console.log("session", session);
   }, [session]);
-
-  const handleProfileClick = () => {
-    if (typeof window !== "undefined") {
-      window.location.href = "/";
-    }
-  };
 
   return (
     <>
@@ -40,8 +33,7 @@ function AccountMenu() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>
-              {session?.user?.name?.split(" ")[0]}{" "}
-              {session?.user?.name?.split(" ")[1]}
+              {session?.user?.name?.split(" ")[0]} {session?.user?.name?.split(" ")[1]}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {/* Profile Button */}
@@ -50,8 +42,7 @@ function AccountMenu() {
             </DropdownMenuItem> */}
             <Link
               href="https://docs.google.com/forms/d/e/1FAIpQLSdCSVNo2phhZ03CnE1unEUp5Rto7M_AxRjHji_2UKuWw1KMNg/viewform?usp=dialog"
-              target="_blank"
-            >
+              target="_blank">
               <DropdownMenuItem>Give Feedback</DropdownMenuItem>
             </Link>
 
@@ -60,8 +51,7 @@ function AccountMenu() {
             <DropdownMenuItem
               onClick={() => {
                 signOut();
-              }}
-            >
+              }}>
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -32,7 +32,6 @@ export default function AccountAndPlanDetailsPage() {
   const [subCancelLoading, setSubCancelLoading] = useState(false);
 
   // Email change
-  const [currentEmail, setCurrentEmail] = useState(user?.email || "");
   const [newEmail, setNewEmail] = useState("");
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailMsg, setEmailMsg] = useState<string>("");
@@ -45,6 +44,8 @@ export default function AccountAndPlanDetailsPage() {
 
   // Delete account
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const currentEmail = user?.email || "";
 
   async function handleCancelPlan() {
     if (!user) return;
@@ -61,6 +62,7 @@ export default function AccountAndPlanDetailsPage() {
       }
       // Force refresh session
       router.refresh();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       alert(err.message || "Failed to cancel subscription");
@@ -88,6 +90,7 @@ export default function AccountAndPlanDetailsPage() {
       setNewEmail("");
       // Force next-auth session update
       router.refresh();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setEmailMsg(err.message || "Failed to change email");
@@ -117,6 +120,7 @@ export default function AccountAndPlanDetailsPage() {
       setPasswordMsg("Password changed successfully!");
       setCurrentPassword("");
       setNewPassword("");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setPasswordMsg(err.message || "Failed to change password");
@@ -141,6 +145,7 @@ export default function AccountAndPlanDetailsPage() {
       // sign the user out or redirect
       // or NextAuth automatically 401's them on next calls
       window.location.href = "/signin";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       alert(err.message || "Failed to delete account");

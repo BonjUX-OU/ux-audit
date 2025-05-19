@@ -25,8 +25,22 @@ import {
   BarChart3,
 } from "lucide-react";
 import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
-import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
 import { UserRoleType } from "@/types/user.types";
+import { ProjectType } from "@/types/project.types";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type HeuristicType = any;
+
+export type AnalysisReportType = {
+  _id: string;
+  url: string;
+  sector?: string;
+  overallScore: number;
+  createdAt?: string;
+  heuristics?: HeuristicType[];
+  project: ProjectType;
+  pageType?: string;
+};
 
 type Occurrence = {
   id: string;
@@ -43,7 +57,7 @@ type Issue = {
 export default function AnalysisView({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: session }: any = useSession();
+  const { data: session } = useSession();
 
   const userRole = session?.user?.role;
 
@@ -67,6 +81,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
 
   useEffect(() => {
     fetchAnalysis();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Highlight elements in the iframe after it loads.
@@ -315,7 +330,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
             {!isFullscreen && (
               <div className="col-span-1">
                 <Card className="border-none shadow-sm h-full">
-                  <Tabs defaultValue="issues" onValueChange={setActiveTab} className="w-full">
+                  <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
                     <CardHeader className="py-3 px-4 border-b">
                       <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="issues" className="text-xs">

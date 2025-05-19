@@ -17,6 +17,7 @@ import { ReportIssueType } from "@/types/reportIssue.types";
 import { getHeuristicColor } from "@/helpers/getColorHelper";
 import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
 import { UserRoleType } from "@/types/user.types";
+import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
 
 export default function EditReportPage() {
   const router = useRouter();
@@ -85,6 +86,7 @@ export default function EditReportPage() {
           console.error("Error fetching report:", error);
         });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -97,6 +99,7 @@ export default function EditReportPage() {
     if (!showNewIssueModal) {
       clearRectangle();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showNewIssueModal]);
 
   // ------------------------------------------------------
@@ -196,15 +199,13 @@ export default function EditReportPage() {
               {/* Additional Notes */}
               <div className="grid grid-cols-1 md:grid-cols-12 mt-4">
                 <div className="md:col-span-12">
-                  <Textarea
-                    placeholder="Summarize the website page experience based on the heuristic evaluation"
-                    rows={3}
-                    style={{ resize: "none" }}
-                  />
+                  <Textarea placeholder="Summarize the website page experience based on the heuristic evaluation" />
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          <ScoreBar overallScore={93} totalIssues={4} />
 
           {/* Main Content */}
           <Card className="mt-4 mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">

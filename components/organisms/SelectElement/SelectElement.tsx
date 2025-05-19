@@ -1,6 +1,5 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OptionType } from "@/types/common.types";
-import { useState } from "react";
 
 type SelectElementProps = {
   label: string;

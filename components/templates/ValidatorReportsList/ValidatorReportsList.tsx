@@ -64,31 +64,9 @@ const ValidatorReportsList = forwardRef((props, ref) => {
     }
   };
 
-  // const fetchReportsByFilter = async () => {
-  //   if (!session?.user?._id) return;
-  //   setIsLoading(true);
-  //   try {
-  //     const res = await fetch("/api/user/reports", {
-  //       method: "POST",
-  //       body: JSON.stringify({
-  //         userId: session.user._id,
-  //         reportStatus: ReportStatus.NotStarted,
-  //         page: { pageNumber: 1, pageItemsCount: 1 },
-  //       }),
-  //     });
-  //     if (!res.ok) throw new Error("Failed to fetch reports");
-  //     const data = await res.json();
-
-  //     setReports(data);
-  //   } catch (err) {
-  //     console.error(err);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  const handleUploadImage = () => {
-    console.log("upload image flow initialized");
+  const handleUploadImage = (reportId: string) => {
+    setSelectedReportId(reportId);
+    setIsUploadModalOpen(true);
   };
 
   const handleAssignReport = (reportId: string) => {
@@ -112,6 +90,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
       const filteredData = reports?.filter((report) => report.status === selectedGroup.status);
       setFilteredByStatusReports(filteredData);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
 
   return (

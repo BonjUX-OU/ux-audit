@@ -29,7 +29,7 @@ export const MultiSelect = ({ label, options, placeholder = "Select...", selecte
     if (triggerRef.current) {
       setTriggerWidth(triggerRef.current.offsetWidth);
     }
-  }, [triggerRef.current]);
+  }, []);
 
   return (
     <>
