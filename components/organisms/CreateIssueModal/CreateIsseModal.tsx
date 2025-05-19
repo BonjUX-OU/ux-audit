@@ -5,7 +5,13 @@ import { CircleX, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Heuristics, SeverityLevels } from "@/constants/reportIssue.constants";
 import clsx from "clsx";
-import { HeuristicType, IssueOrdersType, ReportIssueType, SeverityLevelType } from "@/types/reportIssue.types";
+import {
+  HeuristicType,
+  IssueOrdersType,
+  ReportIssueType,
+  SeverityLevelKeys,
+  SeverityLevelType,
+} from "@/types/reportIssue.types";
 import { ReportType } from "@/types/report.types";
 import { useToast } from "@/hooks/useToast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -141,10 +147,12 @@ const CreateIsseModal = ({
     }
   };
 
-  const handleSevertyLevelSelect = (severityCode: SeverityLevelType["code"]) => {
+  const handleSevertyLevelSelect = (severityLevelKey: SeverityLevelKeys) => {
+    const targetSeverity = SeverityLevels[severityLevelKey];
+
     setNewIssueData((prev) => ({
       ...prev!,
-      severityLevel: SeverityLevels.CRITICAL,
+      severityLevel: targetSeverity,
     }));
   };
 
@@ -231,16 +239,16 @@ const CreateIsseModal = ({
                 <b>
                   How severe the issue? ({SeverityLevels.MINOR.code}-{SeverityLevels.CRITICAL.code}) *
                 </b>
-                <RadioGroup value={SeverityLevels.MINOR.code} onValueChange={handleSevertyLevelSelect}>
+                <RadioGroup onValueChange={handleSevertyLevelSelect}>
                   <div className="flex gap-4 mt-2">
-                    {Object.values(SeverityLevels).map((level) => (
+                    {Object.entries(SeverityLevels).map(([key, level]) => (
                       <div key={level.code} className="flex items-center gap-2">
                         <RadioGroupItem
-                          value={level.code}
-                          id={`severity-${level.code}`}
+                          value={key}
+                          id={`severity-${key}`}
                           className="w-4 h-4 border-gray-400 rounded-full cursor-pointer"
                         />
-                        <label htmlFor={`severity-${level.code}`} className="text-md text-gray-700">
+                        <label htmlFor={`severity-${key}`} className="text-md text-gray-700">
                           {level.name}
                         </label>
                       </div>
