@@ -13,6 +13,8 @@ import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { OptionType } from "@/types/common.types";
 // import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import ValidatorReportListTableRows from "./ValidatorReportListTableRows";
+import { UserType } from "@/types/user.types";
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 
 // Get the contributers from database and list on dropdown.
 //
@@ -40,8 +42,10 @@ const ValidatorReportsList = forwardRef((props, ref) => {
   const [filteredByStatusReports, setFilteredByStatusReports] = useState<ReportType[]>();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [assignTarget, setAssignTarget] = useState<string>();
+  const [assignTarget, setAssignTarget] = useState<UserType["_id"] | null>();
   const [selectedReportId, setSelectedReportId] = useState<string>();
+  const [contributors, setContributors] = useState<UserType[]>();
+  const [mappedContributors, setMappedContributors] = useState<OptionType[]>();
 
   // Expose the function to parent via ref
   useImperativeHandle(ref, () => ({
@@ -57,6 +61,29 @@ const ValidatorReportsList = forwardRef((props, ref) => {
       const data = await res.json();
 
       setReports(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchContributors = async () => {
+    if (!session?.user?._id) return;
+
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/user/${session.user.role}`);
+
+      if (!res.ok) throw new Error("Failed to fetch reports");
+
+      const data = (await res.json()) as UserType[];
+
+      setContributors(data);
+
+      const mappedOptionType = data.map((user) => ({ value: user._id, label: user.name }));
+
+      setMappedContributors(mappedOptionType as OptionType[]);
     } catch (err) {
       console.error(err);
     } finally {
@@ -83,6 +110,32 @@ const ValidatorReportsList = forwardRef((props, ref) => {
     await fetchReports();
   };
 
+  const onAssignReportConfirm = async () => {
+    const targetUser = contributors?.filter((contributor) => contributor._id === assignTarget)[0];
+
+    const payload: Pick<ReportType, "assignedTo" | "status"> = {
+      assignedTo: targetUser,
+      status: ReportStatus.Assigned,
+    };
+
+    const response = await fetch(`/api/report?id=${selectedReportId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update report");
+    }
+
+    const data = await response.json();
+
+    const newReports = [...reports!.filter((report) => report._id !== data._id), data];
+
+    setReports(newReports);
+
+    handleUpdateReportSuccess();
+  };
+
   useEffect(() => {
     if (selectedGroup === ReportGroups.ALL) {
       fetchReports();
@@ -92,6 +145,10 @@ const ValidatorReportsList = forwardRef((props, ref) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGroup]);
+
+  useEffect(() => {
+    fetchContributors();
+  }, []);
 
   return (
     <>
@@ -158,14 +215,21 @@ const ValidatorReportsList = forwardRef((props, ref) => {
         title="Assign Report"
         description="Select a contributor to assign the report"
         isOpen={isAssignModalOpen}
-        onCancel={() => setIsAssignModalOpen(false)}
-        onConfirm={() => setIsAssignModalOpen(false)}>
-        <SelectElement
-          label="Conributors"
-          options={mockUsers}
-          selected={assignTarget ?? ""}
-          onValueChange={(optionValue) => setAssignTarget(optionValue)}
-        />
+        onCancel={() => {
+          setAssignTarget(null);
+          setIsAssignModalOpen(false);
+        }}
+        onConfirm={onAssignReportConfirm}>
+        {mappedContributors && (
+          <div className="min-h-[10rem]">
+            <SelectElement
+              label="Conributors"
+              options={mappedContributors}
+              selected={assignTarget ?? ""}
+              onValueChange={(optionValue) => setAssignTarget(optionValue)}
+            />
+          </div>
+        )}
       </ConfirmationModal>
     </>
   );
