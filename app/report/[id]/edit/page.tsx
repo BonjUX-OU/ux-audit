@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, Eye, Plus } from "lucide-react";
+import { ChevronLeft, Eye, Plus, Save } from "lucide-react";
 import AppBar from "@/components/layout/AppBar";
 import StepperBreadCrumb from "@/components/organisms/StepperBreadCrumb/StepperBreadCrumb";
 import { ReportType } from "@/types/report.types";
@@ -52,6 +52,9 @@ export default function EditReportPage() {
   const [issueOrders, setIssueOrders] = useState<IssueOrdersType>(IssueOrdersInitState);
   const [pageTypes, setPageTypes] = useState<OptionType[]>();
   const [customerIssues, setCustomerIssues] = useState<OptionType[]>();
+  const [summaryMode, setSummaryMode] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("screenshot");
+  const [reportNotes, setReportNotes] = useState("");
 
   // ReportIssue related states and hooks
   const [showNewIssueModal, setShowNewIssueModal] = useState(false);
@@ -134,7 +137,13 @@ export default function EditReportPage() {
     setShowNewIssueModal(false);
   }
 
-  const completeAndSeeSummary = () => {};
+  const completeAndSeeSummary = () => {
+    setSummaryMode(!summaryMode);
+  };
+
+  const saveReportAnalysis = () => {
+    // TODO: handle save report analysis here
+  };
 
   if (!originalReport) return <LoadingOverlay message="Loading report for editing..." />;
 
@@ -147,7 +156,7 @@ export default function EditReportPage() {
         <div className="container mx-auto px-4 py-6">
           {/* Stepper Breadcrumb */}
           <div className="w-100 flex justify-center">
-            <StepperBreadCrumb steps={breadcrumbsteps} currentStep={breadcrumbsteps[0].value} />
+            <StepperBreadCrumb steps={breadcrumbsteps} currentStep={breadcrumbsteps[+summaryMode].value} />
           </div>
 
           {/* Header */}
@@ -180,14 +189,23 @@ export default function EditReportPage() {
                     </span>
                   </Badge>
                 </div>
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
                   <Button
                     onClick={completeAndSeeSummary}
                     className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
                     size="sm">
-                    <Eye className="h-4 w-4" />
-                    <span>Complete & See Summary</span>
+                    {summaryMode ? <ChevronLeft className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <span>{summaryMode ? "Back to Editing" : "Complete & See Summary"}</span>
                   </Button>
+                  {summaryMode && (
+                    <Button
+                      onClick={saveReportAnalysis}
+                      className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
+                      size="sm">
+                      <Save className="h-4 w-4" />
+                      <span>Submit Report for Review</span>
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -202,28 +220,36 @@ export default function EditReportPage() {
               {/* Additional Notes */}
               <div className="grid grid-cols-1 md:grid-cols-12 mt-4">
                 <div className="md:col-span-12">
-                  <Textarea placeholder="Summarize the website page experience based on the heuristic evaluation" />
+                  {summaryMode ? (
+                    reportNotes ?? "Not specified"
+                  ) : (
+                    <Textarea
+                      placeholder="Summarize the website page experience based on the heuristic evaluation"
+                      value={reportNotes}
+                      onChange={(e) => setReportNotes(e.target.value)}
+                    />
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <ScoreBar overallScore={93} totalIssues={4} />
-
           {/* Main Content */}
           <Card className="mt-4 mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
-            <Tabs defaultValue="screenshot" className="w-full">
+            <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="w-full">
               <CardHeader className="pb-0">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                   <h3 className="text-lg font-medium mb-4">Screenshot/Website Preview</h3>
-                  <Button
-                    onClick={enableDrawing}
-                    disabled={isDrawingEnabled}
-                    className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
-                    size="sm">
-                    <Plus className="h-4 w-4" />
-                    <span>Draw Issue Area</span>
-                  </Button>
+                  {!summaryMode && selectedTab === "screenshot" && (
+                    <Button
+                      onClick={enableDrawing}
+                      disabled={isDrawingEnabled}
+                      className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
+                      size="sm">
+                      <Plus className="h-4 w-4" />
+                      <span>Draw Issue Area</span>
+                    </Button>
+                  )}
                   <div className="flex items-center">
                     <TabsList className="w-full grid grid-cols-2">
                       <TabsTrigger value="screenshot">Screenshot View</TabsTrigger>
@@ -231,6 +257,7 @@ export default function EditReportPage() {
                     </TabsList>
                   </div>
                 </div>
+                {summaryMode && <ScoreBar overallScore={93} totalIssues={4} />}
               </CardHeader>
               <CardContent>
                 <TabsContent value="screenshot" className="mt-4">

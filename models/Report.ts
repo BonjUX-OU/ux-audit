@@ -41,6 +41,7 @@ const ReportSchema = new mongoose.Schema<ReportType>(
     score: { type: Number },
     screenshotImgUrl: { type: String },
     predefinedIssues: { type: [String] },
+    contributorNotes: { type: String },
   },
   { timestamps: true }
 );
