@@ -21,6 +21,7 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
   const isMouseDownRef = useRef(false);
 
   const enableDrawing = () => setIsDrawingEnabled(true);
+  const disableDrawing = () => setIsDrawingEnabled(false);
   const clearRectangle = () => setRectangle(null);
 
   useEffect(() => {
@@ -173,5 +174,5 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
     };
   }, [isDrawingEnabled, containerRef]);
 
-  return { enableDrawing, isDrawingEnabled, rectangle, isCropping, clearRectangle };
+  return { enableDrawing, disableDrawing, isDrawingEnabled, rectangle, isCropping, clearRectangle };
 }

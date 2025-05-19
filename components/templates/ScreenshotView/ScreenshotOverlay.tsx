@@ -1,57 +1,62 @@
-import { useScrollLock } from "@/hooks/useScrollLock";
-import React, { useLayoutEffect, useState } from "react";
+import { LucideCircleX, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 type FocusOverlayProps = {
   targetRef: React.RefObject<HTMLElement>;
-  visible: boolean;
+  onCancel?: () => void;
 };
 
-const ScreenshotOverlay: React.FC<FocusOverlayProps> = ({ targetRef, visible }) => {
-  const [rect, setRect] = useState<DOMRect | null>(null);
-  useScrollLock(visible);
+const ScreenshotOverlay: React.FC<FocusOverlayProps> = ({ targetRef, onCancel }) => {
+  const [style, setStyle] = useState<React.CSSProperties | null>(null);
 
-  useLayoutEffect(() => {
-    if (targetRef.current) {
-      const box = targetRef.current.getBoundingClientRect();
-      setRect(box);
-    }
-  }, [targetRef, visible]);
+  useEffect(() => {
+    const updateStyle = () => {
+      const container = targetRef.current;
+      if (!container) return;
 
-  if (!visible || !rect) return null;
+      const rect = container.getBoundingClientRect();
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
 
-  const { top, left, width, height } = rect;
+      setStyle({
+        position: "absolute",
+        top: rect.top + scrollTop,
+        left: rect.left + scrollLeft,
+        width: rect.width,
+        height: rect.height,
+        zIndex: 35,
+        boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.7)",
+        pointerEvents: "auto",
+        transition: "all 0.2s ease",
+      });
+    };
+
+    updateStyle();
+    window.addEventListener("scroll", updateStyle, true);
+    window.addEventListener("resize", updateStyle);
+    return () => {
+      window.removeEventListener("scroll", updateStyle, true);
+      window.removeEventListener("resize", updateStyle);
+    };
+  }, [targetRef]);
+
+  if (!style) return null;
 
   return (
     <>
-      {/* Top overlay */}
-      <div
-        className="fixed left-0 top-0 w-full"
-        style={{ height: top, backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 50 }}
-      />
-
-      {/* Bottom overlay */}
-      <div
-        className="fixed left-0"
+      <button
+        onClick={onCancel}
+        className="w-[3rem] h-[3rem] bg-transparent rounded-full flex items-center justify-center"
         style={{
-          top: top + height,
-          height: `calc(100vh - ${top + height}px)`,
-          width: "100%",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          zIndex: 50,
-        }}
-      />
-
-      {/* Left overlay */}
-      <div
-        className="fixed top-0"
-        style={{ left: 0, top, width: left + 7, height, backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 50 }}
-      />
-
-      {/* Right overlay */}
-      <div
-        className="fixed top-0"
-        style={{ left: left + width - 7, top, right: 0, height, backgroundColor: "rgba(0, 0, 0, 0.5)", zIndex: 50 }}
-      />
+          position: "fixed",
+          top: 60,
+          right: 20,
+          cursor: "pointer",
+          zIndex: 40,
+        }}>
+        <X strokeWidth={3} size={32} color="#FFF" />
+      </button>
+      <div style={style}></div>
     </>
   );
 };

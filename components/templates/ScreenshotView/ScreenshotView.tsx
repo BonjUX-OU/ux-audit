@@ -19,6 +19,8 @@ export type AddIssueButtonRef = {
   enableDrawMode: () => void;
 };
 
+// !IMPORTANT !!!! THIS COMPONENT IS NOT IN USE CURRENTLY
+
 const ScreenshotView = forwardRef<AddIssueButtonRef, ScreenshowViewProps>(
   ({ report, reportIssues, issueOrders, onIssueCreate }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -71,7 +73,7 @@ const ScreenshotView = forwardRef<AddIssueButtonRef, ScreenshowViewProps>(
 
         {selectedIssue && <IssueDetailModal isOpen issue={selectedIssue!} onClose={() => setSelectedIssue(null)} />}
 
-        <ScreenshotOverlay targetRef={containerRef} visible={isDrawingEnabled && !isCropping} />
+        {isDrawingEnabled && !isCropping && <ScreenshotOverlay targetRef={containerRef} />}
       </>
     );
   }

@@ -17,8 +17,12 @@ import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
 import IssueListView from "@/components/templates/IssueListView/IssueListView";
 import { IssueOrdersInitState } from "@/constants/reportIssue.constants";
 import { OptionType } from "@/types/common.types";
-import ScreenshotView, { AddIssueButtonRef } from "@/components/templates/ScreenshotView/ScreenshotView";
 import LoadingOverlay from "@/components/layout/LoadingOverlay";
+import IssuesContainer from "@/components/templates/ScreenshotView/IssuesContainer";
+import { useDrawRect } from "@/hooks/useDrawRect";
+import CreateIsseModal from "@/components/organisms/CreateIssueModal/CreateIsseModal";
+import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
+import ScreenshotOverlay from "@/components/templates/ScreenshotView/ScreenshotOverlay";
 
 const breadcrumbsteps = [
   { label: "Heuristic Evaluation", value: "heuristic" },
@@ -31,7 +35,6 @@ export default function EditReportPage() {
   const { data: session } = useSession();
   const { id: reportId } = params;
   const userRole = session?.user?.role;
-  const screenshotViewRef = useRef<AddIssueButtonRef>(null);
 
   useEffect(() => {
     //if user is not logged redirect to login page
@@ -49,6 +52,14 @@ export default function EditReportPage() {
   const [issueOrders, setIssueOrders] = useState<IssueOrdersType>(IssueOrdersInitState);
   const [pageTypes, setPageTypes] = useState<OptionType[]>();
   const [customerIssues, setCustomerIssues] = useState<OptionType[]>();
+
+  // ReportIssue related states and hooks
+  const [showNewIssueModal, setShowNewIssueModal] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { rectangle, enableDrawing, disableDrawing, isDrawingEnabled, clearRectangle, isCropping } =
+    useDrawRect(containerRef);
 
   const getConstants = async () => {
     const response = await fetch(`/api/constants?target=customerIssues`);
@@ -98,9 +109,17 @@ export default function EditReportPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (rectangle) {
+      setShowNewIssueModal(true);
+    }
+  }, [rectangle]);
+
   function handleCreateNewIssue(issue: ReportIssueType) {
+    clearRectangle();
     setReportIssues((prev) => [...prev, issue]);
     setIssueOrders((prev) => ({ ...prev, [issue.heuristic.code]: issue.order }));
+    setShowNewIssueModal(false);
   }
 
   const completeAndSeeSummary = () => {};
@@ -110,6 +129,8 @@ export default function EditReportPage() {
   return (
     <>
       <AppBar />
+      {isCropping && <LoadingOverlay message="Cropping the image..." hasOpacity />}
+      {isDrawingEnabled && !isCropping && <ScreenshotOverlay targetRef={containerRef} onCancel={disableDrawing} />}
       <div className="min-h-screen bg-gray-50 pt-16">
         <div className="container mx-auto px-4 py-6">
           {/* Stepper Breadcrumb */}
@@ -184,7 +205,8 @@ export default function EditReportPage() {
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                   <h3 className="text-lg font-medium mb-4">Screenshot/Website Preview</h3>
                   <Button
-                    onClick={screenshotViewRef.current?.enableDrawMode}
+                    onClick={enableDrawing}
+                    disabled={isDrawingEnabled}
                     className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
                     size="sm">
                     <Plus className="h-4 w-4" />
@@ -200,13 +222,14 @@ export default function EditReportPage() {
               </CardHeader>
               <CardContent>
                 <TabsContent value="screenshot" className="mt-4">
-                  <ScreenshotView
-                    ref={screenshotViewRef}
-                    report={originalReport}
-                    reportIssues={reportIssues}
-                    issueOrders={issueOrders}
-                    onIssueCreate={handleCreateNewIssue}
-                  />
+                  <div ref={containerRef} className="w-full h-max border-none relative" style={{ zIndex: 45 }}>
+                    <IssuesContainer
+                      hideIssues={isDrawingEnabled}
+                      imgUrl={originalReport.screenshotImgUrl}
+                      reportIssues={reportIssues}
+                      onIssueClick={setSelectedIssue}
+                    />
+                  </div>
                 </TabsContent>
                 <TabsContent value="list" className="mt-4">
                   <IssueListView issues={reportIssues} />
@@ -216,6 +239,20 @@ export default function EditReportPage() {
           </Card>
         </div>
       </div>
+
+      {/* New Issue Modal */}
+      {showNewIssueModal && (
+        <CreateIsseModal
+          isOpen
+          targetReport={originalReport}
+          issueOrders={issueOrders}
+          issueRectangle={rectangle!}
+          onSaveIssue={handleCreateNewIssue}
+          onClose={setShowNewIssueModal}
+        />
+      )}
+
+      {selectedIssue && <IssueDetailModal isOpen issue={selectedIssue!} onClose={() => setSelectedIssue(null)} />}
     </>
   );
 }
