@@ -3,13 +3,13 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import Link from "next/link";
 import { Calendar, ExternalLink, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { AnalysisReportType } from "./ReportList.types";
 import { Button } from "@/components/ui/button";
 import { getRatingColor, getRatingLabel } from "./ReportList.helpers";
+import { ReportType } from "@/types/report.types";
 
 type ReportListItemProps = {
-  report: AnalysisReportType;
-  onDeleteReportClick: (report: AnalysisReportType) => void;
+  report: ReportType;
+  onDeleteReportClick: (report: ReportType) => void;
 };
 
 const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) => {
@@ -26,10 +26,10 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
       </TableCell>
       <TableCell>
         <Badge
-          className={`${getRatingColor(report.overallScore)} hover:${getRatingColor(
-            report.overallScore
+          className={`${getRatingColor(report.score ?? 100)} hover:${getRatingColor(
+            report.score ?? 100
           )} shadow-sm transition-all duration-200`}>
-          {getRatingLabel(report.overallScore)}
+          {getRatingLabel(report.score ?? 100)}
         </Badge>
       </TableCell>
       <TableCell className="text-gray-600">{report.project.name}</TableCell>

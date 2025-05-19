@@ -29,9 +29,9 @@ import { UserRoleType } from "@/types/user.types";
 import { ProjectType } from "@/types/project.types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type HeuristicType = any;
+type HeuristicType = any;
 
-export type AnalysisReportType = {
+type AnalysisReportType = {
   _id: string;
   url: string;
   sector?: string;

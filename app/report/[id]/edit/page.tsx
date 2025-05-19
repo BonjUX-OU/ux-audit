@@ -18,6 +18,7 @@ import { getHeuristicColor } from "@/helpers/getColorHelper";
 import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
 import { UserRoleType } from "@/types/user.types";
 import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
+import Image from "next/image";
 
 export default function EditReportPage() {
   const router = useRouter();
@@ -231,34 +232,36 @@ export default function EditReportPage() {
               </CardHeader>
               <CardContent>
                 <TabsContent value="screenshot" className="mt-4">
-                  <div ref={containerRef} className="w-full h-max border-none relative">
-                    <img
-                      src={snapshotUrl}
-                      alt="Dynamic height content"
-                      style={{
-                        width: "100%",
-                        height: "auto", // This allows the image to maintain its natural height
-                        display: "block",
-                        pointerEvents: "none",
-                        userSelect: "none",
-                      }}
-                    />
-                    <div className="w-full h-full bg-transparent absolute top-0 left-0">
-                      {reportIssues.map((issue, index) => (
-                        <div
-                          key={index}
-                          className="w-10 h-10 text-white absolute rounded-full shadow-md flex items-center justify-center cursor-pointer"
-                          onClick={() => setSelectedIssue(issue)}
-                          style={{
-                            backgroundColor: getHeuristicColor(issue.heuristic.code),
-                            top: issue.snapshotLocation.top,
-                            left: issue.snapshotLocation.left,
-                          }}>
-                          <h4 className="text-lg font-semibold">{issue.heuristic.code}</h4>
-                        </div>
-                      ))}
+                  {snapshotUrl && (
+                    <div ref={containerRef} className="w-full h-max border-none relative">
+                      <Image
+                        src={snapshotUrl}
+                        alt="Dynamic height content"
+                        style={{
+                          width: "100%",
+                          height: "auto", // This allows the image to maintain its natural height
+                          display: "block",
+                          pointerEvents: "none",
+                          userSelect: "none",
+                        }}
+                      />
+                      <div className="w-full h-full bg-transparent absolute top-0 left-0">
+                        {reportIssues.map((issue, index) => (
+                          <div
+                            key={index}
+                            className="w-10 h-10 text-white absolute rounded-full shadow-md flex items-center justify-center cursor-pointer"
+                            onClick={() => setSelectedIssue(issue)}
+                            style={{
+                              backgroundColor: getHeuristicColor(issue.heuristic.code),
+                              top: issue.snapshotLocation.top,
+                              left: issue.snapshotLocation.left,
+                            }}>
+                            <h4 className="text-lg font-semibold">{issue.heuristic.code}</h4>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </TabsContent>
                 <TabsContent value="list" className="mt-4">
                   list here
