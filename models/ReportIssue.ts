@@ -61,6 +61,9 @@ const ReportIssueSchema = new Schema(
       type: SnapshotSchema,
       required: true,
     },
+    order: {
+      type: Number,
+    },
     description: {
       type: String,
     },

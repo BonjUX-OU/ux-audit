@@ -5,7 +5,7 @@ import { CircleX, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Heuristics, SeverityLevels } from "@/constants/reportIssue.constants";
 import clsx from "clsx";
-import { HeuristicType, ReportIssueType } from "@/types/reportIssue.types";
+import { HeuristicType, IssueOrdersType, ReportIssueType, SeverityLevelType } from "@/types/reportIssue.types";
 import { ReportType } from "@/types/report.types";
 import { useToast } from "@/hooks/useToast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -13,22 +13,21 @@ import { Badge } from "@/components/ui/badge";
 import { IssueRectangleData } from "@/hooks/useDrawRect";
 import { base64ToBlob } from "@/helpers/base64toBlob";
 import { getHeuristicColor } from "@/helpers/getColorHelper";
-import Image from "next/image";
 
 type CreateIssueModalProps = {
   isOpen: boolean;
   targetReport: ReportType;
   issueRectangle: IssueRectangleData;
-  issueOrder?: number;
+  issueOrders: IssueOrdersType;
   onClose: (isOpen: boolean) => void;
   onSaveIssue: (issue: ReportIssueType) => void;
 };
 
 const CreateIsseModal = ({
   isOpen,
+  issueOrders,
   targetReport,
   issueRectangle,
-  issueOrder,
   onSaveIssue,
   onClose,
 }: CreateIssueModalProps) => {
@@ -42,7 +41,7 @@ const CreateIsseModal = ({
   useEffect(() => {
     const { heuristic, description, severityLevel, suggestedFix } = newIssueData || {};
     setIsButtonDisabled(!heuristic || !description || !severityLevel || !suggestedFix);
-  }, [newIssueData, selectedHeuristic]);
+  }, [newIssueData]);
 
   const uploadScreenshot = async () => {
     try {
@@ -51,7 +50,7 @@ const CreateIsseModal = ({
         throw new Error("Invalid screenshot data");
       }
 
-      const fileName = `issue-${newIssueData?.heuristic?.code}.${issueOrder ?? 1}-${Date.now()}`;
+      const fileName = `issue-${newIssueData?.heuristic?.code}.${newIssueData?.order ?? 1}-${Date.now()}`;
       const file = new File([blob], fileName, { type: blob.type });
 
       const formData = new FormData();
@@ -86,6 +85,7 @@ const CreateIsseModal = ({
       severityLevel: SeverityLevels.MINOR,
       description: "",
       suggestedFix: "",
+      order: issueOrders[selectedHeuristic!.code] + 1,
       snapshotLocation: {
         top: issueRectangle.top,
         left: issueRectangle.left,
@@ -95,8 +95,6 @@ const CreateIsseModal = ({
       croppedImageUrl: "",
       tags: [],
     };
-
-    console.log("newIssue", newIssue);
 
     setNewIssueData(newIssue);
     setIssueStep("details");
@@ -141,6 +139,13 @@ const CreateIsseModal = ({
         variant: "destructive",
       });
     }
+  };
+
+  const handleSevertyLevelSelect = (severityCode: SeverityLevelType["code"]) => {
+    setNewIssueData((prev) => ({
+      ...prev!,
+      severityLevel: SeverityLevels.CRITICAL,
+    }));
   };
 
   const addNewTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -202,7 +207,7 @@ const CreateIsseModal = ({
             <div className="flex flex-col gap-4">
               <div className="w-full flex items-center justify-center">
                 {issueRectangle && issueRectangle.screenshot && (
-                  <Image
+                  <img
                     src={issueRectangle.screenshot}
                     alt="Snapshot"
                     style={{ width: 100, border: "1px solid #ccc" }}
@@ -214,7 +219,7 @@ const CreateIsseModal = ({
                 {newIssueData?.heuristic?.name} ({newIssueData?.heuristic?.code})
               </div>
               <div className="w-full text-md">
-                <b>{`Issue ${newIssueData?.heuristic?.code}.${issueOrder ?? 1} description *`}</b>
+                <b>{`Issue ${newIssueData?.heuristic?.code}.${newIssueData?.order ?? 1} description *`}</b>
                 <Textarea
                   value={newIssueData?.description}
                   onChange={(e) => setNewIssueData({ ...newIssueData!, description: e.target.value })}
@@ -226,7 +231,7 @@ const CreateIsseModal = ({
                 <b>
                   How severe the issue? ({SeverityLevels.MINOR.code}-{SeverityLevels.CRITICAL.code}) *
                 </b>
-                <RadioGroup>
+                <RadioGroup value={SeverityLevels.MINOR.code} onValueChange={handleSevertyLevelSelect}>
                   <div className="flex gap-4 mt-2">
                     {Object.values(SeverityLevels).map((level) => (
                       <div key={level.code} className="flex items-center gap-2">
@@ -245,7 +250,7 @@ const CreateIsseModal = ({
               </div>
               <div className="w-full text-md">
                 <b>
-                  Suggested Fix for {newIssueData?.heuristic?.code}.{issueOrder ?? 1}
+                  Suggested Fix for {newIssueData?.heuristic?.code}.{newIssueData?.order ?? 1}
                 </b>
                 <Textarea
                   value={newIssueData?.suggestedFix}

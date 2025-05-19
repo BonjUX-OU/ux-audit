@@ -13,12 +13,14 @@ import StepperBreadCrumb from "@/components/organisms/StepperBreadCrumb/StepperB
 import { ReportType } from "@/types/report.types";
 import { useDrawRect } from "@/hooks/useDrawRect";
 import CreateIsseModal from "@/components/organisms/CreateIssueModal/CreateIsseModal";
-import { ReportIssueType } from "@/types/reportIssue.types";
+import { IssueOrdersType, ReportIssueType } from "@/types/reportIssue.types";
 import { getHeuristicColor } from "@/helpers/getColorHelper";
 import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
 import { UserRoleType } from "@/types/user.types";
 import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
-import Image from "next/image";
+import IssueListView from "@/components/templates/IssueListView/IssueListView";
+import { IssueOrdersInitState } from "@/constants/reportIssue.constants";
+import { OptionType } from "@/types/common.types";
 
 export default function EditReportPage() {
   const router = useRouter();
@@ -46,6 +48,21 @@ export default function EditReportPage() {
   const [reportIssues, setReportIssues] = useState<ReportIssueType[]>([]);
   const [showNewIssueModal, setShowNewIssueModal] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
+  const [issueOrders, setIssueOrders] = useState<IssueOrdersType>(IssueOrdersInitState);
+  const [pageTypes, setPageTypes] = useState<OptionType[]>();
+  const [customerIssues, setCustomerIssues] = useState<OptionType[]>();
+
+  const getConstants = async () => {
+    const response = await fetch(`/api/constants?target=customerIssues`);
+    const data = await response.json();
+
+    setCustomerIssues(data.customerIssues);
+    setPageTypes(data.pageTypeOptions);
+  };
+
+  useEffect(() => {
+    getConstants();
+  }, []);
 
   async function fetchReport() {
     try {
@@ -109,6 +126,7 @@ export default function EditReportPage() {
   // ------------------------------------------------------
   function handleCreateNewIssue(issue: ReportIssueType) {
     setReportIssues((prev) => [...prev, issue]);
+    setIssueOrders((prev) => ({ ...prev, [issue.heuristic.code]: issue.order }));
     setShowNewIssueModal(false);
   }
 
@@ -127,7 +145,7 @@ export default function EditReportPage() {
   // --------------
   if (!originalReport) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 bg-opacity-50">
         <div className="flex flex-col items-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#B04E34] border-t-transparent"></div>
           <p className="mt-4 text-lg font-medium text-gray-700">Loading report for editing...</p>
@@ -140,7 +158,7 @@ export default function EditReportPage() {
     <>
       <AppBar />
       {isCropping && (
-        <div className="absoute top-0 left-0 w-screen h-screen flex items-center justify-center bg-gray-50 z-50">
+        <div className="fixed top-0 left-0 w-screen h-screen flex items-center justify-center bg-gray-50 z-50 bg-opacity-50">
           <div className="flex flex-col items-center">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#B04E34] border-t-transparent"></div>
             <p className="mt-4 text-lg font-medium text-gray-700">Cropping the image...</p>
@@ -167,15 +185,21 @@ export default function EditReportPage() {
                 <div className="flex items-center gap-3">
                   <Badge variant="outline" className="bg-[#FFF1E0] text-[#963F28] border-0 p-2 font-normal">
                     <strong>Website:</strong>
-                    <span className="ms-1">https://example.com</span>
+                    <span className="ms-1">{originalReport.url}</span>
                   </Badge>
                   <Badge variant="outline" className="bg-[#FFF1E0] text-[#963F28] border-0 p-2 font-normal">
                     <strong>Page:</strong>
-                    <span className="ms-1">Homepage</span>
+                    <span className="ms-1">
+                      {pageTypes?.find((page) => page.value === originalReport.pageType)?.label ?? "undefined"}
+                    </span>
                   </Badge>
                   <Badge variant="outline" className="bg-[#FFF1E0] text-[#963F28] border-0 p-2 font-normal">
                     <strong>Issues:</strong>
-                    <span className="ms-1">Improving user satisfaction&feedback</span>
+                    <span className="ms-1">
+                      {customerIssues?.find(
+                        (customerIssues) => customerIssues.value === originalReport.predefinedIssues?.[0]
+                      )?.label ?? "Not specified"}
+                    </span>
                   </Badge>
                 </div>
                 <div className="flex items-center">
@@ -191,12 +215,12 @@ export default function EditReportPage() {
             </CardHeader>
             <CardContent>
               <h3 className="text-lg font-medium mb-4">Additional Info from the Customer</h3>
-              <p className="text-sm mb-4">
-                Lorem ipsum dolor sit amet amet, lorem ipsum dolor sit amet ametlorem ipsum dolor sit amet ametlorem
-                ipsum dolor sit amet ametlorem ipsum dolor sit amet ametlorem ipsum dolor sit amet ametlorem ipsum dolor
-                sit amet ametlorem ipsum dolor sit amet amet
-              </p>
-              <h3 className="text-lg font-medium mb-4">General Summary from the Contributor</h3>
+              {originalReport.predefinedIssues && originalReport.predefinedIssues.length > 0
+                ? originalReport.predefinedIssues.map((preDefinedIssue) => (
+                    <p className="text-sm mb-4">{preDefinedIssue}</p>
+                  ))
+                : "Not specified"}
+              <h3 className="text-lg font-medium my-4">General Summary from the Contributor</h3>
               {/* Additional Notes */}
               <div className="grid grid-cols-1 md:grid-cols-12 mt-4">
                 <div className="md:col-span-12">
@@ -232,19 +256,19 @@ export default function EditReportPage() {
               </CardHeader>
               <CardContent>
                 <TabsContent value="screenshot" className="mt-4">
-                  {snapshotUrl && (
-                    <div ref={containerRef} className="w-full h-max border-none relative">
-                      <Image
-                        src={snapshotUrl}
-                        alt="Dynamic height content"
-                        style={{
-                          width: "100%",
-                          height: "auto", // This allows the image to maintain its natural height
-                          display: "block",
-                          pointerEvents: "none",
-                          userSelect: "none",
-                        }}
-                      />
+                  <div ref={containerRef} className="w-full h-max border-none relative">
+                    <img
+                      src={snapshotUrl}
+                      alt="Dynamic height content"
+                      style={{
+                        width: "100%",
+                        height: "auto", // This allows the image to maintain its natural height
+                        display: "block",
+                        pointerEvents: "none",
+                        userSelect: "none",
+                      }}
+                    />
+                    {!isDrawingEnabled && (
                       <div className="w-full h-full bg-transparent absolute top-0 left-0">
                         {reportIssues.map((issue, index) => (
                           <div
@@ -256,15 +280,17 @@ export default function EditReportPage() {
                               top: issue.snapshotLocation.top,
                               left: issue.snapshotLocation.left,
                             }}>
-                            <h4 className="text-lg font-semibold">{issue.heuristic.code}</h4>
+                            <h4 className="text-lg font-semibold">
+                              {issue.heuristic.code}.{issue.order ?? 0}
+                            </h4>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </TabsContent>
                 <TabsContent value="list" className="mt-4">
-                  list here
+                  <IssueListView issues={reportIssues} />
                 </TabsContent>
               </CardContent>
             </Tabs>
@@ -277,7 +303,7 @@ export default function EditReportPage() {
         <CreateIsseModal
           isOpen
           targetReport={originalReport}
-          issueOrder={1}
+          issueOrders={issueOrders}
           issueRectangle={rectangle!}
           onSaveIssue={handleCreateNewIssue}
           onClose={setShowNewIssueModal}

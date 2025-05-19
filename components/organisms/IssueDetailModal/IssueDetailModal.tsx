@@ -1,7 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ReportIssueType } from "@/types/reportIssue.types";
 import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
 
 type CreateIssueModalProps = {
   isOpen: boolean;
@@ -30,7 +29,7 @@ const IssueDetailModal = ({ isOpen, issue, issueOrder, onClose }: CreateIssueMod
 
         <div className="p-4 h-auto flex flex-col gap-4">
           <div className="w-full flex items-center justify-center">
-            <Image
+            <img
               src={issue.croppedImageUrl}
               alt="Issue Snapshot"
               className="rounded-lg border border-[#B04E34] shadow-md"

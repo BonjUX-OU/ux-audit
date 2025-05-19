@@ -1,11 +1,11 @@
-import { HeuristicType, SeverityLevelsType } from "@/types/reportIssue.types";
+import { HeuristicType, IssueOrdersType, SeverityLevelsType } from "@/types/reportIssue.types";
 
 export const SeverityLevels: SeverityLevelsType = {
   MINOR: { code: "1", name: "Minor (1)" },
   MODERATE: { code: "2", name: "Moderate (2)" },
   MAJOR: { code: "3", name: "Major (3)" },
   CRITICAL: { code: "4", name: "Critical (4)" },
-};
+} as const;
 
 export const Heuristics: HeuristicType[] = [
   {
@@ -68,4 +68,9 @@ export const Heuristics: HeuristicType[] = [
     description:
       "Even though it is better if the system can be used without documentation, it may be necessary to provide help and documentation.",
   },
-];
+] as const;
+
+export const IssueOrdersInitState: Record<HeuristicType["code"], number> = Heuristics.reduce((acc, heuristic) => {
+  acc[heuristic.code] = 0;
+  return acc;
+}, {} as Record<HeuristicType["code"], number>);
