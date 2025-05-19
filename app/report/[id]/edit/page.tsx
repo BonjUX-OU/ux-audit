@@ -11,11 +11,11 @@ import { ChevronLeft, Eye, Plus } from "lucide-react";
 import AppBar from "@/components/layout/AppBar";
 import StepperBreadCrumb from "@/components/organisms/StepperBreadCrumb/StepperBreadCrumb";
 import { ReportType } from "@/types/report.types";
-import { IssueOrdersType, ReportIssueType } from "@/types/reportIssue.types";
+import { HeuristicType, IssueOrdersType, ReportIssueType } from "@/types/reportIssue.types";
 import { UserRoleType } from "@/types/user.types";
 import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
 import IssueListView from "@/components/templates/IssueListView/IssueListView";
-import { IssueOrdersInitState } from "@/constants/reportIssue.constants";
+import { Heuristics, IssueOrdersInitState } from "@/constants/reportIssue.constants";
 import { OptionType } from "@/types/common.types";
 import LoadingOverlay from "@/components/layout/LoadingOverlay";
 import IssuesContainer from "@/components/templates/ScreenshotView/IssuesContainer";
@@ -69,6 +69,16 @@ export default function EditReportPage() {
     setPageTypes(data.pageTypeOptions);
   };
 
+  const groupFunc = async (reportIssues: ReportIssueType[]) => {
+    const newIssueOrders: IssueOrdersType = Heuristics.reduce((acc, heuristic) => {
+      const targetIssue = reportIssues.find((issue) => issue.heuristic.code === heuristic.code);
+      acc[heuristic.code] = targetIssue?.order ?? 0;
+      return acc;
+    }, {} as Record<HeuristicType["code"], number>);
+
+    setIssueOrders(newIssueOrders);
+  };
+
   const fetchReport = async () => {
     try {
       const res = await fetch(`/api/report?id=${reportId}`);
@@ -80,6 +90,8 @@ export default function EditReportPage() {
     }
   };
 
+  //
+
   const fetchReportIssues = async () => {
     try {
       const res = await fetch(`/api/report/issue?reportId=${reportId}`);
@@ -87,7 +99,7 @@ export default function EditReportPage() {
       if (!res.ok) throw new Error("Failed to fetch report issues");
 
       const data: ReportIssueType[] = await res.json();
-
+      await groupFunc(data);
       setReportIssues(data);
     } catch (error) {
       console.error(error);
