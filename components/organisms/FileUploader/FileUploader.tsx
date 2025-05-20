@@ -45,21 +45,30 @@ const FileUploader = ({ isOpen, targetReportId, onClose, onSuccess }: FileUpload
 
       const file = inputFileRef.current.files[0];
 
-      const response = await fetch(`/api/report/upload?filename=${targetReportId}`, {
+      // Fix 1: Use FormData instead of sending the file directly
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Fix 2: URL encoding for the filename in query params
+      const encodedFilename = encodeURIComponent(targetReportId);
+
+      // Fix 3: Don't set Content-Type in headers when using FormData
+      // The browser will automatically set the correct multipart/form-data
+      // with boundary parameter
+      const response = await fetch(`/api/report/upload?filename=${encodedFilename}`, {
         method: "POST",
-        body: file,
+        body: formData,
       });
 
-      const newBlob = (await response.json()) as PutBlobResult;
-
       if (!response.ok) {
-        throw new Error("Failed to upload file");
+        const errorText = await response.text();
+        throw new Error(`Failed to upload file: ${errorText}`);
       }
 
+      const newBlob = (await response.json()) as PutBlobResult;
       updateReport(newBlob.url);
     } catch (error) {
       console.error("Error uploading file:", error);
-      return;
     } finally {
       setIsLoading(false);
     }
