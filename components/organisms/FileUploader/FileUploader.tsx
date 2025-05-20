@@ -45,23 +45,33 @@ const FileUploader = ({ isOpen, targetReportId, onClose, onSuccess }: FileUpload
 
       const file = inputFileRef.current.files[0];
 
-      // Fix 1: Use FormData instead of sending the file directly
+      // Create a sanitized file with a clean name if needed
+      const sanitizedFile = new File(
+        [await file.arrayBuffer()],
+        file.name.replace(/[^\x00-\x7F]/g, "").replace(/[^\w\s.-]/g, ""),
+        { type: file.type }
+      );
+
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", sanitizedFile);
 
-      // Fix 2: URL encoding for the filename in query params
-      const encodedFilename = encodeURIComponent(targetReportId);
+      // Thoroughly sanitize the targetReportId - remove ALL non-ASCII characters
+      const sanitizedReportId = targetReportId.replace(/[^\x00-\x7F]/g, "");
+      const encodedFilename = encodeURIComponent(sanitizedReportId);
 
-      // Fix 3: Don't set Content-Type in headers when using FormData
-      // The browser will automatically set the correct multipart/form-data
-      // with boundary parameter
+      console.log("Sending request to:", `/api/report/upload?filename=${encodedFilename}`);
+
       const response = await fetch(`/api/report/upload?filename=${encodedFilename}`, {
         method: "POST",
         body: formData,
       });
 
+      // Log the response status for debugging
+      console.log("Response status:", response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
+        console.error("Error response:", errorText);
         throw new Error(`Failed to upload file: ${errorText}`);
       }
 

@@ -28,9 +28,18 @@ export async function PUT(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const filename = searchParams.get("filename") || "unnamed-file";
+    // Sanitize the URL and parameters
+    const url = new URL(request.url);
+    const rawFilename = url.searchParams.get("filename") || "unnamed-file";
 
+    // Thorough sanitization - remove ALL non-ASCII characters and then restrict to safe chars
+    const sanitizedFilename = rawFilename
+      .replace(/[^\x00-\x7F]/g, "") // Remove non-ASCII chars
+      .replace(/[^\w-]/g, ""); // Keep only alphanumeric, underscore and hyphen
+
+    console.log("Processing upload for:", sanitizedFilename);
+
+    // Process form data
     const formData = await request.formData();
     const file = formData.get("file") as File;
 
@@ -38,11 +47,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Generate a safe unique filename with original extension
-    const extension = file.name.split(".").pop();
-    const safeFilename = `${filename.replace(/[^\w-]/g, "")}-${Date.now()}.${extension}`;
+    // Extract file content as array buffer to ensure clean bytes
+    const fileBuffer = await file.arrayBuffer();
 
-    const blob = await put(safeFilename, file, {
+    // Get clean extension (ASCII only)
+    const filenameParts = file.name.split(".");
+    const extension = filenameParts.length > 1 ? filenameParts.pop()?.replace(/[^\x00-\x7F]/g, "") : "bin";
+
+    // Create final safe filename
+    const finalFilename = `${sanitizedFilename}-${Date.now()}.${extension}`;
+    console.log("Final filename:", finalFilename);
+
+    // Create a clean Blob for upload
+    const cleanBlob = new Blob([fileBuffer], { type: file.type });
+
+    // Upload to Vercel Blob
+    const blob = await put(finalFilename, cleanBlob, {
       contentType: file.type,
       access: "public",
     });
@@ -50,6 +70,13 @@ export async function POST(request: Request) {
     return NextResponse.json(blob);
   } catch (error: any) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Error stack:", error.stack);
+    return NextResponse.json(
+      {
+        error: error.message,
+        stack: error.stack,
+      },
+      { status: 500 }
+    );
   }
 }
