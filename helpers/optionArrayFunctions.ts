@@ -2,6 +2,8 @@ const notFoundItem = { value: "not_found", label: "Not found" } as const;
 import { OptionType } from "@/types/common.types";
 
 const getOption = (array: OptionType[], targetValue: string): OptionType => {
+  if (!targetValue) return notFoundItem;
+
   const result = array.find((item) => item.value === targetValue);
 
   return result ?? notFoundItem;

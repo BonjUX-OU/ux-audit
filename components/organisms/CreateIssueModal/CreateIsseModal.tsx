@@ -5,13 +5,7 @@ import { CircleX, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Heuristics, SeverityLevels } from "@/constants/reportIssue.constants";
 import clsx from "clsx";
-import {
-  HeuristicType,
-  IssueOrdersType,
-  ReportIssueType,
-  SeverityLevelKeys,
-  SeverityLevelType,
-} from "@/types/reportIssue.types";
+import { HeuristicType, IssueOrdersType, ReportIssueType, SeverityLevelKeys } from "@/types/reportIssue.types";
 import { ReportType } from "@/types/report.types";
 import { useToast } from "@/hooks/useToast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";

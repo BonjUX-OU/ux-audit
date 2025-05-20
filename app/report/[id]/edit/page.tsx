@@ -23,6 +23,8 @@ import { useDrawRect } from "@/hooks/useDrawRect";
 import CreateIsseModal from "@/components/organisms/CreateIssueModal/CreateIsseModal";
 import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
 import ScreenshotOverlay from "@/components/templates/ScreenshotView/ScreenshotOverlay";
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
+import { useToast } from "@/hooks/useToast";
 
 const breadcrumbsteps = [
   { label: "Heuristic Evaluation", value: "heuristic" },
@@ -35,6 +37,7 @@ export default function EditReportPage() {
   const { data: session } = useSession();
   const { id: reportId } = params;
   const userRole = session?.user?.role;
+  const { toast } = useToast();
 
   useEffect(() => {
     //if user is not logged redirect to login page
@@ -55,6 +58,7 @@ export default function EditReportPage() {
   const [summaryMode, setSummaryMode] = useState(false);
   const [selectedTab, setSelectedTab] = useState("screenshot");
   const [reportNotes, setReportNotes] = useState("");
+  const [isReportInReview, setIsReportInReview] = useState(false);
 
   // ReportIssue related states and hooks
   const [showNewIssueModal, setShowNewIssueModal] = useState(false);
@@ -93,8 +97,6 @@ export default function EditReportPage() {
     }
   };
 
-  //
-
   const fetchReportIssues = async () => {
     try {
       const res = await fetch(`/api/report/issue?reportId=${reportId}`);
@@ -116,6 +118,10 @@ export default function EditReportPage() {
       fetchReport()
         .then(() => {
           fetchReportIssues();
+          if (originalReport && originalReport.status === ReportStatus.InReview) {
+            setIsReportInReview(true);
+            setSummaryMode(true);
+          }
         })
         .catch((error) => {
           console.error("Error fetching report:", error);
@@ -131,6 +137,7 @@ export default function EditReportPage() {
   }, [rectangle]);
 
   function handleCreateNewIssue(issue: ReportIssueType) {
+    // TODO: DELETE OR UPDATE FLOW SHOULD BE ADDED FOR PREVIOUSLY CREATED ISSUES
     clearRectangle();
     setReportIssues((prev) => [...prev, issue]);
     setIssueOrders((prev) => ({ ...prev, [issue.heuristic.code]: issue.order }));
@@ -141,8 +148,28 @@ export default function EditReportPage() {
     setSummaryMode(!summaryMode);
   };
 
-  const saveReportAnalysis = () => {
+  const saveReportAnalysis = async () => {
     // TODO: handle save report analysis here
+    const response = await fetch(`/api/report?id=${reportId}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: ReportStatus.InReview }),
+    });
+
+    if (!response.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to send report to review",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Report has been sent for review",
+      });
+
+      setIsReportInReview(true);
+      setSummaryMode(true);
+    }
   };
 
   if (!originalReport) return <LoadingOverlay message="Loading report for editing..." />;
@@ -189,24 +216,26 @@ export default function EditReportPage() {
                     </span>
                   </Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={completeAndSeeSummary}
-                    className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
-                    size="sm">
-                    {summaryMode ? <ChevronLeft className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    <span>{summaryMode ? "Back to Editing" : "Complete & See Summary"}</span>
-                  </Button>
-                  {summaryMode && (
+                {!isReportInReview && (
+                  <div className="flex items-center gap-2">
                     <Button
-                      onClick={saveReportAnalysis}
+                      onClick={completeAndSeeSummary}
                       className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
                       size="sm">
-                      <Save className="h-4 w-4" />
-                      <span>Submit Report for Review</span>
+                      {summaryMode ? <ChevronLeft className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <span>{summaryMode ? "Back to Editing" : "Complete & See Summary"}</span>
                     </Button>
-                  )}
-                </div>
+                    {summaryMode && (
+                      <Button
+                        onClick={saveReportAnalysis}
+                        className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
+                        size="sm">
+                        <Save className="h-4 w-4" />
+                        <span>Submit Report for Review</span>
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -242,7 +271,7 @@ export default function EditReportPage() {
               <CardHeader className="pb-0">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                   <h3 className="text-lg font-medium mb-4">Screenshot/Website Preview</h3>
-                  {!summaryMode && selectedTab === "screenshot" && (
+                  {!summaryMode && selectedTab === "screenshot" && !isReportInReview && (
                     <Button
                       onClick={enableDrawing}
                       disabled={isDrawingEnabled}

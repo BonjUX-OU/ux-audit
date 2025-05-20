@@ -9,6 +9,7 @@ export enum ReportStatus {
   Assigned = "ASSIGNED",
   NotStarted = "NOT_STARTED",
   InProgres = "IN_PROGRESS",
+  InReview = "IN_REVIEW",
   Completed = "COMPLETED",
 }
 interface Page {

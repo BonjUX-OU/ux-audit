@@ -15,19 +15,7 @@ import { OptionType } from "@/types/common.types";
 import ValidatorReportListTableRows from "./ValidatorReportListTableRows";
 import { UserType } from "@/types/user.types";
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
-
-// Get the contributers from database and list on dropdown.
-//
-const mockUsers: OptionType[] = [
-  { label: "User 1 Bisey", value: "id1" },
-  { label: "User 2 Bisey", value: "id2" },
-  { label: "User 3 Bisey", value: "id3" },
-  { label: "User 4 Bisey", value: "id4" },
-  { label: "User 5 Bisey", value: "id5" },
-  { label: "User 6 Bisey", value: "id6" },
-  { label: "User 7 Bisey", value: "id7" },
-  { label: "User 8 Bisey", value: "id8" },
-];
+import { useToast } from "@/hooks/useToast";
 
 export type ValidatorReportsListHandle = {
   fetchReports: () => void;
@@ -35,6 +23,7 @@ export type ValidatorReportsListHandle = {
 
 const ValidatorReportsList = forwardRef((props, ref) => {
   const { data: session } = useSession();
+  const { toast } = useToast();
 
   const [selectedGroup, setSelectedGroup] = useState<ReportGroupType>(ReportGroups.ALL);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +31,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
   const [filteredByStatusReports, setFilteredByStatusReports] = useState<ReportType[]>();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<UserType["_id"] | null>();
   const [selectedReportId, setSelectedReportId] = useState<string>();
   const [contributors, setContributors] = useState<UserType[]>();
@@ -101,13 +91,49 @@ const ValidatorReportsList = forwardRef((props, ref) => {
     setIsAssignModalOpen(true);
   };
 
-  const handleUpdateReportSuccess = async () => {
+  const handleCompleteReportAnalysis = (reportId: string) => {
+    setSelectedReportId(reportId);
+    setIsCompleteModalOpen(true);
+  };
+
+  const clearStates = async () => {
     setIsUploadModalOpen(false);
     setIsAssignModalOpen(false);
     setAssignTarget(undefined);
     setSelectedReportId(undefined);
     setSelectedGroup(ReportGroups.ALL);
     await fetchReports();
+  };
+
+  const handleUpdateReport = async (payload: Pick<ReportType, "assignedTo" | "status">) => {
+    try {
+      const response = await fetch(`/api/report?id=${selectedReportId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        toast({
+          title: "Error",
+          description: "Report update has been failed",
+        });
+
+        throw new Error("Failed to update report");
+      }
+
+      const data = await response.json();
+
+      const newReports = [...reports!.filter((report) => report._id !== data._id), data];
+
+      setReports(newReports);
+      clearStates();
+      toast({
+        title: "Success",
+        description: "Report has been updated successfully!",
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const onAssignReportConfirm = async () => {
@@ -118,22 +144,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
       status: ReportStatus.Assigned,
     };
 
-    const response = await fetch(`/api/report?id=${selectedReportId}`, {
-      method: "PUT",
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to update report");
-    }
-
-    const data = await response.json();
-
-    const newReports = [...reports!.filter((report) => report._id !== data._id), data];
-
-    setReports(newReports);
-
-    handleUpdateReportSuccess();
+    handleUpdateReport(payload);
   };
 
   useEffect(() => {
@@ -148,6 +159,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
 
   useEffect(() => {
     fetchContributors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -192,6 +204,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
                     reports={selectedGroup === ReportGroups.ALL ? reports! : filteredByStatusReports!}
                     handleUploadImage={handleUploadImage}
                     handleAssignReport={handleAssignReport}
+                    handleCompleteReport={handleCompleteReportAnalysis}
                   />
                 </TableBody>
               </Table>
@@ -205,7 +218,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
         <FileUploader
           isOpen
           targetReportId={selectedReportId!}
-          onSuccess={handleUpdateReportSuccess}
+          onSuccess={clearStates}
           onClose={() => setIsUploadModalOpen(false)}
         />
       )}
@@ -231,6 +244,18 @@ const ValidatorReportsList = forwardRef((props, ref) => {
           </div>
         )}
       </ConfirmationModal>
+
+      {/* Complete report confirmation */}
+      <ConfirmationModal
+        title="Confirm to complete analysis"
+        description="Once the analysis is completed the customer will be able to see analysis results and the request will be completed. Are you sure to continue?"
+        isOpen={isCompleteModalOpen}
+        onCancel={() => {
+          setSelectedReportId(undefined);
+          setIsCompleteModalOpen(false);
+        }}
+        onConfirm={() => handleUpdateReport({ status: ReportStatus.Completed })}
+      />
     </>
   );
 });
