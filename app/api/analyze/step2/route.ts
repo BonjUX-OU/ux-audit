@@ -21,10 +21,7 @@ export async function POST(request: Request) {
     await dbConnect();
     const { url, truncatedHTML, screenshot } = await request.json();
     if (!url || !truncatedHTML || !screenshot) {
-      return NextResponse.json(
-        { message: "Missing required data" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Missing required data" }, { status: 400 });
     }
 
     const existingReport = await Report.findOne({ url });
@@ -59,6 +56,7 @@ export async function POST(request: Request) {
         model: "o1",
         messages: [
           { role: "system", content: compareSystemInstruction },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           { role: "user", content: compareUserContent as any },
         ],
         response_format: zodResponseFormat(CompareSchema, "comparison"),
@@ -86,11 +84,13 @@ export async function POST(request: Request) {
       same: false,
       message: "Page is different or no existing report.",
     });
-  } catch (error: any) {
-    console.error("Error in step2:", error);
-    return NextResponse.json(
-      { message: error.message || "Internal Server Error" },
-      { status: 500 }
-    );
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error in step2:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }

@@ -5,7 +5,7 @@ import { CircleX, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Heuristics, SeverityLevels } from "@/constants/reportIssue.constants";
 import clsx from "clsx";
-import { HeuristicType, ReportIssueType, SnapshotType } from "@/types/reportIssue.types";
+import { HeuristicType, IssueOrdersType, ReportIssueType, SeverityLevelKeys } from "@/types/reportIssue.types";
 import { ReportType } from "@/types/report.types";
 import { useToast } from "@/hooks/useToast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -18,16 +18,16 @@ type CreateIssueModalProps = {
   isOpen: boolean;
   targetReport: ReportType;
   issueRectangle: IssueRectangleData;
-  issueOrder?: number;
+  issueOrders: IssueOrdersType;
   onClose: (isOpen: boolean) => void;
   onSaveIssue: (issue: ReportIssueType) => void;
 };
 
 const CreateIsseModal = ({
   isOpen,
+  issueOrders,
   targetReport,
   issueRectangle,
-  issueOrder,
   onSaveIssue,
   onClose,
 }: CreateIssueModalProps) => {
@@ -41,7 +41,7 @@ const CreateIsseModal = ({
   useEffect(() => {
     const { heuristic, description, severityLevel, suggestedFix } = newIssueData || {};
     setIsButtonDisabled(!heuristic || !description || !severityLevel || !suggestedFix);
-  }, [newIssueData, selectedHeuristic]);
+  }, [newIssueData]);
 
   const uploadScreenshot = async () => {
     try {
@@ -50,7 +50,7 @@ const CreateIsseModal = ({
         throw new Error("Invalid screenshot data");
       }
 
-      const fileName = `issue-${newIssueData?.heuristic?.code}.${issueOrder ?? 1}`;
+      const fileName = `issue-${newIssueData?.heuristic?.code}.${newIssueData?.order ?? 1}-${Date.now()}`;
       const file = new File([blob], fileName, { type: blob.type });
 
       const formData = new FormData();
@@ -85,6 +85,7 @@ const CreateIsseModal = ({
       severityLevel: SeverityLevels.MINOR,
       description: "",
       suggestedFix: "",
+      order: issueOrders[selectedHeuristic!.code] + 1,
       snapshotLocation: {
         top: issueRectangle.top,
         left: issueRectangle.left,
@@ -94,8 +95,6 @@ const CreateIsseModal = ({
       croppedImageUrl: "",
       tags: [],
     };
-
-    console.log("newIssue", newIssue);
 
     setNewIssueData(newIssue);
     setIssueStep("details");
@@ -140,6 +139,15 @@ const CreateIsseModal = ({
         variant: "destructive",
       });
     }
+  };
+
+  const handleSevertyLevelSelect = (severityLevelKey: SeverityLevelKeys) => {
+    const targetSeverity = SeverityLevels[severityLevelKey];
+
+    setNewIssueData((prev) => ({
+      ...prev!,
+      severityLevel: targetSeverity,
+    }));
   };
 
   const addNewTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -200,7 +208,7 @@ const CreateIsseModal = ({
           ) : (
             <div className="flex flex-col gap-4">
               <div className="w-full flex items-center justify-center">
-                {issueRectangle && (
+                {issueRectangle && issueRectangle.screenshot && (
                   <img
                     src={issueRectangle.screenshot}
                     alt="Snapshot"
@@ -213,30 +221,28 @@ const CreateIsseModal = ({
                 {newIssueData?.heuristic?.name} ({newIssueData?.heuristic?.code})
               </div>
               <div className="w-full text-md">
-                <b>{`Issue ${newIssueData?.heuristic?.code}.${issueOrder ?? 1} description *`}</b>
+                <b>{`Issue ${newIssueData?.heuristic?.code}.${newIssueData?.order ?? 1} description *`}</b>
                 <Textarea
                   value={newIssueData?.description}
                   onChange={(e) => setNewIssueData({ ...newIssueData!, description: e.target.value })}
                   className="min-h-[80px] my-2"
                   placeholder="Describe the usability issue you-ve identified..."
-                  rows={3}
-                  style={{ resize: "none" }}
                 />
               </div>
               <div className="w-full text-md">
                 <b>
                   How severe the issue? ({SeverityLevels.MINOR.code}-{SeverityLevels.CRITICAL.code}) *
                 </b>
-                <RadioGroup>
+                <RadioGroup onValueChange={handleSevertyLevelSelect}>
                   <div className="flex gap-4 mt-2">
-                    {Object.values(SeverityLevels).map((level) => (
+                    {Object.entries(SeverityLevels).map(([key, level]) => (
                       <div key={level.code} className="flex items-center gap-2">
                         <RadioGroupItem
-                          value={level.code}
-                          id={`severity-${level.code}`}
+                          value={key}
+                          id={`severity-${key}`}
                           className="w-4 h-4 border-gray-400 rounded-full cursor-pointer"
                         />
-                        <label htmlFor={`severity-${level.code}`} className="text-md text-gray-700">
+                        <label htmlFor={`severity-${key}`} className="text-md text-gray-700">
                           {level.name}
                         </label>
                       </div>
@@ -246,15 +252,13 @@ const CreateIsseModal = ({
               </div>
               <div className="w-full text-md">
                 <b>
-                  Suggested Fix for {newIssueData?.heuristic?.code}.{issueOrder ?? 1}
+                  Suggested Fix for {newIssueData?.heuristic?.code}.{newIssueData?.order ?? 1}
                 </b>
                 <Textarea
                   value={newIssueData?.suggestedFix}
                   onChange={(e) => setNewIssueData({ ...newIssueData!, suggestedFix: e.target.value })}
                   className="min-h-[80px] my-2"
                   placeholder="Suggest a fix for the issue..."
-                  rows={3}
-                  style={{ resize: "none" }}
                 />
               </div>
               <div className="w-full text-md">
@@ -268,6 +272,7 @@ const CreateIsseModal = ({
                     onKeyUp={(e) => addNewTag(e)}
                   />
                   <div
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     onClick={() => addNewTag({ key: "Enter" } as any)} // Simulate Enter key press
                     className={clsx("w-[20%] flex items-center gap-2 cursor-pointer", !newTag.length && "opacity-40")}>
                     <Plus className={"h-4 w-4 text-[#B04E43]"} />

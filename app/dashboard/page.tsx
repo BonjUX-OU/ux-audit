@@ -17,25 +17,25 @@ import SubscribeBar from "@/components/templates/SubscribeBar/SubscribeBar";
 import ProjectsNavBar, { ProjectsNavBarHandle } from "@/components/templates/ProjectsNavBar/ProjectsNavBar";
 import CreateProjectButton from "@/components/templates/CreateProjectButton/CreateProjectButton";
 import ComparisonScale from "@/components/templates/ComparisonScale/ComparisonScale";
-import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
 import { ProjectType } from "@/types/project.types";
 import ValidatorReportsList, {
   ValidatorReportsListHandle,
 } from "@/components/templates/ValidatorReportsList/ValidatorReportsList";
 import { UserRoleType } from "@/types/user.types";
+import { ReportType } from "@/types/report.types";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
 
   const [currentProject, setCurrentProject] = useState<ProjectType | null>(null);
-  const [reports, setReports] = useState<AnalysisReportType[]>([]);
+  const [reports, setReports] = useState<ReportType[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
 
   // ------------------------------------
   // Delete Report
   // ------------------------------------
   const [deleteReportDialogOpen, setDeleteReportDialogOpen] = useState(false);
-  const [selectedReportToDelete, setSelectedReportToDelete] = useState<AnalysisReportType | null>(null);
+  const [selectedReportToDelete, setSelectedReportToDelete] = useState<ReportType | null>(null);
 
   const projectsNavbarRef = useRef<ProjectsNavBarHandle>(null);
   const validatorReportsRef = useRef<ValidatorReportsListHandle>(null);
@@ -58,7 +58,7 @@ export default function DashboardPage() {
   // ------------------------------------
   // Delete Report
   // ------------------------------------
-  function handleDeleteReportClick(report: AnalysisReportType) {
+  function handleDeleteReportClick(report: ReportType) {
     setSelectedReportToDelete(report);
     setDeleteReportDialogOpen(true);
   }
@@ -94,7 +94,7 @@ export default function DashboardPage() {
 
   const projectReports = currentProject ? reports.filter((r) => r.project._id === currentProject?._id) : reports;
 
-  const reportsByPageType: Record<string, AnalysisReportType[]> = {};
+  const reportsByPageType: Record<string, ReportType[]> = {};
   for (const rep of projectReports) {
     const pt = rep.pageType || "Other";
     if (!reportsByPageType[pt]) {

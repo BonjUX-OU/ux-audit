@@ -6,8 +6,10 @@ import type { Browser } from "puppeteer-core";
 export const revalidate = 0;
 export const maxDuration = 60;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let puppeteerModule: any = puppeteer;
 if (process.env.NODE_ENV === "development") {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   puppeteerModule = require("puppeteer");
 }
 
@@ -22,10 +24,7 @@ export async function POST(request: Request) {
     const browser: Browser = await puppeteerModule.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath:
-        process.env.NODE_ENV === "development"
-          ? undefined
-          : await chromium.executablePath(),
+      executablePath: process.env.NODE_ENV === "development" ? undefined : await chromium.executablePath(),
       headless: chromium.headless,
       ignoreHTTPSErrors: true,
     });
@@ -71,11 +70,9 @@ export async function POST(request: Request) {
       truncatedHTML,
       message: "Step 1 completed: Webpage data fetched.",
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error in step1:", error);
-    return NextResponse.json(
-      { message: error.message || "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
   }
 }

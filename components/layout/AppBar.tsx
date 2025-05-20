@@ -6,19 +6,13 @@ import Link from "next/link";
 
 export default function AppBar() {
   return (
-    <div className="fixed top-0 left-0 right-0 z-10 p-2 bg-white border-b">
+    <div className="fixed top-0 left-0 right-0 p-2 bg-white border-b" style={{ zIndex: 48 }}>
       <Menubar className="rounded-none border-none px-2 lg:px-4">
         <MenubarMenu>
           <div className=" lg:hidden"></div>
           <MenubarTrigger>
             <Link href="/">
-              <Image
-                src="/images/logo.png"
-                alt="UXMust Logo"
-                width={120}
-                height={40}
-                className="w-auto h-8"
-              />
+              <Image src="/images/logo.png" alt="UXMust Logo" width={120} height={40} className="w-auto h-8" />
             </Link>
           </MenubarTrigger>
         </MenubarMenu>

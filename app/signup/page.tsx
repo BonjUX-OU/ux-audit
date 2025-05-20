@@ -13,7 +13,7 @@ function SignupPage() {
   const [error, setError] = useState("");
   //const [acceptedTerms, setAcceptedTerms] = useState(false);
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -144,7 +144,7 @@ function SignupPage() {
                 </div>
               </div>
 
-              <h1 className="text-2xl font-bold mb-8">Let's create an account first</h1>
+              <h1 className="text-2xl font-bold mb-8">Let&apos;s create an account first</h1>
               <form className="space-y-3" onSubmit={handleSubmit}>
                 <div className="space-y-2">
                   <label htmlFor="name" className="block font-medium">

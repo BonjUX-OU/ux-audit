@@ -3,15 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { ChevronDown, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Home() {
   return (
@@ -40,9 +32,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="text-center py-12">
-        <h2 className="text-4xl font-bold mb-4">
-          {"Ensure User-Friendly Experiences"}
-        </h2>
+        <h2 className="text-4xl font-bold mb-4">{"Ensure User-Friendly Experiences"}</h2>
         <p className="text-gray-600 mb-6 max-w-lg mx-auto">
           {
             "Discover how your design choices impact user experience and keep improving with actionable insights for your website."
@@ -54,14 +44,8 @@ export default function Home() {
       {/* Features Section */}
       <section className="p-8 mb-12 lg:px-12">
         <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold  mb-2">
-            {"Evaluate, Improve, Evolve."}
-          </h3>
-          <p>
-            {
-              "Take the guesswork out of usability, discover what works and what doesn’t on your website."
-            }
-          </p>
+          <h3 className="text-2xl font-bold  mb-2">{"Evaluate, Improve, Evolve."}</h3>
+          <p>{"Take the guesswork out of usability, discover what works and what doesn’t on your website."}</p>
         </div>
         <div className="grid grid-cols-3 gap-6 px-12 ">
           {[
@@ -73,18 +57,12 @@ export default function Home() {
               "Extensive Report for Every Page",
               "Each page gets a detailed usability score, pin-pointing the exact location of error.",
             ],
-            [
-              "Design Recommendations",
-              "Suggestions are crucial for improvements. Iterate your designs accurately.",
-            ],
+            ["Design Recommendations", "Suggestions are crucial for improvements. Iterate your designs accurately."],
             [
               "Proven Methodological Effectiveness",
               "Nielsen Norman’s 10 Usability Heuristics have been supported by extensive practical use, showcasing its effectiveness in identifying usability issues. ",
             ],
-            [
-              "Benchmarking",
-              "Compare how well your design stands within your domain.",
-            ],
+            ["Benchmarking", "Compare how well your design stands within your domain."],
             [
               "Track Evolution",
               "Design is a continous process. Keep track on how your design iterations evolve throughout time.",
@@ -110,18 +88,12 @@ export default function Home() {
               <br />
               {" experience for your visitors."}
             </p>
-            <p className="text-lg">
-              {"It’s time to make your website work for your users!"}
-            </p>
+            <p className="text-lg">{"It’s time to make your website work for your users!"}</p>
           </div>
           <div className="col-span-6">
-            <Label className="text-left text-sm mt-2 font-semibold">
-              Your website URL
-            </Label>
+            <Label className="text-left text-sm mt-2 font-semibold">Your website URL</Label>
             <Input placeholder="Paste your page's URL" className="max-w-md" />
-            <Label className="text-left text-sm mt-2 font-semibold">
-              Type of your page
-            </Label>
+            <Label className="text-left text-sm mt-2 font-semibold">Type of your page</Label>
             <Select>
               <SelectTrigger className="max-w-md">
                 <SelectValue placeholder="Select the page type" />
@@ -136,9 +108,7 @@ export default function Home() {
               </SelectContent>
             </Select>
 
-            <Label className="text-left text-sm mt-2 font-semibold">
-              Sector
-            </Label>
+            <Label className="text-left text-sm mt-2 font-semibold">Sector</Label>
             <Select>
               <SelectTrigger className="max-w-md">
                 <SelectValue placeholder="Select a sector" />
@@ -162,9 +132,7 @@ export default function Home() {
 
       {/* Pricing */}
       <section className="p-8 text-center mb-8 lg:px-16">
-        <h3 className="text-2xl font-bold mb-4">
-          {"You can have more than a basic sample"}
-        </h3>
+        <h3 className="text-2xl font-bold mb-4">{"You can have more than a basic sample"}</h3>
         <div className="grid grid-cols-3 gap-6">
           {[
             {
@@ -202,25 +170,14 @@ export default function Home() {
       {/* FAQ */}
       <section className="p-8">
         <div className="lg:px-20">
-          <h3 className="text-2xl font-bold text-center mb-4">
-            {"Frequently Asked Questions"}
-          </h3>
+          <h3 className="text-2xl font-bold text-center mb-4">{"Frequently Asked Questions"}</h3>
           <div className="space-y-4 ">
-            {[
-              "How long does it take?",
-              "Can I...",
-              "Lorem ipsum question?",
-            ].map((question, i) => (
-              <details
-                key={i}
-                className="p-4 rounded-md border border-gray-300"
-              >
+            {["How long does it take?", "Can I...", "Lorem ipsum question?"].map((question, i) => (
+              <details key={i} className="p-4 rounded-md border border-gray-300">
                 <summary className="cursor-pointer font-medium flex justify-between">
                   {question} <ChevronDown size={16} />
                 </summary>
-                <p className="text-gray-600 mt-2">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                </p>
+                <p className="text-gray-600 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
               </details>
             ))}
           </div>

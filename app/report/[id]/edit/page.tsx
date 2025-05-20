@@ -7,26 +7,37 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, Eye, Plus } from "lucide-react";
+import { ChevronLeft, Eye, Plus, Save } from "lucide-react";
 import AppBar from "@/components/layout/AppBar";
 import StepperBreadCrumb from "@/components/organisms/StepperBreadCrumb/StepperBreadCrumb";
 import { ReportType } from "@/types/report.types";
+import { HeuristicType, IssueOrdersType, ReportIssueType } from "@/types/reportIssue.types";
+import { UserRoleType } from "@/types/user.types";
+import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
+import IssueListView from "@/components/templates/IssueListView/IssueListView";
+import { Heuristics, IssueOrdersInitState } from "@/constants/reportIssue.constants";
+import { OptionType } from "@/types/common.types";
+import LoadingOverlay from "@/components/layout/LoadingOverlay";
+import IssuesContainer from "@/components/templates/ScreenshotView/IssuesContainer";
 import { useDrawRect } from "@/hooks/useDrawRect";
 import CreateIsseModal from "@/components/organisms/CreateIssueModal/CreateIsseModal";
-import { ReportIssueType } from "@/types/reportIssue.types";
-import { getHeuristicColor } from "@/helpers/getColorHelper";
 import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
-import { UserRoleType } from "@/types/user.types";
+import ScreenshotOverlay from "@/components/templates/ScreenshotView/ScreenshotOverlay";
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
+import { useToast } from "@/hooks/useToast";
+
+const breadcrumbsteps = [
+  { label: "Heuristic Evaluation", value: "heuristic" },
+  { label: "Report Summary", value: "summary" },
+];
 
 export default function EditReportPage() {
   const router = useRouter();
   const params = useParams();
   const { data: session } = useSession();
-  const { id } = params; // The report ID to edit
+  const { id: reportId } = params;
   const userRole = session?.user?.role;
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { rectangle, enableDrawing, isDrawingEnabled, clearRectangle, isCropping } = useDrawRect(containerRef);
+  const { toast } = useToast();
 
   useEffect(() => {
     //if user is not logged redirect to login page
@@ -40,52 +51,84 @@ export default function EditReportPage() {
 
   // Original report loaded from the API
   const [originalReport, setOriginalReport] = useState<ReportType | null>(null);
-  const [snapshotUrl, setSnapshotUrl] = useState<string | undefined>();
   const [reportIssues, setReportIssues] = useState<ReportIssueType[]>([]);
+  const [issueOrders, setIssueOrders] = useState<IssueOrdersType>(IssueOrdersInitState);
+  const [pageTypes, setPageTypes] = useState<OptionType[]>();
+  const [customerIssues, setCustomerIssues] = useState<OptionType[]>();
+  const [summaryMode, setSummaryMode] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("screenshot");
+  const [reportNotes, setReportNotes] = useState("");
+  const [isReportInReview, setIsReportInReview] = useState(false);
+
+  // ReportIssue related states and hooks
   const [showNewIssueModal, setShowNewIssueModal] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
 
-  async function fetchReport() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { rectangle, enableDrawing, disableDrawing, isDrawingEnabled, clearRectangle, isCropping } =
+    useDrawRect(containerRef);
+
+  const getConstants = async () => {
+    const response = await fetch(`/api/constants?target=customerIssues`);
+    const data = await response.json();
+
+    setCustomerIssues(data.customerIssues);
+    setPageTypes(data.pageTypeOptions);
+  };
+
+  const groupFunc = async (reportIssues: ReportIssueType[]) => {
+    const newIssueOrders: IssueOrdersType = Heuristics.reduce((acc, heuristic) => {
+      const targetIssue = reportIssues.find((issue) => issue.heuristic.code === heuristic.code);
+      acc[heuristic.code] = targetIssue?.order ?? 0;
+      return acc;
+    }, {} as Record<HeuristicType["code"], number>);
+
+    setIssueOrders(newIssueOrders);
+  };
+
+  const fetchReport = async () => {
     try {
-      const res = await fetch(`/api/report?id=${id}`);
+      const res = await fetch(`/api/report?id=${reportId}`);
       if (!res.ok) throw new Error("Failed to fetch report");
       const data: ReportType = await res.json();
       setOriginalReport(data);
-      // setEditedHeuristics(data.iss); // !IMPORANT: ReportIssues and Reports need to binded somehow
-      setSnapshotUrl(data.screenshotImgUrl);
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   const fetchReportIssues = async () => {
     try {
-      const res = await fetch(`/api/report/issue?reportId=${id}`);
+      const res = await fetch(`/api/report/issue?reportId=${reportId}`);
 
       if (!res.ok) throw new Error("Failed to fetch report issues");
 
       const data: ReportIssueType[] = await res.json();
-
+      await groupFunc(data);
       setReportIssues(data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  // ---------------------------
-  // 1. LOAD TARGET REPORT
-  // ---------------------------
   useEffect(() => {
-    if (id) {
+    if (reportId) {
+      getConstants();
+
       fetchReport()
         .then(() => {
           fetchReportIssues();
+          if (originalReport && originalReport.status === ReportStatus.InReview) {
+            setIsReportInReview(true);
+            setSummaryMode(true);
+          }
         })
         .catch((error) => {
           console.error("Error fetching report:", error);
         });
     }
-  }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (rectangle) {
@@ -93,61 +136,54 @@ export default function EditReportPage() {
     }
   }, [rectangle]);
 
-  useEffect(() => {
-    if (!showNewIssueModal) {
-      clearRectangle();
-    }
-  }, [showNewIssueModal]);
-
-  // ------------------------------------------------------
-  // 6. *NEW* FUNCTION: ADDING A BRAND NEW ISSUE & OCCURRENCE
-  //    WHEN USER FINISHES HIGHLIGHTING AND FILLS THE MODAL
-  // ------------------------------------------------------
   function handleCreateNewIssue(issue: ReportIssueType) {
+    // TODO: DELETE OR UPDATE FLOW SHOULD BE ADDED FOR PREVIOUSLY CREATED ISSUES
+    clearRectangle();
     setReportIssues((prev) => [...prev, issue]);
+    setIssueOrders((prev) => ({ ...prev, [issue.heuristic.code]: issue.order }));
     setShowNewIssueModal(false);
   }
 
-  // -----------------------------
-  // Recent added codes starts here
-  // -----------------------------
-  const breadcrumbsteps = [
-    { label: "Heuristic Evaluation", value: "heuristic" },
-    { label: "Report Summary", value: "summary" },
-  ];
+  const completeAndSeeSummary = () => {
+    setSummaryMode(!summaryMode);
+  };
 
-  const completeAndSeeSummary = () => {};
+  const saveReportAnalysis = async () => {
+    // TODO: handle save report analysis here
+    const response = await fetch(`/api/report?id=${reportId}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: ReportStatus.InReview }),
+    });
 
-  // --------------
-  // RENDER LOGIC
-  // --------------
-  if (!originalReport) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#B04E34] border-t-transparent"></div>
-          <p className="mt-4 text-lg font-medium text-gray-700">Loading report for editing...</p>
-        </div>
-      </div>
-    );
-  }
+    if (!response.ok) {
+      toast({
+        title: "Error",
+        description: "Failed to send report to review",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Report has been sent for review",
+      });
+
+      setIsReportInReview(true);
+      setSummaryMode(true);
+    }
+  };
+
+  if (!originalReport) return <LoadingOverlay message="Loading report for editing..." />;
 
   return (
     <>
       <AppBar />
-      {isCropping && (
-        <div className="absoute top-0 left-0 w-screen h-screen flex items-center justify-center bg-gray-50 z-50">
-          <div className="flex flex-col items-center">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#B04E34] border-t-transparent"></div>
-            <p className="mt-4 text-lg font-medium text-gray-700">Cropping the image...</p>
-          </div>
-        </div>
-      )}
+      {isCropping && <LoadingOverlay message="Cropping the image..." hasOpacity />}
+      {isDrawingEnabled && !isCropping && <ScreenshotOverlay targetRef={containerRef} onCancel={disableDrawing} />}
       <div className="min-h-screen bg-gray-50 pt-16">
         <div className="container mx-auto px-4 py-6">
           {/* Stepper Breadcrumb */}
           <div className="w-100 flex justify-center">
-            <StepperBreadCrumb steps={breadcrumbsteps} currentStep={breadcrumbsteps[0].value} />
+            <StepperBreadCrumb steps={breadcrumbsteps} currentStep={breadcrumbsteps[+summaryMode].value} />
           </div>
 
           {/* Header */}
@@ -163,44 +199,67 @@ export default function EditReportPage() {
                 <div className="flex items-center gap-3">
                   <Badge variant="outline" className="bg-[#FFF1E0] text-[#963F28] border-0 p-2 font-normal">
                     <strong>Website:</strong>
-                    <span className="ms-1">https://example.com</span>
+                    <span className="ms-1">{originalReport.url}</span>
                   </Badge>
                   <Badge variant="outline" className="bg-[#FFF1E0] text-[#963F28] border-0 p-2 font-normal">
                     <strong>Page:</strong>
-                    <span className="ms-1">Homepage</span>
+                    <span className="ms-1">
+                      {pageTypes?.find((page) => page.value === originalReport.pageType)?.label ?? "undefined"}
+                    </span>
                   </Badge>
                   <Badge variant="outline" className="bg-[#FFF1E0] text-[#963F28] border-0 p-2 font-normal">
                     <strong>Issues:</strong>
-                    <span className="ms-1">Improving user satisfaction&feedback</span>
+                    <span className="ms-1">
+                      {customerIssues?.find(
+                        (customerIssues) => customerIssues.value === originalReport.predefinedIssues?.[0]
+                      )?.label ?? "Not specified"}
+                    </span>
                   </Badge>
                 </div>
-                <div className="flex items-center">
-                  <Button
-                    onClick={completeAndSeeSummary}
-                    className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
-                    size="sm">
-                    <Eye className="h-4 w-4" />
-                    <span>Complete & See Summary</span>
-                  </Button>
-                </div>
+                {!isReportInReview && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={completeAndSeeSummary}
+                      className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
+                      size="sm">
+                      {summaryMode ? <ChevronLeft className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <span>{summaryMode ? "Back to Editing" : "Complete & See Summary"}</span>
+                    </Button>
+                    {summaryMode && (
+                      <Button
+                        onClick={saveReportAnalysis}
+                        className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
+                        size="sm">
+                        <Save className="h-4 w-4" />
+                        <span>Submit Report for Review</span>
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </CardHeader>
             <CardContent>
               <h3 className="text-lg font-medium mb-4">Additional Info from the Customer</h3>
-              <p className="text-sm mb-4">
-                Lorem ipsum dolor sit amet amet, lorem ipsum dolor sit amet ametlorem ipsum dolor sit amet ametlorem
-                ipsum dolor sit amet ametlorem ipsum dolor sit amet ametlorem ipsum dolor sit amet ametlorem ipsum dolor
-                sit amet ametlorem ipsum dolor sit amet amet
-              </p>
-              <h3 className="text-lg font-medium mb-4">General Summary from the Contributor</h3>
+              {originalReport.predefinedIssues && originalReport.predefinedIssues.length > 0
+                ? originalReport.predefinedIssues.map((preDefinedIssue, index) => (
+                    <p className="text-sm mb-4" key={`user-defined-issue-${index}`}>
+                      {preDefinedIssue}
+                    </p>
+                  ))
+                : "Not specified"}
+              <h3 className="text-lg font-medium my-4">General Summary from the Contributor</h3>
               {/* Additional Notes */}
               <div className="grid grid-cols-1 md:grid-cols-12 mt-4">
                 <div className="md:col-span-12">
-                  <Textarea
-                    placeholder="Summarize the website page experience based on the heuristic evaluation"
-                    rows={3}
-                    style={{ resize: "none" }}
-                  />
+                  {summaryMode ? (
+                    reportNotes ?? "Not specified"
+                  ) : (
+                    <Textarea
+                      placeholder="Summarize the website page experience based on the heuristic evaluation"
+                      value={reportNotes}
+                      onChange={(e) => setReportNotes(e.target.value)}
+                    />
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -208,18 +267,20 @@ export default function EditReportPage() {
 
           {/* Main Content */}
           <Card className="mt-4 mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
-            <Tabs defaultValue="screenshot" className="w-full">
+            <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="w-full">
               <CardHeader className="pb-0">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                   <h3 className="text-lg font-medium mb-4">Screenshot/Website Preview</h3>
-                  <Button
-                    onClick={enableDrawing}
-                    className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
-                    disabled={isDrawingEnabled}
-                    size="sm">
-                    <Plus className="h-4 w-4" />
-                    <span>Draw Issue Area</span>
-                  </Button>
+                  {!summaryMode && selectedTab === "screenshot" && !isReportInReview && (
+                    <Button
+                      onClick={enableDrawing}
+                      disabled={isDrawingEnabled}
+                      className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
+                      size="sm">
+                      <Plus className="h-4 w-4" />
+                      <span>Draw Issue Area</span>
+                    </Button>
+                  )}
                   <div className="flex items-center">
                     <TabsList className="w-full grid grid-cols-2">
                       <TabsTrigger value="screenshot">Screenshot View</TabsTrigger>
@@ -227,40 +288,21 @@ export default function EditReportPage() {
                     </TabsList>
                   </div>
                 </div>
+                {summaryMode && <ScoreBar overallScore={93} totalIssues={4} />}
               </CardHeader>
               <CardContent>
                 <TabsContent value="screenshot" className="mt-4">
-                  <div ref={containerRef} className="w-full h-max border-none relative">
-                    <img
-                      src={snapshotUrl}
-                      alt="Dynamic height content"
-                      style={{
-                        width: "100%",
-                        height: "auto", // This allows the image to maintain its natural height
-                        display: "block",
-                        pointerEvents: "none",
-                        userSelect: "none",
-                      }}
+                  <div ref={containerRef} className="w-full h-max border-none relative" style={{ zIndex: 45 }}>
+                    <IssuesContainer
+                      hideIssues={isDrawingEnabled}
+                      imgUrl={originalReport.screenshotImgUrl}
+                      reportIssues={reportIssues}
+                      onIssueClick={setSelectedIssue}
                     />
-                    <div className="w-full h-full bg-transparent absolute top-0 left-0">
-                      {reportIssues.map((issue, index) => (
-                        <div
-                          key={index}
-                          className="w-10 h-10 text-white absolute rounded-full shadow-md flex items-center justify-center cursor-pointer"
-                          onClick={() => setSelectedIssue(issue)}
-                          style={{
-                            backgroundColor: getHeuristicColor(issue.heuristic.code),
-                            top: issue.snapshotLocation.top,
-                            left: issue.snapshotLocation.left,
-                          }}>
-                          <h4 className="text-lg font-semibold">{issue.heuristic.code}</h4>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 </TabsContent>
                 <TabsContent value="list" className="mt-4">
-                  list here
+                  <IssueListView issues={reportIssues} />
                 </TabsContent>
               </CardContent>
             </Tabs>
@@ -273,17 +315,14 @@ export default function EditReportPage() {
         <CreateIsseModal
           isOpen
           targetReport={originalReport}
-          issueOrder={1}
+          issueOrders={issueOrders}
           issueRectangle={rectangle!}
           onSaveIssue={handleCreateNewIssue}
           onClose={setShowNewIssueModal}
         />
       )}
 
-      {/* Issue Detail Modal */}
-      {selectedIssue && (
-        <IssueDetailModal isOpen issue={selectedIssue!} issueOrder={1} onClose={() => setSelectedIssue(null)} />
-      )}
+      {selectedIssue && <IssueDetailModal isOpen issue={selectedIssue!} onClose={() => setSelectedIssue(null)} />}
     </>
   );
 }

@@ -1,12 +1,12 @@
-import { AnalysisReportType } from "@/components/organisms/ReportList/ReportList.types";
 import { Card, CardContent } from "@/components/ui/card";
+import { ReportType } from "@/types/report.types";
 
 function getLeftPercent(score: number) {
   const clamped = Math.min(100, Math.max(0, score));
   return `${clamped}%`;
 }
 
-const ComparisonScale = ({ reports }: { reports: AnalysisReportType[] }) => {
+const ComparisonScale = ({ reports }: { reports: ReportType[] }) => {
   const sortedByDate = [...reports].sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
 
   return (
@@ -28,7 +28,7 @@ const ComparisonScale = ({ reports }: { reports: AnalysisReportType[] }) => {
             <div className="w-1/5 h-full bg-green-600/80 rounded-r-full"></div>
           </div>
           {sortedByDate.map((report, i) => {
-            const left = getLeftPercent(report.overallScore);
+            const left = getLeftPercent(report.score ?? 0);
             return (
               <div key={report._id} className="absolute -top-3 transform -translate-x-1/2" style={{ left }}>
                 <div className="w-7 h-7 bg-white border-2 border-[#B04E34] text-[#B04E34] text-xs rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-110 hover:shadow-lg">

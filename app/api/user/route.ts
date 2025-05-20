@@ -22,16 +22,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     await dbConnect();
-    const {
-      full_name,
-      bio,
-      industry,
-      proffession,
-      goals,
-      interests,
-      email,
-      profile_image,
-    } = await request.json();
+    const { full_name, bio, industry, proffession, goals, interests, email, profile_image } = await request.json();
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {

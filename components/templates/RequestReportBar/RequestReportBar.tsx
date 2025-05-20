@@ -199,11 +199,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
             <label className="block text-sm font-medium mb-1.5">
               Additional Notes <span className="font-normal">(Optional)</span>
             </label>
-            <Textarea
-              placeholder="Please explain your problem more in detail if you have anything"
-              rows={3}
-              style={{ resize: "none" }}
-            />
+            <Textarea placeholder="Please explain your problem more in detail if you have anything" />
           </div>
         </div>
       </form>

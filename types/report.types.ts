@@ -17,4 +17,5 @@ export type ReportType = DataObjectType & {
   screenshotImgUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  contributorNotes?: string;
 };

@@ -98,6 +98,7 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
 
   useEffect(() => {
     fetchProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Expose the function to parent via ref
@@ -207,5 +208,7 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
     </>
   );
 });
+
+ProjectsNavBar.displayName = "ProjectsNavBar";
 
 export default ProjectsNavBar;

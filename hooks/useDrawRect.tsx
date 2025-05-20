@@ -21,7 +21,24 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
   const isMouseDownRef = useRef(false);
 
   const enableDrawing = () => setIsDrawingEnabled(true);
+  const disableDrawing = () => setIsDrawingEnabled(false);
   const clearRectangle = () => setRectangle(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsDrawingEnabled(false); // Or whatever your cancel logic is
+      }
+    };
+
+    if (isDrawingEnabled) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDrawingEnabled]);
 
   useEffect(() => {
     if (!isDrawingEnabled) return;
@@ -157,5 +174,5 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
     };
   }, [isDrawingEnabled, containerRef]);
 
-  return { enableDrawing, isDrawingEnabled, rectangle, isCropping, clearRectangle };
+  return { enableDrawing, disableDrawing, isDrawingEnabled, rectangle, isCropping, clearRectangle };
 }

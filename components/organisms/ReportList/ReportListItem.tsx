@@ -3,13 +3,14 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import Link from "next/link";
 import { Calendar, ExternalLink, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { AnalysisReportType } from "./ReportList.types";
 import { Button } from "@/components/ui/button";
 import { getRatingColor, getRatingLabel } from "./ReportList.helpers";
+import { ReportType } from "@/types/report.types";
+import { ReportStatus } from "./ReportList.types";
 
 type ReportListItemProps = {
-  report: AnalysisReportType;
-  onDeleteReportClick: (report: AnalysisReportType) => void;
+  report: ReportType;
+  onDeleteReportClick: (report: ReportType) => void;
 };
 
 const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) => {
@@ -26,23 +27,28 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
       </TableCell>
       <TableCell>
         <Badge
-          className={`${getRatingColor(report.overallScore)} hover:${getRatingColor(
-            report.overallScore
+          className={`${getRatingColor(report.score ?? 100)} hover:${getRatingColor(
+            report.score ?? 100
           )} shadow-sm transition-all duration-200`}>
-          {getRatingLabel(report.overallScore)}
+          {getRatingLabel(report.score ?? 100)}
         </Badge>
       </TableCell>
       <TableCell className="text-gray-600">{report.project.name}</TableCell>
+      <TableCell className="text-gray-600">
+        {report.status === ReportStatus.Completed ? report.status : ReportStatus.InProgres}
+      </TableCell>
       <TableCell className="flex space-x-1">
-        <Link href={`/report/${report._id}`}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200">
-            <ExternalLink className="h-4 w-4" />
-            <span className="sr-only">View Report</span>
-          </Button>
-        </Link>
+        {report.status === ReportStatus.Completed && (
+          <Link href={`/report/${report._id}`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200">
+              <ExternalLink className="h-4 w-4" />
+              <span className="sr-only">View Report</span>
+            </Button>
+          </Link>
+        )}
         <Button
           variant="ghost"
           size="sm"

@@ -27,10 +27,17 @@ export async function GET(request: Request) {
     }
 
     let reports;
-    if (session.user?.role && session.user?.role !== UserRoleType.Customer) {
-      reports = await Report.find({ createdBy: userId }).sort({ createdAt: -1 });
-    } else {
-      reports = await Report.find({ createdBy: userId }).populate("project").sort({ createdAt: -1 });
+    switch (session.user?.role) {
+      case UserRoleType.Validator:
+        reports = await Report.find().populate("assignedTo").sort({ createdAt: -1 });
+        break;
+      case UserRoleType.Contributor:
+        reports = await Report.find({ assignedTo: userId }).sort({ createdAt: -1 });
+        break;
+      case UserRoleType.Customer:
+      default:
+        reports = await Report.find({ createdBy: userId }).populate("project").sort({ createdAt: -1 });
+        break;
     }
 
     return NextResponse.json(reports, { status: 200 });

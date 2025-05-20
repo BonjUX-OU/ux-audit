@@ -11,3 +11,9 @@ export type CodeNamePair = {
   code: string;
   name: string;
 };
+
+export type ConstantsBundleResponseType = {
+  customerIssues: OptionType[];
+  pageTypeOptions: OptionType[];
+  sectors: OptionType[];
+};

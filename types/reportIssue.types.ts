@@ -6,13 +6,19 @@ export type HeuristicType = CodeNamePair & {
   description: string;
 };
 
+export type SeverityLevelKeys = "MINOR" | "MAJOR" | "MODERATE" | "CRITICAL";
+
 export type SeverityLevelsType = {
-  [key in "MINOR" | "MAJOR" | "MODERATE" | "CRITICAL"]: SeverityLevelType;
+  [key in SeverityLevelKeys]: SeverityLevelType;
 };
 
 export type SeverityLevelType = {
   code: "1" | "2" | "3" | "4";
   name: "Minor (1)" | "Moderate (2)" | "Major (3)" | "Critical (4)";
+};
+
+export type IssueOrdersType = {
+  [key in HeuristicType["code"]]: number;
 };
 
 export type SnapshotType = {
@@ -30,6 +36,7 @@ export type ReportIssueType = DataObjectType & {
   updatedBy?: UserType;
   heuristic: HeuristicType;
   severityLevel: SeverityLevelType;
+  order: number;
   suggestedFix?: string;
   croppedImageUrl: string;
   snapshotLocation: SnapshotType;
