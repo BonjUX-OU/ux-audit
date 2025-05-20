@@ -48,6 +48,7 @@ const ReportList = ({ reports, isLoading, onAddNewReport, onDeleteReportClick }:
           <TableHead>Date Created</TableHead>
           <TableHead>Score</TableHead>
           <TableHead>Project</TableHead>
+          <TableHead>Status</TableHead>
           <TableHead className="w-[120px]"></TableHead>
         </TableRow>
       </TableHeader>

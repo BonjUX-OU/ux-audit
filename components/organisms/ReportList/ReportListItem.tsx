@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getRatingColor, getRatingLabel } from "./ReportList.helpers";
 import { ReportType } from "@/types/report.types";
+import { ReportStatus } from "./ReportList.types";
 
 type ReportListItemProps = {
   report: ReportType;
@@ -33,16 +34,21 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
         </Badge>
       </TableCell>
       <TableCell className="text-gray-600">{report.project.name}</TableCell>
+      <TableCell className="text-gray-600">
+        {report.status === ReportStatus.Completed ? report.status : ReportStatus.InProgres}
+      </TableCell>
       <TableCell className="flex space-x-1">
-        <Link href={`/report/${report._id}`}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200">
-            <ExternalLink className="h-4 w-4" />
-            <span className="sr-only">View Report</span>
-          </Button>
-        </Link>
+        {report.status === ReportStatus.Completed && (
+          <Link href={`/report/${report._id}`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200">
+              <ExternalLink className="h-4 w-4" />
+              <span className="sr-only">View Report</span>
+            </Button>
+          </Link>
+        )}
         <Button
           variant="ghost"
           size="sm"

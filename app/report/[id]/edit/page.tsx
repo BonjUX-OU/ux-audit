@@ -212,8 +212,10 @@ export default function EditReportPage() {
             <CardContent>
               <h3 className="text-lg font-medium mb-4">Additional Info from the Customer</h3>
               {originalReport.predefinedIssues && originalReport.predefinedIssues.length > 0
-                ? originalReport.predefinedIssues.map((preDefinedIssue) => (
-                    <p className="text-sm mb-4">{preDefinedIssue}</p>
+                ? originalReport.predefinedIssues.map((preDefinedIssue, index) => (
+                    <p className="text-sm mb-4" key={`user-defined-issue-${index}`}>
+                      {preDefinedIssue}
+                    </p>
                   ))
                 : "Not specified"}
               <h3 className="text-lg font-medium my-4">General Summary from the Contributor</h3>
