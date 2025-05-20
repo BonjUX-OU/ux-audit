@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { getRatingColor, getRatingLabel } from "./ReportList.helpers";
 import { ReportType } from "@/types/report.types";
 import { ReportStatus } from "./ReportList.types";
+import { useSession } from "next-auth/react";
+import { UserRoleType } from "@/types/user.types";
 
 type ReportListItemProps = {
   report: ReportType;
@@ -14,6 +16,8 @@ type ReportListItemProps = {
 };
 
 const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) => {
+  const { data: session } = useSession();
+
   return (
     <TableRow className="hover:bg-gray-50 transition-colors duration-200">
       <TableCell className="font-medium max-w-[300px] truncate">
@@ -38,7 +42,18 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
         {report.status === ReportStatus.Completed ? report.status : ReportStatus.InProgres}
       </TableCell>
       <TableCell className="flex space-x-1">
-        {report.status === ReportStatus.Completed && (
+        {session?.user?.role === UserRoleType.Contributor && (
+          <Link href={`/report/${report._id}/edit`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200">
+              <ExternalLink className="h-4 w-4" />
+              <span className="sr-only">View Report</span>
+            </Button>
+          </Link>
+        )}
+        {session?.user?.role === UserRoleType.Customer && report.status === ReportStatus.Completed && (
           <Link href={`/report/${report._id}`}>
             <Button
               variant="ghost"

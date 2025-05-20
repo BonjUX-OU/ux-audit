@@ -165,11 +165,15 @@ export default function DashboardPage() {
             </Card>
 
             {/* Validator Reports */}
-            {session?.user?.role === UserRoleType.Validator && <ValidatorReportsList ref={validatorReportsRef} />}
+            {session?.user?.role === UserRoleType.Validator && (
+              <ScrollArea className="h-[48vh] pr-4 -mr-4">
+                <ValidatorReportsList ref={validatorReportsRef} />
+              </ScrollArea>
+            )}
 
             {/* Reports Card */}
 
-            {session?.user?.role === UserRoleType.Customer && (
+            {session?.user?.role !== UserRoleType.Validator && (
               <Card className="border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
