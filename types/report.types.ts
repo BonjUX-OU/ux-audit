@@ -18,4 +18,5 @@ export type ReportType = DataObjectType & {
   createdAt?: Date;
   updatedAt?: Date;
   contributorNotes?: string;
+  hasRights?: boolean;
 };

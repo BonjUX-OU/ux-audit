@@ -118,10 +118,6 @@ export default function EditReportPage() {
       fetchReport()
         .then(() => {
           fetchReportIssues();
-          if (originalReport && originalReport.status === ReportStatus.InReview) {
-            setIsReportInReview(true);
-            setSummaryMode(true);
-          }
         })
         .catch((error) => {
           console.error("Error fetching report:", error);
@@ -129,6 +125,16 @@ export default function EditReportPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (
+      originalReport &&
+      (originalReport.status === ReportStatus.InReview || originalReport.status === ReportStatus.Completed)
+    ) {
+      setIsReportInReview(true);
+      setSummaryMode(true);
+    }
+  }, [originalReport]);
 
   useEffect(() => {
     if (rectangle) {
@@ -180,7 +186,7 @@ export default function EditReportPage() {
       {isCropping && <LoadingOverlay message="Cropping the image..." hasOpacity />}
       {isDrawingEnabled && !isCropping && <ScreenshotOverlay targetRef={containerRef} onCancel={disableDrawing} />}
       <div className="min-h-screen bg-gray-50 pt-16">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-6 w-[1280px] min-w-[1280px] max-w-[1280px]">
           {/* Stepper Breadcrumb */}
           <div className="w-100 flex justify-center">
             <StepperBreadCrumb steps={breadcrumbsteps} currentStep={breadcrumbsteps[+summaryMode].value} />

@@ -140,7 +140,7 @@ export default function DashboardPage() {
               e.g.: "Your free trial ends in X Days. Just add your payment details..."
               // TODO: Check subscription modal open
             */}
-            <SubscribeBar />
+            {/* <SubscribeBar /> */}
 
             {/* Welcome Card */}
             <Card className="mt-4 mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
