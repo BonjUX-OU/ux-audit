@@ -1,16 +1,11 @@
 //lib/configs/auth/authOptions.ts
-import NextAuth, { NextAuthOptions, User as NextAuthUser } from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
 import dbConnect from "@/lib/dbConnect";
 import { UserRoleType } from "@/types/user.types";
-
-// Define custom types for the NextAuth user
-interface UserSession extends NextAuthUser {
-  isProfileCompleted?: boolean;
-}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -50,7 +45,7 @@ export const authOptions: NextAuthOptions = {
     // ...add more providers here
   ],
   callbacks: {
-    async signIn({ user, account, session }: any) {
+    async signIn({ user, account }: any) {
       await dbConnect();
 
       if (account.provider === "google") {
@@ -74,6 +69,7 @@ export const authOptions: NextAuthOptions = {
           user.usedAnalyses = newUser.usedAnalyses;
           user.createdAt = newUser.createdAt;
           user.isNewUser = true; // Flag to indicate new user
+          user.hasRights = false;
         } else {
           user._id = existingUser._id;
           user.role = existingUser.role;
@@ -81,6 +77,7 @@ export const authOptions: NextAuthOptions = {
           user.usedAnalyses = existingUser.usedAnalyses;
           user.createdAt = existingUser.createdAt;
           user.isNewUser = false;
+          user.hasRights = existingUser.hasRights;
         }
       }
       return user;
@@ -99,6 +96,7 @@ export const authOptions: NextAuthOptions = {
         token.image = user.image;
         token.expires = account.expires_at;
         token.isNewUser = user.isNewUser; // Flag to indicate new user
+        token.hasRights = user.hasRights;
       }
       return token;
     },
@@ -112,6 +110,8 @@ export const authOptions: NextAuthOptions = {
       session.user.usedAnalyses = token.usedAnalyses;
       session.user.createdAt = token.createdAt;
       session.user.isNewUser = token.isNewUser; // Flag to indicate new user
+      session.user.hasRights = token.hasRights;
+
       return session;
     },
     async redirect({ url, baseUrl, token }: any) {

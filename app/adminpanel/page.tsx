@@ -43,6 +43,7 @@ import "chartjs-adapter-date-fns";
 import Link from "next/link";
 import Image from "next/image";
 import { UserRoleType } from "@/types/user.types";
+import { useToast } from "@/hooks/useToast";
 
 // Register ChartJS components
 ChartJS.register(
@@ -117,6 +118,7 @@ interface AdminUserDetails {
   totalIssues?: number;
   pageTypeDistribution?: Record<string, number>;
   sectorDistribution?: Record<string, number>;
+  role: UserRoleType;
 }
 
 // Time period options
@@ -153,6 +155,7 @@ const THEME = {
 export default function AdminDashboard() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { toast } = useToast();
 
   const [stats, setStats] = useState<AdminStatsResponse | null>(null);
   const [userDetails, setUserDetails] = useState<AdminUserDetails[]>([]);
@@ -275,6 +278,42 @@ export default function AdminDashboard() {
     const d = typeof date === "string" ? new Date(date) : date;
     return d.toLocaleString();
   }
+
+  const setUserRole = async (user: AdminUserDetails, newRole: UserRoleType) => {
+    const payload = {
+      userId: user._id,
+      newRole,
+    };
+
+    const response = await fetch(`/api/admin/users`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      toast({ title: "Failed", description: "User role update failed!", variant: "destructive" });
+    } else {
+      const user = await response.json();
+      const result = {
+        _id: user._id,
+        type: "registered",
+        email: user.email,
+        name: user.name,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        totalReports: 0,
+        averageScore: 0,
+        totalIssues: 0,
+        pageTypeDistribution: {},
+        sectorDistribution: {},
+        role: user.role,
+      };
+      const newUserList = [...userDetails.filter((user) => user._id !== result._id), result] as AdminUserDetails[];
+      setUserDetails(newUserList);
+      setFilteredUsers(newUserList);
+      toast({ title: "Success", description: "User role updated" });
+    }
+  };
 
   // getFilteredStats is used in your KPI cards for "overview"
   // (the daily line chart is always 30d from server)
@@ -897,6 +936,7 @@ export default function AdminDashboard() {
                   <TableHeader>
                     <TableRow style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}>
                       <TableHead style={{ color: THEME.text }}>Type</TableHead>
+                      <TableHead style={{ color: THEME.text }}>Role</TableHead>
                       <TableHead style={{ color: THEME.text }}>Name</TableHead>
                       <TableHead style={{ color: THEME.text }}>Email</TableHead>
                       <TableHead style={{ color: THEME.text }}>Date Joined</TableHead>
@@ -929,6 +969,7 @@ export default function AdminDashboard() {
                               {user.type === "registered" ? "User" : "Waiting"}
                             </Badge>
                           </TableCell>
+                          <TableCell style={{ color: THEME.text }}>{user.role}</TableCell>
                           <TableCell style={{ color: THEME.text }}>{user.name ?? "N/A"}</TableCell>
                           <TableCell style={{ color: THEME.text }}>{user.email}</TableCell>
                           <TableCell style={{ color: THEME.text }}>
@@ -949,6 +990,21 @@ export default function AdminDashboard() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem>View Details</DropdownMenuItem>
+                                {user.role !== UserRoleType.Customer && (
+                                  <DropdownMenuItem onClick={() => setUserRole(user, UserRoleType.Customer)}>
+                                    Set as Customer
+                                  </DropdownMenuItem>
+                                )}
+                                {user.role !== UserRoleType.Contributor && (
+                                  <DropdownMenuItem onClick={() => setUserRole(user, UserRoleType.Contributor)}>
+                                    Set as Contributor
+                                  </DropdownMenuItem>
+                                )}
+                                {user.role !== UserRoleType.Validator && (
+                                  <DropdownMenuItem onClick={() => setUserRole(user, UserRoleType.Validator)}>
+                                    Set as Validator
+                                  </DropdownMenuItem>
+                                )}
                                 {user.type === "waitingList" && <DropdownMenuItem>Approve User</DropdownMenuItem>}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem style={{ color: THEME.error }}>Delete User</DropdownMenuItem>

@@ -42,7 +42,6 @@ const ReportSchema = new mongoose.Schema<ReportType>(
     screenshotImgUrl: { type: String },
     predefinedIssues: { type: [String] },
     contributorNotes: { type: String },
-    hasRights: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

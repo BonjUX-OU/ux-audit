@@ -59,6 +59,7 @@ const UserSchema = new mongoose.Schema<UserType>(
       type: String,
       default: "",
     },
+    hasRights: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

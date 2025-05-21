@@ -14,12 +14,11 @@ export type UserType = DataObjectType & {
   createdAt: string;
   isProfileCompleted?: boolean;
   isNewUser?: boolean;
+  hasRights?: boolean;
 };
-
 
 export enum UserRoleType {
   Customer = "CUSTOMER",
   Validator = "VALIDATOR",
   Contributor = "CONTRIBUTOR",
-
 }
