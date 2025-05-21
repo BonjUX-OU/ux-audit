@@ -3,6 +3,7 @@ import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
 import Image from "next/image";
 import AccountMenu from "./AccountMenu";
 import Link from "next/link";
+import { Coins } from "lucide-react";
 
 export default function AppBar() {
   return (
@@ -11,13 +12,18 @@ export default function AppBar() {
         <MenubarMenu>
           <div className=" lg:hidden"></div>
           <MenubarTrigger>
-            <Link href="/">
+            <Link href="/dashboard">
               <Image src="/images/logo.png" alt="UXMust Logo" width={120} height={40} className="w-auto h-8" />
             </Link>
           </MenubarTrigger>
         </MenubarMenu>
         <div className="grow" />
-        <div className="flex">
+        <div className="flex items-center">
+          <div className="flex items-center gap-2 me-4 border rounded-md px-4">
+            <Coins className="w-4 h-4" color="#B04E34" />
+            <span className="text-md me-1">Remaining credits:</span>
+            <span className="text-lg text-[#B04E34]">4</span>
+          </div>
           <AccountMenu />
         </div>
       </Menubar>

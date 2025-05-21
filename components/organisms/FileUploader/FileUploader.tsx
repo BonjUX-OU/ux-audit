@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import { ReportType } from "@/types/report.types";
+import { useToast } from "@/hooks/useToast";
 
 type FileUploaderProps = {
   isOpen: boolean;
@@ -14,6 +15,7 @@ type FileUploaderProps = {
 };
 
 const FileUploader = ({ isOpen, targetReportId, onClose, onSuccess }: FileUploaderProps) => {
+  const { toast } = useToast();
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +33,8 @@ const FileUploader = ({ isOpen, targetReportId, onClose, onSuccess }: FileUpload
     if (!response.ok) {
       throw new Error("Failed to update report");
     }
+
+    toast({ title: "Success", description: "Image added to target report" });
 
     onSuccess();
   };
@@ -71,11 +75,17 @@ const FileUploader = ({ isOpen, targetReportId, onClose, onSuccess }: FileUpload
 
       if (!response.ok) {
         const errorText = await response.text();
+        toast({
+          title: "Error",
+          description: response.status === 413 ? "Image upload failed because file size is too large" : errorText,
+          variant: "destructive",
+        });
         console.error("Error response:", errorText);
         throw new Error(`Failed to upload file: ${errorText}`);
       }
 
       const newBlob = (await response.json()) as PutBlobResult;
+      toast({ title: "Success", description: "Image uploaded successfully!" });
       updateReport(newBlob.url);
     } catch (error) {
       console.error("Error uploading file:", error);

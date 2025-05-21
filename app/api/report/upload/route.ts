@@ -2,18 +2,6 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
-// export async function POST(request: Request): Promise<NextResponse> {
-//   const { searchParams } = new URL(request.url);
-//   const filename = searchParams.get("filename");
-
-//   const blob = await put(filename!, request.body!, {
-//     access: "public",
-//     allowOverwrite: true,
-//   });
-
-//   return NextResponse.json(blob);
-// }
-
 export async function PUT(request: Request) {
   const form = await request.formData();
   const file = form.get("file") as File;
@@ -68,15 +56,14 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(blob);
-  } catch (error: any) {
-    console.error("Upload error:", error);
-    console.error("Error stack:", error.stack);
-    return NextResponse.json(
-      {
-        error: error.message,
-        stack: error.stack,
-      },
-      { status: 500 }
-    );
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Upload error:", error);
+      console.error("Error stack:", error.stack);
+      return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }
