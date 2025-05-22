@@ -113,7 +113,7 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
         scrollX: -container.scrollLeft,
         scrollY: -container.scrollTop,
         useCORS: true,
-        scale: window.devicePixelRatio, // Better quality on high DPI screens
+        scale: 1, // Better quality on high DPI screens
         allowTaint: false, // Don't allow cross-origin images to taint canvas
         backgroundColor: null, // Transparent background
         logging: false, // Disable logs
