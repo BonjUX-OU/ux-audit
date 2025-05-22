@@ -183,7 +183,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (status === "loading") return; // Don't do anything while loading
 
-    if (status === "unauthenticated" || session?.user?.role !== UserRoleType.Validator) {
+    if (status === "unauthenticated" || !session?.user?.hasRights) {
       router.push("/dashboard");
     }
   }, [status, session, router]);
