@@ -13,7 +13,6 @@ import { Plus, FolderPlus } from "lucide-react";
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
 import ReportList from "@/components/organisms/ReportList/ReportList";
 import RequestReportBar from "@/components/templates/RequestReportBar/RequestReportBar";
-import SubscribeBar from "@/components/templates/SubscribeBar/SubscribeBar";
 import ProjectsNavBar, { ProjectsNavBarHandle } from "@/components/templates/ProjectsNavBar/ProjectsNavBar";
 import CreateProjectButton from "@/components/templates/CreateProjectButton/CreateProjectButton";
 import ComparisonScale from "@/components/templates/ComparisonScale/ComparisonScale";
