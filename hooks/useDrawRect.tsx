@@ -109,23 +109,33 @@ export function useDrawRect(containerRef: React.RefObject<HTMLDivElement>) {
       // Remove the rectangle before capture
       container.removeChild(rectDivRef.current);
 
+      const scale = window.devicePixelRatio || 1;
+
       const canvas = await html2canvas(container, {
         scrollX: -container.scrollLeft,
         scrollY: -container.scrollTop,
         useCORS: true,
-        scale: window.devicePixelRatio, // Better quality on high DPI screens
+        scale, // Better quality on high DPI screens
         allowTaint: false, // Don't allow cross-origin images to taint canvas
         backgroundColor: null, // Transparent background
         logging: false, // Disable logs
       });
       const ctx = canvas.getContext("2d");
-      const imageData = ctx?.getImageData(left, top, width, height);
+      if (!ctx) return;
+
+      const scaledLeft = Math.floor(left * scale);
+      const scaledTop = Math.floor(top * scale);
+      const scaledWidth = Math.floor(width * scale);
+      const scaledHeight = Math.floor(height * scale);
+
+      const imageData = ctx.getImageData(scaledLeft, scaledTop, scaledWidth, scaledHeight);
       let croppedImage: string | undefined = undefined;
 
       if (imageData) {
         const croppedCanvas = document.createElement("canvas");
-        croppedCanvas.width = width;
-        croppedCanvas.height = height;
+        croppedCanvas.width = scaledWidth;
+        croppedCanvas.height = scaledHeight;
+
         const croppedCtx = croppedCanvas.getContext("2d");
         croppedCtx?.putImageData(imageData, 0, 0);
         croppedImage = croppedCanvas.toDataURL("image/png");
