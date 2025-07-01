@@ -15,6 +15,7 @@ export type UserType = DataObjectType & {
   isProfileCompleted?: boolean;
   isNewUser?: boolean;
   hasRights?: boolean;
+  image?:string;
 };
 
 export enum UserRoleType {

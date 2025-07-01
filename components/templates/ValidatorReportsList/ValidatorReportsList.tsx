@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { ReportType } from "@/types/report.types";
 import { Loader } from "lucide-react";
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
-import FileUploader from "@/components/organisms/FileUploader/FileUploader";
+// import FileUploader from "@/components/organisms/FileUploader/FileUploader";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { OptionType } from "@/types/common.types";
 // import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
@@ -16,6 +16,7 @@ import ValidatorReportListTableRows from "./ValidatorReportListTableRows";
 import { UserType } from "@/types/user.types";
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import { useToast } from "@/hooks/useToast";
+import ImageUploader from "@/components/organisms/ImageUploader/ImageUploader";
 
 export type ValidatorReportsListHandle = {
   fetchReports: () => void;
@@ -215,7 +216,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
 
       {/* Upload Report Image Dialog */}
       {isUploadModalOpen && (
-        <FileUploader
+        <ImageUploader
           isOpen
           targetReportId={selectedReportId!}
           onSuccess={clearStates}
@@ -236,7 +237,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
         {mappedContributors && (
           <div className="min-h-[10rem]">
             <SelectElement
-              label="Conributors"
+              label="Contributors"
               options={mappedContributors}
               selected={assignTarget ?? ""}
               onValueChange={(optionValue) => setAssignTarget(optionValue)}
