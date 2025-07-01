@@ -30,7 +30,7 @@ function AccountMenu() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             {/* <CircleUser className="h-6 w-6" /> */}
-            <img src={session?.user?.image} width={40} height={40}></img>
+            <img className="cursor-pointer rounded-full w-10 h-10 border" src={session?.user?.image}></img>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>

@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { ReportType } from "@/types/report.types";
 import { Loader } from "lucide-react";
 import ConfirmationModal from "@/components/organisms/ConfirmationModal/ConfirmationModal";
-import FileUploader from "@/components/organisms/FileUploader/FileUploader";
+// import FileUploader from "@/components/organisms/FileUploader/FileUploader";
 import SelectElement from "@/components/organisms/SelectElement/SelectElement";
 import { OptionType } from "@/types/common.types";
 // import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
@@ -216,15 +216,12 @@ const ValidatorReportsList = forwardRef((props, ref) => {
 
       {/* Upload Report Image Dialog */}
       {isUploadModalOpen && (
-        // <FileUploader
-        //   isOpen
-        //   targetReportId={selectedReportId!}
-        //   onSuccess={clearStates}
-        //   onClose={() => setIsUploadModalOpen(false)}
-        // />
-        <ImageUploader>
-          
-        </ImageUploader>
+        <ImageUploader
+          isOpen
+          targetReportId={selectedReportId!}
+          onSuccess={clearStates}
+          onClose={() => setIsUploadModalOpen(false)}
+        />
       )}
 
       {/* Assign Report Dialog */}
