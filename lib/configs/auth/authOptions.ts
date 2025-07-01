@@ -60,6 +60,7 @@ export const authOptions: NextAuthOptions = {
             role: UserRoleType.Customer,
             subscribed: false,
             usedAnalyses: 0,
+            image: user.image
           });
           //console.log("New user created:", newUser);
           //change newuser._id from objectId to string

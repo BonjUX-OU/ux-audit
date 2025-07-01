@@ -19,11 +19,6 @@ export default function AppBar() {
         </MenubarMenu>
         <div className="grow" />
         <div className="flex items-center">
-          <div className="flex items-center gap-2 me-4 border rounded-md px-4">
-            <Coins className="w-4 h-4" color="#B04E34" />
-            <span className="text-md me-1">Remaining credits:</span>
-            <span className="text-lg text-[#B04E34]">4</span>
-          </div>
           <AccountMenu />
         </div>
       </Menubar>

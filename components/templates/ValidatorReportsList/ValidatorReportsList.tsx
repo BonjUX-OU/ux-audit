@@ -16,6 +16,7 @@ import ValidatorReportListTableRows from "./ValidatorReportListTableRows";
 import { UserType } from "@/types/user.types";
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import { useToast } from "@/hooks/useToast";
+import ImageUploader from "@/components/organisms/ImageUploader/ImageUploader";
 
 export type ValidatorReportsListHandle = {
   fetchReports: () => void;
@@ -215,12 +216,15 @@ const ValidatorReportsList = forwardRef((props, ref) => {
 
       {/* Upload Report Image Dialog */}
       {isUploadModalOpen && (
-        <FileUploader
-          isOpen
-          targetReportId={selectedReportId!}
-          onSuccess={clearStates}
-          onClose={() => setIsUploadModalOpen(false)}
-        />
+        // <FileUploader
+        //   isOpen
+        //   targetReportId={selectedReportId!}
+        //   onSuccess={clearStates}
+        //   onClose={() => setIsUploadModalOpen(false)}
+        // />
+        <ImageUploader>
+          
+        </ImageUploader>
       )}
 
       {/* Assign Report Dialog */}
@@ -236,7 +240,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
         {mappedContributors && (
           <div className="min-h-[10rem]">
             <SelectElement
-              label="Conributors"
+              label="Contributors"
               options={mappedContributors}
               selected={assignTarget ?? ""}
               onValueChange={(optionValue) => setAssignTarget(optionValue)}
