@@ -25,6 +25,7 @@ import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetai
 import ScreenshotOverlay from "@/components/templates/ScreenshotView/ScreenshotOverlay";
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import { useToast } from "@/hooks/useToast";
+import clsx from "clsx";
 
 const breadcrumbsteps = [
   { label: "Heuristic Evaluation", value: "heuristic" },
@@ -274,7 +275,7 @@ export default function EditReportPage() {
           {/* Main Content */}
           <Card className="mt-4 mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
             <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="w-full">
-              <CardHeader className="pb-0">
+              <CardHeader className={clsx("pb-0", !summaryMode && "sticky top-0 z-50 bg-white")}>
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                   <h3 className="text-lg font-medium mb-4">Screenshot/Website Preview</h3>
                   {!summaryMode && selectedTab === "screenshot" && !isReportInReview && (
@@ -328,7 +329,17 @@ export default function EditReportPage() {
         />
       )}
 
-      {selectedIssue && <IssueDetailModal isOpen issue={selectedIssue!} onClose={() => setSelectedIssue(null)} />}
+      {selectedIssue && (
+        <IssueDetailModal
+          isOpen
+          issue={selectedIssue!}
+          onClose={() => setSelectedIssue(null)}
+          onDeleteIssueSuccess={() => {
+            fetchReportIssues();
+            setSelectedIssue(null);
+          }}
+        />
+      )}
     </>
   );
 }
