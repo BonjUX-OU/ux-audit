@@ -7,3 +7,12 @@ export const RatingLabels: RatingLabelType[] = [
   { threshold: 80, label: "Good", color: "bg-green-400" },
   { threshold: 100, label: "Very Good", color: "bg-green-600" },
 ] as const;
+
+export const ReportStatusLabels = {
+  UNASSIGNED: "Unassigned",
+  ASSIGNED: "Assigned",
+  NOT_STARTED: "Not Started",
+  IN_PROGRESS: "In Progres",
+  IN_REVIEW: "In Review",
+  COMPLETED: "Completed",
+};

@@ -9,6 +9,7 @@ import { ReportType } from "@/types/report.types";
 import { ReportStatus } from "./ReportList.types";
 import { useSession } from "next-auth/react";
 import { UserRoleType } from "@/types/user.types";
+import { ReportStatusLabels } from "./ReportList.constants";
 
 type ReportListItemProps = {
   report: ReportType;
@@ -38,9 +39,7 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
         </Badge>
       </TableCell>
       <TableCell className="text-gray-600">{report.project.name}</TableCell>
-      <TableCell className="text-gray-600">
-        {report.status === ReportStatus.Completed ? report.status : ReportStatus.InProgres}
-      </TableCell>
+      <TableCell className="text-gray-600">{ReportStatusLabels[report.status]}</TableCell>
       <TableCell className="flex space-x-1">
         {session?.user?.role === UserRoleType.Contributor && (
           <Link href={`/report/${report._id}/edit`}>
@@ -64,14 +63,16 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
             </Button>
           </Link>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-          onClick={() => onDeleteReportClick(report)}>
-          <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Delete Report</span>
-        </Button>
+        {(report.status === ReportStatus.Unassigned || report.status === ReportStatus.NotStarted) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+            onClick={() => onDeleteReportClick(report)}>
+            <Trash2 className="h-4 w-4" />
+            <span className="sr-only">Delete Report</span>
+          </Button>
+        )}
       </TableCell>
     </TableRow>
   );

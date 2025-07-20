@@ -22,7 +22,11 @@ export type ValidatorReportsListHandle = {
   fetchReports: () => void;
 };
 
-const ValidatorReportsList = forwardRef((props, ref) => {
+export type ValidatorReportListProps = {
+  onDeleteReport: (report: ReportType) => void;
+};
+
+const ValidatorReportsList = forwardRef<ValidatorReportsListHandle, ValidatorReportListProps>((props, ref) => {
   const { data: session } = useSession();
   const { toast } = useToast();
 
@@ -206,6 +210,7 @@ const ValidatorReportsList = forwardRef((props, ref) => {
                     handleUploadImage={handleUploadImage}
                     handleAssignReport={handleAssignReport}
                     handleCompleteReport={handleCompleteReportAnalysis}
+                    handleDeleteReport={props.onDeleteReport}
                   />
                 </TableBody>
               </Table>

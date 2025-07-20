@@ -1,7 +1,7 @@
 import React from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import Link from "next/link";
-import { Calendar, Check, ImagePlus, UserPlus } from "lucide-react";
+import { Calendar, Check, ImagePlus, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportType } from "@/types/report.types";
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
@@ -11,6 +11,7 @@ type ValidatorReportListTableRowsProps = {
   handleUploadImage: (reportId: string) => void;
   handleAssignReport: (reportId: string) => void;
   handleCompleteReport: (reportId: string) => void;
+  handleDeleteReport: (report: ReportType) => void;
 };
 
 const ValidatorReportListTableRows = ({
@@ -18,6 +19,7 @@ const ValidatorReportListTableRows = ({
   handleAssignReport,
   handleUploadImage,
   handleCompleteReport,
+  handleDeleteReport,
 }: ValidatorReportListTableRowsProps) => {
   return reports?.map((report) => (
     <TableRow key={JSON.stringify(report._id)} className="hover:bg-gray-50 transition-colors duration-200">
@@ -64,6 +66,16 @@ const ValidatorReportListTableRows = ({
             className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5">
             <Check />
             <span className="sr-only">Complete Analysis</span>
+          </Button>
+        )}
+        {(report.status === ReportStatus.Unassigned || report.status === ReportStatus.NotStarted) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-gray-400 hover:text-[#B04E34] transition-colors duration-200 [&_svg]:size-5"
+            onClick={() => handleDeleteReport(report)}>
+            <Trash2 className="h-4 w-4" />
+            <span className="sr-only">Delete Report</span>
           </Button>
         )}
       </TableCell>

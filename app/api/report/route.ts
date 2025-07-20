@@ -1,7 +1,11 @@
 // app/api//route.ts
+import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Report from "@/models/Report";
+import ReportIssue from "@/models/ReportIssue";
+import { ReportType } from "@/types/report.types";
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 
 export const revalidate = 0;
 export async function GET(request: Request) {
@@ -109,9 +113,6 @@ export async function PUT(request: Request) {
   }
 }
 
-/**
- * DELETE /api/?id=XYZ
- */
 export async function DELETE(request: Request) {
   try {
     await dbConnect();
@@ -121,12 +122,28 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const deleted = await Report.findByIdAndDelete(id);
-    if (!deleted) {
-      return NextResponse.json({ error: "Analysis report not found" }, { status: 404 });
-    }
+    const reportId = new mongoose.Types.ObjectId(id);
+    const targetReport = (await Report.findById(reportId)) as ReportType;
 
-    return NextResponse.json({ message: "Analysis report deleted successfully" }, { status: 200 });
+    if (
+      targetReport &&
+      (targetReport.status === ReportStatus.Unassigned || targetReport.status === ReportStatus.NotStarted)
+    ) {
+      const deleted = await Report.findByIdAndDelete(id);
+
+      if (!deleted) {
+        return NextResponse.json({ error: "Analysis report not found" }, { status: 404 });
+      } else {
+        await ReportIssue.deleteMany({ report: reportId });
+      }
+
+      return NextResponse.json({ message: "Analysis report and it's issues deleted successfully" }, { status: 200 });
+    } else {
+      return NextResponse.json(
+        { error: "This report cannot be deleted at the moment. Check report status first!" },
+        { status: 400 }
+      );
+    }
   } catch (error) {
     if (error instanceof Error) {
       console.error("Error deleting Analysis report:", error.message);

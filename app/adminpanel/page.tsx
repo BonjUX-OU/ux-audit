@@ -187,35 +187,35 @@ export default function AdminDashboard() {
       router.push("/dashboard");
     }
   }, [status, session, router]);
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await fetch("/api/admin/stats");
-        const data: AdminStatsResponse = await res.json();
-        setStats(data);
-      } catch (error) {
-        console.error("Error fetching admin stats:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
-  }, []);
 
-  // Fetch user details
+  const fetchStats = async () => {
+    try {
+      const res = await fetch("/api/admin/stats");
+      const data: AdminStatsResponse = await res.json();
+      setStats(data);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("/api/admin/users");
+      const data: AdminUserDetails[] = await res.json();
+      setUserDetails(data);
+      setFilteredUsers(data);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  // Fetch stats and user details
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("/api/admin/users");
-        const data: AdminUserDetails[] = await res.json();
-        setUserDetails(data);
-        setFilteredUsers(data);
-      } catch (error) {
-        console.error("Error fetching user details:", error);
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
+    fetchStats();
     fetchUsers();
   }, []);
 
