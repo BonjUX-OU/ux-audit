@@ -28,6 +28,10 @@ const pageTypeOptions: OptionType[] = [
   { value: "faq", label: "FAQ Page" },
   { value: "product", label: "E-commerce Product Page" },
   { value: "pricing", label: "Pricing Page" },
+  { value: "login", label: "Login Page" },
+  { value: "booking", label: "Booking Page" },
+  { value: "case_study", label: "Case Study Page" },
+  { value: "others", label: "Others" },
 ] as const;
 
 const customerIssues: OptionType[] = [
