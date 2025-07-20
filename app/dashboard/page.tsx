@@ -22,9 +22,11 @@ import ValidatorReportsList, {
 } from "@/components/templates/ValidatorReportsList/ValidatorReportsList";
 import { UserRoleType } from "@/types/user.types";
 import { ReportType } from "@/types/report.types";
+import { useToast } from "@/hooks/useToast";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const { toast } = useToast();
 
   const [currentProject, setCurrentProject] = useState<ProjectType | null>(null);
   const [reports, setReports] = useState<ReportType[]>([]);
@@ -76,7 +78,7 @@ export default function DashboardPage() {
       fetchUserReports();
     } catch (error) {
       console.error(error);
-      alert("Failed to delete report. Please try again.");
+      toast({ title: "Failed", description: "Report delete operation has been failed", variant: "destructive" });
     }
   }
 
@@ -166,7 +168,7 @@ export default function DashboardPage() {
             {/* Validator Reports */}
             {session?.user?.role === UserRoleType.Validator && (
               <ScrollArea className="h-[48vh] pr-4 -mr-4">
-                <ValidatorReportsList ref={validatorReportsRef} />
+                <ValidatorReportsList ref={validatorReportsRef} onDeleteReport={handleDeleteReportClick} />
               </ScrollArea>
             )}
 
