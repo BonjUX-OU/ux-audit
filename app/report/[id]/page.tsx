@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AppBar from "@/components/layout/AppBar";
-import { ChevronLeft, Download } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
 import { ReportType } from "@/types/report.types";
 import LoadingOverlay from "@/components/layout/LoadingOverlay";
@@ -116,10 +116,11 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
                     <h3 className="text-lg font-medium">Heuristic Evaluation Report Summary</h3>
                     <p className="text-sm text-gray-700">{report.url}</p>
                   </div>
+                  {/* !!! IMPORTANT: Hidden temprorarly until pdf functionallity added
                   <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1" size="sm">
                     <Download className="h-4 w-4" />
                     <span>Download the report (.pdf)</span>
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </CardHeader>

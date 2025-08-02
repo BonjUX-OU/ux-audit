@@ -114,6 +114,7 @@ export default function LandingPage() {
             Discover how your design choices impact user experience and keep improving with actionable insights for your
             website. UXMust provides ways to design user-friendly solutions.
           </p>
+          {/* TODO: REMOVED BETA USERS FLOW TEMPRORARELY
           <div className="mb-2">
             <Link href="/signup">
               <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white px-6 py-3 font-semibold">
@@ -123,7 +124,7 @@ export default function LandingPage() {
           </div>
           <p className="text-sm text-gray-500 italic mb-12">
             *Get the chance to subscribe only for 4.99 € valid for 6 months
-          </p>
+          </p> */}
 
           {/* Dashboard Previews */}
           <div className="relative w-full max-w-5xl mx-auto">

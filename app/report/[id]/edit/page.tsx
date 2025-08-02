@@ -231,6 +231,7 @@ export default function EditReportPage() {
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={completeAndSeeSummary}
+                      disabled={!summaryMode ? !reportNotes.length : false}
                       className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
                       size="sm">
                       {summaryMode ? <ChevronLeft className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

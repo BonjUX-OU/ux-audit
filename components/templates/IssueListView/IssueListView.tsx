@@ -20,8 +20,8 @@ const IssueListView = ({ issues }: IssueListViewProps) => {
         {/* Minor Issues */}
         <IssueListGroup issues={severityGroups.minor} title="❓ Minor Issues" />
 
-        {/* Modareta Issues */}
-        <IssueListGroup issues={severityGroups.modareate} title="⁉️ Modareta Issues" />
+        {/* Moderate Issues */}
+        <IssueListGroup issues={severityGroups.modareate} title="⁉️ Moderate Issues" />
 
         {/* Major Issues */}
         <IssueListGroup issues={severityGroups.major} title="‼️ Major Issues" />
