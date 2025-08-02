@@ -17,6 +17,7 @@ const sectorOptions: OptionType[] = [
   { value: "retail", label: "Retail" },
   { value: "telecom", label: "Telecommunications" },
   { value: "automotive", label: "Automotive" },
+  { value: "other", label: "Other" },
 ] as const;
 
 const pageTypeOptions: OptionType[] = [
