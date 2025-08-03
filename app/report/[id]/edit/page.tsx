@@ -26,6 +26,7 @@ import ScreenshotOverlay from "@/components/templates/ScreenshotView/ScreenshotO
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
 import { useToast } from "@/hooks/useToast";
 import clsx from "clsx";
+import { calculateReportScore } from "@/helpers/scoreCalculation";
 
 const breadcrumbsteps = [
   { label: "Heuristic Evaluation", value: "heuristic" },
@@ -60,6 +61,7 @@ export default function EditReportPage() {
   const [selectedTab, setSelectedTab] = useState("screenshot");
   const [reportNotes, setReportNotes] = useState("");
   const [isReportInReview, setIsReportInReview] = useState(false);
+  const [currentReportScore, setCurrentReportScore] = useState(0);
 
   // ReportIssue related states and hooks
   const [showNewIssueModal, setShowNewIssueModal] = useState(false);
@@ -107,6 +109,7 @@ export default function EditReportPage() {
       const data: ReportIssueType[] = await res.json();
       await groupFunc(data);
       setReportIssues(data);
+      setCurrentReportScore(calculateReportScore(data));
     } catch (error) {
       console.error(error);
     }
@@ -149,6 +152,7 @@ export default function EditReportPage() {
     setReportIssues((prev) => [...prev, issue]);
     setIssueOrders((prev) => ({ ...prev, [issue.heuristic.code]: issue.order }));
     setShowNewIssueModal(false);
+    setCurrentReportScore(calculateReportScore(reportIssues));
   }
 
   const completeAndSeeSummary = () => {
@@ -159,7 +163,7 @@ export default function EditReportPage() {
     // TODO: handle save report analysis here
     const response = await fetch(`/api/report?id=${reportId}`, {
       method: "PUT",
-      body: JSON.stringify({ status: ReportStatus.InReview }),
+      body: JSON.stringify({ status: ReportStatus.InReview, score: currentReportScore }),
     });
 
     if (!response.ok) {
@@ -227,6 +231,7 @@ export default function EditReportPage() {
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={completeAndSeeSummary}
+                      disabled={!summaryMode ? !reportNotes.length : false}
                       className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
                       size="sm">
                       {summaryMode ? <ChevronLeft className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -295,7 +300,7 @@ export default function EditReportPage() {
                     </TabsList>
                   </div>
                 </div>
-                {summaryMode && <ScoreBar overallScore={93} totalIssues={4} />}
+                {summaryMode && <ScoreBar overallScore={currentReportScore} totalIssues={reportIssues.length} />}
               </CardHeader>
               <CardContent>
                 <TabsContent value="screenshot" className="mt-4">

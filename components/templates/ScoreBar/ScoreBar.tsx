@@ -18,15 +18,15 @@ const ScoreBar = ({ overallScore, totalIssues }: ScoreBarProps) => {
 
   return (
     <div className="w-full flex items-center">
-      <div className="w-[8%]">
+      <div className="w-[10%]">
         <p className="text-md text-gray-500">UX Score</p>
         <div className="flex items-center gap-2">
           <span className={`text-3xl font-bold ${textColor}`}>{overallScore}</span>
-          <Badge className={clsx("text-sm w-10 h-4 justify-center", badgeBg, textColor)}>{rating.badge}</Badge>
+          <Badge className={clsx("text-xl w-10 h-4 justify-center px-0", badgeBg, textColor)}>{rating.badge}</Badge>
         </div>
         <p className="text-xs text-gray-500 font-medium">{rating.label} usability</p>
       </div>
-      <div className="w-[92%]">
+      <div className="w-[90%] mt-6">
         <RaitingBar score={overallScore} issues={totalIssues} />
       </div>
     </div>
