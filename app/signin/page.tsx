@@ -108,10 +108,11 @@ function LoginPage() {
                   </div>
                   <div className="flex justify-center">
                     <Button
-                      variant="default"
-                      //type="submit"
+                      variant="outline"
+                      type="button"
                       disabled
-                      className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white">
+                      className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white"
+                      onClick={() => signIn("google")}>
                       Log in with email
                     </Button>
                   </div>
