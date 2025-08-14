@@ -11,11 +11,10 @@ import { Eye, EyeOff } from "lucide-react";
 
 function SignupPage() {
   const [error, setError] = useState("");
-  //const [acceptedTerms, setAcceptedTerms] = useState(false);
   const router = useRouter();
   const { status } = useSession();
   const [showPassword, setShowPassword] = useState(false);
-   const [isVerificationEmailSent, setIsVerificationEmailSent] = useState(false);
+  const [isVerificationEmailSent, setIsVerificationEmailSent] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -32,8 +31,6 @@ function SignupPage() {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
-    console.log(data);
-    console.log("Omer");
 
     const { name, email, password } = data;
 
@@ -60,18 +57,15 @@ function SignupPage() {
         body: JSON.stringify({
           name,
           email,
-          password
+          password,
         }),
       });
-
 
       if (res.status === 409) {
         setError("User already exists");
       } else if (res.status === 200) {
         setIsVerificationEmailSent(true);
-
-      }
-      else {
+      } else {
         setError("An error occurred. Please try again.");
       }
     } catch (err) {
@@ -83,7 +77,6 @@ function SignupPage() {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-
 
   return (
     <div className="bg-gray-100 p-8 h-screen">
@@ -116,129 +109,123 @@ function SignupPage() {
           {/* Right Section */}
 
           {isVerificationEmailSent ? (
-            <div>
-
-            </div>
-          ) : (<div className="col-span-12 md:col-span-6 lg:col-span-6">
-            <div className="max-w-md mx-auto">
-              {/* Progress Indicator */}
-              <div className="flex items-center mb-12">
-                <div className="flex items-center">
-                  <div className="bg-[#C25B3F] rounded-full w-6 h-6 flex items-center justify-center">
-                    <span className="text-white text-xs">1</span>
-                  </div>
-                  <span className="ml-2 text-sm">User Details</span>
-                </div>
-                <div className="h-px bg-gray-300 flex-grow mx-2"></div>
-                <div className="flex items-center">
-                  <div className="bg-[#E5E5E5] rounded-full w-6 h-6 flex items-center justify-center">
-                    <span className="text-gray-600 text-xs">2</span>
-                  </div>
-                  <span className="ml-2 text-sm text-gray-400">Beta User Payment</span>
-                </div>
+            <div className="col-span-12 md:col-span-6 lg:col-span-6">
+              <div className="max-w-md mx-auto">
+                <h1 className="text-2xl font-bold mb-8">Let&apos;s create an account first</h1>
+                <p className="text-gray-600 mb-4">
+                  We have sent a verification link to your email address. Please, go to your email and verify your
+                  email, then we will direct you here again!
+                </p>
               </div>
+            </div>
+          ) : (
+            <div className="col-span-12 md:col-span-6 lg:col-span-6">
+              <div className="max-w-md mx-auto">
+                <h1 className="text-2xl font-bold mb-8">Let&apos;s create an account first</h1>
+                <form className="space-y-3" onSubmit={handleSubmit}>
+                  <div className="space-y-2">
+                    <label htmlFor="name" className="block font-medium">
+                      Your full name
+                    </label>
+                    <Input id="name" name="name" placeholder="Type your full name" className="w-full" required />
+                  </div>
 
-              <h1 className="text-2xl font-bold mb-8">Let&apos;s create an account first</h1>
-              <form className="space-y-3" onSubmit={handleSubmit}>
-                <div className="space-y-2">
-                  <label htmlFor="name" className="block font-medium">
-                    Your full name
-                  </label>
-                  <Input id="name" name="name" placeholder="Type your full name" className="w-full" required />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block font-medium">
-                    Your Business Email
-                  </label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Your business email address"
-                    className="w-full"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="password" className="block font-medium">
-                    Password
-                  </label>
-                  <div className="relative">
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="block font-medium">
+                      Your Business Email
+                    </label>
                     <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Type your password"
-                      className="w-full pr-10"
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="Your business email address"
+                      className="w-full"
                       required
                     />
-                    <button
-                      type="button"
-                      onClick={togglePasswordVisibility}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400" />
-                      )}
-                    </button>
                   </div>
-                </div>
 
-                {error && <p className="text-red-500 text-sm">{error}</p>}
+                  <div className="space-y-2">
+                    <label htmlFor="password" className="block font-medium">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Type your password"
+                        className="w-full pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={togglePasswordVisibility}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5 text-gray-400" />
+                        ) : (
+                          <Eye className="h-5 w-5 text-gray-400" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
 
-                <Button
-                  type="submit"
-                  className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white">
-                  Create Account
-                </Button>
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
 
-                <div className="flex items-center my-6">
-                  <div className="flex-grow h-px bg-gray-300"></div>
-                  <span className="px-4 text-gray-500">or</span>
-                  <div className="flex-grow h-px bg-gray-300"></div>
-                </div>
-
-                <div className="flex justify-center">
-                  <Button
-                    variant="outline"
-                    className="flex items-center space-x-2 my-1 w-full"
-                    type="button"
-                    onClick={() => signIn("google")}>
-                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 48 48">
-                      <path
-                        fill="#fbc02d"
-                        d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12	s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20	s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                      <path
-                        fill="#e53935"
-                        d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039	l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
-                      <path
-                        fill="#4caf50"
-                        d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36	c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
-                      <path
-                        fill="#1565c0"
-                        d="M43.611,20.083L43.595,20L42,20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571	c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                    </svg>
-                    <span>Google</span>
+                  <Button type="submit" className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white">
+                    Create Account
                   </Button>
-                </div>
-              </form>
-              <p className="text-sm text-gray-500 text-center mt-6">
-                By registering you accept our{" "}
-                <Link href="/privacy-policy" className="text-[#C25B3F]">
-                  Privacy Policy
-                </Link>{" "}
-                and{" "}
-                <Link href="/terms" className="text-[#C25B3F]">
-                  Terms of Use
-                </Link>
-                .
-              </p>
-            </div>
-          </div>) }
 
+                  <div className="flex items-center my-6">
+                    <div className="flex-grow h-px bg-gray-300"></div>
+                    <span className="px-4 text-gray-500">or</span>
+                    <div className="flex-grow h-px bg-gray-300"></div>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      className="flex items-center space-x-2 my-1 w-full"
+                      type="button"
+                      onClick={() => signIn("google")}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        x="0px"
+                        y="0px"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 48 48">
+                        <path
+                          fill="#fbc02d"
+                          d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12	s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20	s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                        <path
+                          fill="#e53935"
+                          d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039	l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
+                        <path
+                          fill="#4caf50"
+                          d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36	c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
+                        <path
+                          fill="#1565c0"
+                          d="M43.611,20.083L43.595,20L42,20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571	c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                      </svg>
+                      <span>Google</span>
+                    </Button>
+                  </div>
+                </form>
+                <p className="text-sm text-gray-500 text-center mt-6">
+                  By registering you accept our{" "}
+                  <Link href="/privacy-policy" className="text-[#C25B3F]">
+                    Privacy Policy
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/terms" className="text-[#C25B3F]">
+                    Terms of Use
+                  </Link>
+                  .
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
