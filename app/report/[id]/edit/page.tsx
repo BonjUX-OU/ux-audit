@@ -44,6 +44,8 @@ export default function EditReportPage() {
   useEffect(() => {
     //if user is not logged redirect to login page
     //if user is not admin or tester redirect to dashboard
+
+    // https://uxmust.com/report/6890e00f565b27d8a4e9fdd3?ref=8e66c4e5-71b6-4c88-a647-187f39c31ff7
     if (!session) {
       router.push("/signin");
     } else if (userRole !== UserRoleType.Validator && userRole !== UserRoleType.Contributor) {

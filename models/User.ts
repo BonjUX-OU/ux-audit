@@ -1,5 +1,5 @@
 // models/User.ts
-import { UserRoleType, UserType } from "@/types/user.types";
+import { RegisteredByType, UserRoleType, UserType } from "@/types/user.types";
 import mongoose from "mongoose";
 /**
  * The UserSchema stores all key fields:
@@ -16,18 +16,18 @@ import mongoose from "mongoose";
  */
 const UserSchema = new mongoose.Schema<UserType>(
   {
+    name: {
+      type: String,
+      default: "",
+    },
     email: {
       type: String,
       required: true,
       unique: true,
     },
-    password: {
+    passwordHash: {
       type: String,
-      required: false,
-    },
-    name: {
-      type: String,
-      default: "",
+      required: true,
     },
     role: {
       type: String,
@@ -45,7 +45,7 @@ const UserSchema = new mongoose.Schema<UserType>(
     },
     trialStartDate: {
       type: String,
-      default: null, // not used in the example below, but available if needed
+      default: null,
     },
     stripeCustomerId: {
       type: String,
@@ -59,7 +59,25 @@ const UserSchema = new mongoose.Schema<UserType>(
       type: String,
       default: "",
     },
-    hasRights: { type: Boolean, default: false },
+    hasRights: {
+      type: Boolean,
+      default: false
+    },
+    registeredBy: {
+      type: String,
+      enum: RegisteredByType,
+      required: true,
+    },
+    verified: {
+      type: Boolean
+    },
+    verificationToken: {
+      type: String
+    },
+    verificationTokenExpires: {
+      type: Date
+    },
+
   },
   { timestamps: true }
 );

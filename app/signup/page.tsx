@@ -15,6 +15,7 @@ function SignupPage() {
   const router = useRouter();
   const { status } = useSession();
   const [showPassword, setShowPassword] = useState(false);
+   const [isVerificationEmailSent, setIsVerificationEmailSent] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -32,12 +33,16 @@ function SignupPage() {
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
     console.log(data);
+    console.log("Omer");
 
-    const { name, email, password, confirmPassword } = data;
+    const { name, email, password } = data;
 
     if (!isValidEmail(email as string)) {
       setError("Invalid email address");
       return;
+    }
+    if (!email || !password) {
+      setError("Email and password are required");
     }
 
     if (!password || (password as string).length < 6) {
@@ -45,16 +50,7 @@ function SignupPage() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    // if (!acceptedTerms) {
-    //   setError("You must accept the terms and conditions to proceed");
-    //   return;
-    // }
-
+    // Call BE API Endpoint to create a new user.
     try {
       const res = await fetch("/api/signup", {
         method: "POST",
@@ -64,26 +60,18 @@ function SignupPage() {
         body: JSON.stringify({
           name,
           email,
-          password,
-          confirmPassword,
+          password
         }),
       });
 
-      if (res.status === 400) {
+
+      if (res.status === 409) {
         setError("User already exists");
       } else if (res.status === 200) {
-        const result = await signIn("credentials", {
-          redirect: false,
-          email,
-          password,
-        });
+        setIsVerificationEmailSent(true);
 
-        if (result?.error) {
-          setError("Error occurred. Please try again.");
-        } else {
-          router.push("/information");
-        }
-      } else {
+      }
+      else {
         setError("An error occurred. Please try again.");
       }
     } catch (err) {
@@ -95,6 +83,7 @@ function SignupPage() {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
 
   return (
     <div className="bg-gray-100 p-8 h-screen">
@@ -125,7 +114,12 @@ function SignupPage() {
             </div>
           </div>
           {/* Right Section */}
-          <div className="col-span-12 md:col-span-6 lg:col-span-6">
+
+          {isVerificationEmailSent ? (
+            <div>
+
+            </div>
+          ) : (<div className="col-span-12 md:col-span-6 lg:col-span-6">
             <div className="max-w-md mx-auto">
               {/* Progress Indicator */}
               <div className="flex items-center mb-12">
@@ -196,10 +190,9 @@ function SignupPage() {
                 {error && <p className="text-red-500 text-sm">{error}</p>}
 
                 <Button
-                  //type="submit"
-                  className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white"
-                  disabled>
-                  Continue with email
+                  type="submit"
+                  className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white">
+                  Create Account
                 </Button>
 
                 <div className="flex items-center my-6">
@@ -244,7 +237,8 @@ function SignupPage() {
                 .
               </p>
             </div>
-          </div>
+          </div>) }
+
         </div>
       </div>
     </div>
