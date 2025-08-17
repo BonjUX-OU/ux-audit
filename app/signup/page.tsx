@@ -111,7 +111,7 @@ function SignupPage() {
           {isVerificationEmailSent ? (
             <div className="col-span-12 md:col-span-6 lg:col-span-6">
               <div className="max-w-md mx-auto">
-                <h1 className="text-2xl font-bold mb-8">Let&apos;s create an account first</h1>
+                <h1 className="text-2xl font-bold mb-8">Verify your email</h1>
                 <p className="text-gray-600 mb-4">
                   We have sent a verification link to your email address. Please, go to your email and verify your
                   email, then we will direct you here again!

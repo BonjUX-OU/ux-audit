@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams,useSearchParams } from "next/navigation";
 
 const VerifyPage = () => {
+
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const { token } = useParams();
+  const  token= searchParams.get("token");
 
   const verifyEmail = async () => {
     try {

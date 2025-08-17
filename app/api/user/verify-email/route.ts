@@ -4,8 +4,9 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { signIn } from "next-auth/react";
 import { cookies } from "next/headers";
+import { encode } from "next-auth/jwt";
 
-export async function POST(request: Request) {
+export async function POST(request: Request, response: NextResponse) {
   try {
     const { token } = await request.json();
     const cookieStore = await cookies();
@@ -13,36 +14,41 @@ export async function POST(request: Request) {
 
     await dbConnect();
 
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
     const user = await User.findOne({
       verificationToken: token,
-      verificationTokenExpires: { $gt: fifteenMinutesAgo },
+      verificationTokenExpires: { $gt: twoDaysAgo },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "Invalid or expired token" }, { status: 400 });
-    }
+    // if (!user) {
+    //   return NextResponse.json({ error: "Invalid or expired token" }, { status: 400 });
+    // }
 
-    user.verified = true;
-    user.verificationToken = null;
-    user.verificationTokenExpires = null;
+    // user.verified = true;
+    // user.verificationToken = null;
+    // user.verificationTokenExpires = null;
 
-    await user.save();
+    // await user.save();
 
-    if (hasSession) {
-      // Automatically log in the user if they have a session
-      const result = await signIn("credentials", {
-        callbackUrl: "/dashboard",
-        email: user.email,
-        password: user.password,
-      });
+    // if (hasSession) {
+      // const sessionToken = await encode({
+      //   token: { id: user.id, email: user.email },
+      //   secret: process.env.NEXTAUTH_SECRET!,
+      //   maxAge: 60 * 60 * 24 * 30, // 30 days
+      // });
 
-      if (!result?.ok) {
-        return NextResponse.json({ error: "Failed to log in user" }, { status: 500 });
-      }
-    } else {
-      return NextResponse.json({ message: "Email verified successfully" }, { status: 200 });
-    }
+      // (await cookies()).set("next-auth.session-token", sessionToken, {
+      //   path: "/",
+      //   httpOnly: true,
+      //   sameSite: "lax",
+      //   secure: process.env.NODE_ENV === "production",
+      //   maxAge: 60 * 60 * 24 * 30,
+      // });
+
+      return NextResponse.redirect(new URL("/dashboard", process.env.NEXT_PUBLIC_APP_URL));
+      // return NextResponse.redirect(new URL("/dashboard", request.url));
+
+    // }
   } catch (error: any) {
     console.error("Error fetching :", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });

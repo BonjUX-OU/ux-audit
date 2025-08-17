@@ -1,7 +1,7 @@
 // app/api/signup/route.ts
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { addMinutes } from "date-fns";
+import { addHours, addMinutes } from "date-fns";
 import crypto from "crypto";
 import User from "@/models/User";
 import dbConnect from "@/lib/dbConnect";
@@ -71,7 +71,7 @@ async function CreateUser(body: any, verificationToken: string) {
   const { name, email, password } = body;
 
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-  const expires = addMinutes(new Date(), 120);
+  const expires = addHours(new Date(), 48);
 
   await User.create({
     name,
