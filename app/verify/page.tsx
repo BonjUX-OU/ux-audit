@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useRouter, useParams,useSearchParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 
 const VerifyPage = () => {
-
   const searchParams = useSearchParams();
   const router = useRouter();
-  const  token= searchParams.get("token");
+  const token = searchParams.get("token");
 
   const verifyEmail = async () => {
     try {
@@ -22,6 +21,10 @@ const VerifyPage = () => {
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to verify email");
+      }
+
+      if (res.redirected) {
+        window.location.href = res.url;
       }
 
       // Show success message and redirect
