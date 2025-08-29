@@ -26,9 +26,8 @@ const UserSchema = new mongoose.Schema<UserType>(
       unique: true,
     },
     passwordHash: {
-      type: String,
-      required: true,
-    },
+      type: String
+      },
     role: {
       type: String,
       enum: UserRoleType,
