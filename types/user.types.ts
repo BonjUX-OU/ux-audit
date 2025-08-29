@@ -2,7 +2,7 @@ import { DataObjectType } from "./common.types";
 
 export type UserType = DataObjectType & {
   email: string;
-  password: string;
+  passwordHash: string;
   name: string;
   role: UserRoleType;
   subscribed?: boolean;
@@ -16,10 +16,19 @@ export type UserType = DataObjectType & {
   isNewUser?: boolean;
   hasRights?: boolean;
   image?:string;
+  registeredBy?: RegisteredByType;
+  verified: boolean;
+  verificationToken: string | null;
+  verificationTokenExpires: Date | null;
 };
 
 export enum UserRoleType {
   Customer = "CUSTOMER",
   Validator = "VALIDATOR",
   Contributor = "CONTRIBUTOR",
+}
+
+export enum RegisteredByType {
+  Email = "EMAIL",
+  Google = "GOOGLE"
 }
