@@ -17,9 +17,16 @@ import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetai
 import { getOption } from "@/helpers/optionArrayFunctions";
 import RegisterAndPayModal from "@/components/organisms/RegisterAndPayModal/RegisterAndPayModal";
 import { useToast } from "@/hooks/useToast";
+import { useSession } from "next-auth/react";
+// import { useRouter } from "next/router";
+import { redirect } from "next/navigation";
+import { STORAGE_KEY_FOR_PAYMENT } from "@/constants/common.constants";
+import PreviewIssueListView from "@/components/templates/PreviewIssueListView/PreviewIssueListView";
 
 export default function PreviewView({ params }: { params: Promise<{ id: string }> }) {
   const { id: reportId } = use(params);
+  const { status } = useSession();
+  // const router = useRouter();
   const containerRef = useRef(null);
   const { toast } = useToast();
 
@@ -29,6 +36,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
   const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
   const [selectedPreviewIssue, setSelectedPreviewIssue] = useState<PreviewIssueType | null>();
   const [showShareButton, setShowShareButton] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Constants states
   const [pageType, setPageType] = useState<OptionType>();
@@ -38,7 +46,13 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
     try {
       const res = await fetch(`/api/report/preview-issues?reportId=${reportId}`);
 
-      if (!res.ok) throw new Error("Failed to fetch report issues");
+      if (!res.ok) {
+        if (status === "authenticated" && res.status === 403) {
+          redirect("/dashboard");
+          // router.push("/dashboard");
+          return;
+        } else throw new Error("Failed to fetch report issues");
+      }
 
       const data: {
         report: ReportType;
@@ -53,6 +67,8 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
       setShowShareButton(data.shareAvailable);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -65,8 +81,18 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
   };
 
   const handleRegisterClick = () => {
-    alert("register");
-    // TODO: Implement registration and payment flow here
+    const sessionItem = {
+      reportId,
+      comesFromRegisterAndPay: true,
+      hasPaid: false,
+    };
+    sessionStorage.setItem(STORAGE_KEY_FOR_PAYMENT, JSON.stringify(sessionItem));
+
+    if (status === "authenticated") {
+      redirect("/payment");
+    } else {
+      redirect("/signup");
+    }
   };
 
   useEffect(() => {
@@ -81,9 +107,11 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report]);
 
-  if (!report) return <LoadingOverlay message="Loading report for editing..." />;
+  if (isLoading) return <LoadingOverlay message="Loading report for preview..." />;
 
-  const overallScore = report.score;
+  if (!report) return <div className="text-center p-8">Report not found</div>;
+
+  const overallScore = report?.score;
   const totalIssues = reportIssues.length;
 
   const handleShareClick = () => {
@@ -183,6 +211,9 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
                 <TabsContent value="list" className="mt-4">
                   <h3 className="text-center text-lg font-[500] mb-4">Issues Listed Preview</h3>
                   <IssueListView issues={reportIssues} />
+                  {previewIssues.length && (
+                    <PreviewIssueListView issues={previewIssues} onRegisterClick={handleRegisterClick} />
+                  )}
                 </TabsContent>
               </CardContent>
             </Tabs>
@@ -213,7 +244,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
 
             <div className="w-1/5 flex items-center">
               <Button onClick={handleRegisterClick} className="w-full py-6 bg-[#B04E34] hover:bg-[#963F28] text-white">
-                Register & Purchase full report
+                {status === "authenticated" ? "Purchase full report" : "Register & Purchase full report"}
               </Button>
             </div>
           </div>

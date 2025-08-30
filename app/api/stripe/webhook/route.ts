@@ -40,6 +40,7 @@ export async function POST(request: Request) {
     // Connect to your DB if needed
     await dbConnect();
 
+    console.log("Received Stripe event here from webhook:", event.type);
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;

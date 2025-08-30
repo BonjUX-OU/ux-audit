@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import LoadingOverlay from "@/components/layout/LoadingOverlay";
 
 function SignupPage() {
   const [error, setError] = useState("");
@@ -15,6 +16,7 @@ function SignupPage() {
   const { status } = useSession();
   const [showPassword, setShowPassword] = useState(false);
   const [isVerificationEmailSent, setIsVerificationEmailSent] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -47,6 +49,8 @@ function SignupPage() {
       return;
     }
 
+    setStatusMessage("Creating your account...");
+
     // Call BE API Endpoint to create a new user.
     try {
       const res = await fetch("/api/signup", {
@@ -63,13 +67,20 @@ function SignupPage() {
 
       if (res.status === 409) {
         setError("User already exists");
+        setStatusMessage("");
       } else if (res.status === 200) {
-        setIsVerificationEmailSent(true);
+        setStatusMessage("Account created successfully! Redirecting...");
+        await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+        });
       } else {
         setError("An error occurred. Please try again.");
       }
     } catch (err) {
       setError("Error occurred. Please try again.");
+      setStatusMessage("");
       console.error(err);
     }
   };
@@ -77,6 +88,8 @@ function SignupPage() {
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  if (statusMessage) return <LoadingOverlay message={statusMessage} />;
 
   return (
     <div className="bg-gray-100 p-8 h-screen">
