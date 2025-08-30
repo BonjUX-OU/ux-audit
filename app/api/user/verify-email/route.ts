@@ -5,12 +5,23 @@ import User from "@/models/User";
 import { signIn } from "next-auth/react";
 import { cookies } from "next/headers";
 import { encode } from "next-auth/jwt";
+import Report from "@/models/Report";
 
 export async function POST(request: Request) {
   try {
     const { token } = await request.json();
     const cookieStore = await cookies();
     const hasSession = cookieStore.get("register_session")?.value;
+
+     // this is reportId value send to customers for preview
+     const registerReportRef = cookieStore.get("register_ref")?.value; // 68b1fabf17cd199ed7137d26  
+
+     //get the reportById 
+     // check its already paid and assigned to a customer.
+
+     const report = await Report.findOne({ _id: registerReportRef });
+
+     if(report && report.paid && report.assignedToEmail){}
 
     await dbConnect();
 
