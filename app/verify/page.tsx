@@ -40,7 +40,7 @@ const VerifyPage = () => {
   }, [token, router]);
 
   return (
-    <Suspense>
+    <Suspense fallback={<div>Loading...</div>}>
       <div className="bg-gray-100 p-8 h-screen">
         <div className="bg-white flex justify-center py-8 px-4 h-full rounded-lg">
           <div className="grid grid-cols-12 gap-12 w-full max-w-5xl">
