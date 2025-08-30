@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
             role: UserRoleType.Customer,
             subscribed: false,
             usedAnalyses: 0,
-            image: user.image
+            image: user.image,
           });
           //console.log("New user created:", newUser);
           //change newuser._id from objectId to string
@@ -116,7 +116,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl, token }: any) {
-      // This is where you control where to send the user
+      // This is where you control where to send the user after login
       if (token?.isNewUser === true) {
         return `${baseUrl}/onboarding`;
       }

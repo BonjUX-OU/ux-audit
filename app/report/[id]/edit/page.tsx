@@ -36,20 +36,22 @@ const breadcrumbsteps = [
 export default function EditReportPage() {
   const router = useRouter();
   const params = useParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { id: reportId } = params;
   const userRole = session?.user?.role;
   const { toast } = useToast();
 
   useEffect(() => {
-    //if user is not logged redirect to login page
-    //if user is not admin or tester redirect to dashboard
-    if (!session) {
+    if (status === "unauthenticated") {
       router.push("/signin");
-    } else if (userRole !== UserRoleType.Validator && userRole !== UserRoleType.Contributor) {
+    } else if (
+      status === "authenticated" &&
+      userRole !== UserRoleType.Validator &&
+      userRole !== UserRoleType.Contributor
+    ) {
       router.push("/dashboard");
     }
-  }, [session, userRole, router]);
+  }, [status, userRole, router]);
 
   // Original report loaded from the API
   const [originalReport, setOriginalReport] = useState<ReportType | null>(null);
@@ -131,13 +133,15 @@ export default function EditReportPage() {
   }, []);
 
   useEffect(() => {
-    if (
-      originalReport &&
-      (originalReport.status === ReportStatus.InReview || originalReport.status === ReportStatus.Completed)
-    ) {
-      setIsReportInReview(true);
-      setSummaryMode(true);
+    if (originalReport) {
+      if (originalReport.status === ReportStatus.InReview) {
+        setIsReportInReview(true);
+        setSummaryMode(true);
+      } else if (originalReport.status === ReportStatus.Completed) {
+        router.push("/preview/" + originalReport._id);
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [originalReport]);
 
   useEffect(() => {

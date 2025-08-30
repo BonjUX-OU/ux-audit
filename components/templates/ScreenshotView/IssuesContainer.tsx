@@ -1,15 +1,24 @@
 import { getHeuristicColor } from "@/helpers/getColorHelper";
-import { ReportIssueType } from "@/types/reportIssue.types";
+import { PreviewIssueType, ReportIssueType } from "@/types/reportIssue.types";
 import React, { useState } from "react";
 
 type IssuesContainerProps = {
   imgUrl?: string;
   hideIssues: boolean;
   reportIssues: ReportIssueType[];
+  previewIssues?: PreviewIssueType[];
   onIssueClick: (issue: ReportIssueType) => void;
+  onPreviewIssueClick?: (issue: PreviewIssueType) => void;
 };
 
-const IssuesContainer = ({ imgUrl, hideIssues, reportIssues, onIssueClick }: IssuesContainerProps) => {
+const IssuesContainer = ({
+  imgUrl,
+  hideIssues,
+  reportIssues,
+  previewIssues,
+  onIssueClick,
+  onPreviewIssueClick,
+}: IssuesContainerProps) => {
   const [isHovering, setIsHovered] = useState("");
   const onMouseEnter = (id: string) => {
     setIsHovered(id);
@@ -86,6 +95,22 @@ const IssuesContainer = ({ imgUrl, hideIssues, reportIssues, onIssueClick }: Iss
           ))}
         </div>
       )}
+      {previewIssues &&
+        previewIssues.map((issue, index) => (
+          <div
+            key={index}
+            onClick={() => onPreviewIssueClick?.(issue)}
+            className="w-10 h-10 text-white absolute rounded-full shadow-md flex items-center justify-center cursor-pointer"
+            style={{
+              backgroundColor: getHeuristicColor(issue.heuristic.code),
+              top: issue.snapshotLocation.top,
+              left: issue.snapshotLocation.left,
+            }}>
+            <h4 className="text-lg font-semibold">
+              {issue.heuristic.code}.{issue.order ?? 0}
+            </h4>
+          </div>
+        ))}
     </>
   );
 };
