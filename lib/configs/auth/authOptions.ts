@@ -5,7 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
 import dbConnect from "@/lib/dbConnect";
-import { UserRoleType } from "@/types/user.types";
+import { RegisteredByType, UserRoleType } from "@/types/user.types";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
         try {
           const user = await User.findOne({ email: credentials.email });
           if (user) {
-            const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password || "");
+            const isPasswordCorrect = await bcrypt.compare(credentials.password, user.passwordHash || "");
             if (isPasswordCorrect) {
               return user;
             }
@@ -61,6 +61,7 @@ export const authOptions: NextAuthOptions = {
             subscribed: false,
             usedAnalyses: 0,
             image: user.image,
+            registeredBy: RegisteredByType.Google,
           });
           //console.log("New user created:", newUser);
           //change newuser._id from objectId to string
@@ -79,6 +80,7 @@ export const authOptions: NextAuthOptions = {
           user.createdAt = existingUser.createdAt;
           user.isNewUser = false;
           user.hasRights = existingUser.hasRights;
+          user.access_token = user.access_token;
         }
       }
       return user;
@@ -87,6 +89,8 @@ export const authOptions: NextAuthOptions = {
       // Persist the OAuth access_token and or the user id to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
+        token.access_token = account.access_token;
+
         token.id = user._id;
         token.name = user.name;
         token.role = user.role;
@@ -104,6 +108,8 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token, user }: any) {
       // Send properties to the client, like an access_token and user id from a provider.
       session.accessToken = token.accessToken;
+      session.access_token = token.accessToken;
+
       session.user._id = token.id;
       session.user.name = token.name;
       session.user.role = token.role;
