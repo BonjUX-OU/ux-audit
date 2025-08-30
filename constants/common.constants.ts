@@ -45,3 +45,5 @@ export const customerIssues: OptionType[] = [
   { value: "preLanchValidation", label: "Need expert validation before launching" },
   { value: "other", label: "Other" },
 ];
+
+export const STORAGE_KEY_FOR_PAYMENT = "targetReportIdForPayment";

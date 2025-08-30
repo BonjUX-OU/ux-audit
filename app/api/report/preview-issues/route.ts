@@ -39,10 +39,8 @@ export async function GET(request: Request) {
     if (session) {
       // If the user is a customer, ensure they own the report
       if (session.user?.role === UserRoleType.Customer) {
-        const ownsReport = reportIssues.some(
-          (issue) =>
-            issue.report && issue.report.toString() === reportId && issue.reportOwner.toString() === session.user?._id
-        );
+        const ownsReport = report?.owner?.toString() === session.user._id;
+
         if (!ownsReport) {
           return NextResponse.json({ error: "Unauthorized access to report issues" }, { status: 403 });
         } else {

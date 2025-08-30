@@ -1,21 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, CheckCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { STORAGE_KEY_FOR_PAYMENT } from "@/constants/common.constants";
 
 function PaymentPage() {
   const [isLoading, setIsLoading] = useState(false);
   const paymentLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || "";
+  const sessionItem = window.sessionStorage.getItem(STORAGE_KEY_FOR_PAYMENT);
+
+  useEffect(() => {
+    if (sessionItem) {
+      const parsedItem = JSON.parse(sessionItem);
+      parsedItem.comesFromRegisterAndPay = false;
+
+      window.sessionStorage.setItem(STORAGE_KEY_FOR_PAYMENT, JSON.stringify(parsedItem));
+    }
+  }, [sessionItem]);
+
   const handlePayment = async () => {
     setIsLoading(true);
     if (!paymentLink) {
       alert("No Payment Link available. Please contact support.");
       return;
     }
+
     window.location.href = paymentLink;
   };
+
   return (
     <div className="bg-gray-100 p-8 h-screen">
       <div className="bg-white flex justify-center py-8 px-4 h-full rounded-lg">
@@ -32,20 +46,14 @@ function PaymentPage() {
                 <span className="text-white text-4xl font-bold">0.0</span>
               </div>
 
-              <h2 className="text-2xl font-bold mb-4">
-                Thank you for being our Beta User👋
-              </h2>
+              <h2 className="text-2xl font-bold mb-4">Thank you for being our Beta User👋</h2>
               <p className="text-gray-600 max-w-md">
-                We are here to identify usability issues and opportunities,
-                providing insights for improving UX in your products. We are
-                here to identify usability issues and opportunities, providing
-                insights for improving UX in your products.
+                We are here to identify usability issues and opportunities, providing insights for improving UX in your
+                products. We are here to identify usability issues and opportunities, providing insights for improving
+                UX in your products.
               </p>
 
-              <Link
-                href="/signin"
-                className="flex items-center text-[#C25B3F] mt-8"
-              >
+              <Link href="/signin" className="flex items-center text-[#C25B3F] mt-8">
                 <span>I have already an account</span>
                 <ChevronLeft className="h-4 w-4 ml-2 rotate-180" />
               </Link>
@@ -79,15 +87,12 @@ function PaymentPage() {
                 <div className="p-6">
                   <h2 className="text-2xl font-bold mb-2">Beta User Plan</h2>
                   <p className="text-gray-600 mb-8">
-                    UX heuristic report for up to 15 website&apos; pages with
-                    actionable insights
+                    UX heuristic report for up to 15 website&apos; pages with actionable insights
                   </p>
 
                   <div className="flex flex-col items-center mb-4">
                     <span className="text-gray-500 line-through">19.99 €</span>
-                    <span className="text-[#00C48C] text-5xl font-bold">
-                      4.99 €
-                    </span>
+                    <span className="text-[#00C48C] text-5xl font-bold">4.99 €</span>
                     <div className="text-gray-500 text-sm mt-1">
                       <span>per month</span>
                       <div>valid for upcoming 6 months</div>
@@ -97,8 +102,7 @@ function PaymentPage() {
                   <Button
                     onClick={handlePayment}
                     disabled={isLoading}
-                    className="w-full bg-[#C25B3F] hover:bg-[#A04A32] text-white flex items-center justify-center"
-                  >
+                    className="w-full bg-[#C25B3F] hover:bg-[#A04A32] text-white flex items-center justify-center">
                     {isLoading ? "Processing..." : "Accept the offer & Pay"}
                     {!isLoading && <ExternalLink className="h-4 w-4 ml-2" />}
                   </Button>

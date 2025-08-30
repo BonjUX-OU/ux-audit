@@ -23,9 +23,12 @@ import ValidatorReportsList, {
 import { UserRoleType } from "@/types/user.types";
 import { ReportType } from "@/types/report.types";
 import { useToast } from "@/hooks/useToast";
+import { redirect } from "next/navigation";
+import LoadingOverlay from "@/components/layout/LoadingOverlay";
+import { STORAGE_KEY_FOR_PAYMENT } from "@/constants/common.constants";
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { toast } = useToast();
 
   const [currentProject, setCurrentProject] = useState<ProjectType | null>(null);
@@ -86,12 +89,25 @@ export default function DashboardPage() {
   // Fetching projects and reports
   // ------------------------------------
   useEffect(() => {
+    if (status === "unauthenticated") {
+      redirect("/signin");
+    } else if (status === "authenticated") {
+      const hasReportIdInStorage = window.sessionStorage.getItem(STORAGE_KEY_FOR_PAYMENT);
+
+      if (hasReportIdInStorage) {
+        const sessionItem = JSON.parse(hasReportIdInStorage);
+        if (sessionItem.comesFromRegisterAndPay) {
+          redirect("/payment");
+        }
+      }
+    }
+
     if (session?.user?._id) {
       projectsNavbarRef.current?.fetchProjects();
       fetchUserReports();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [session, status]);
 
   const projectReports = currentProject ? reports.filter((r) => r.project._id === currentProject?._id) : reports;
 
@@ -104,6 +120,14 @@ export default function DashboardPage() {
     reportsByPageType[pt].push(rep);
   }
   const pageTypes = Object.keys(reportsByPageType).sort();
+
+  if (status === "loading") {
+    return <LoadingOverlay message="Loading dashboard" />;
+  }
+
+  if (status === "unauthenticated") {
+    return <LoadingOverlay message="Redirecting to sign in..." />;
+  }
 
   return (
     <>

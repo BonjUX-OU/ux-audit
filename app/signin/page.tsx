@@ -7,11 +7,14 @@ import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import LoadingOverlay from "@/components/layout/LoadingOverlay";
 
 function LoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
   const { status } = useSession();
+
+  const [requesting, setRequesting] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -40,6 +43,8 @@ function LoginPage() {
       return;
     }
 
+    setRequesting(true);
+
     const res = await signIn("credentials", {
       email,
       password,
@@ -48,11 +53,14 @@ function LoginPage() {
 
     if (res?.error) {
       setError("Invalid email or password");
+      setRequesting(false);
     } else {
       setError("");
       if (res?.url) router.replace(res.url); // Redirect to the URL provided by the server
     }
   };
+
+  if (requesting) return <LoadingOverlay message="Signin in..." />;
 
   return (
     <div className="bg-gray-100 p-8 h-screen">
@@ -110,8 +118,7 @@ function LoginPage() {
                     <Button
                       variant="outline"
                       type="submit"
-                      className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white"
-                      >
+                      className="w-full  bg-[#B04E34] hover:bg-[#963F28] text-white">
                       Log in with email
                     </Button>
                   </div>
