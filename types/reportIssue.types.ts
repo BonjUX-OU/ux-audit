@@ -45,3 +45,11 @@ export type ReportIssueType = DataObjectType & {
   updatedAt?: Date;
   tags?: string[];
 };
+
+export type PreviewIssueType = {
+  report: ReportType;
+  heuristic: HeuristicType;
+  severityLevel: SeverityLevelType;
+  order: number;
+  snapshotLocation: SnapshotType;
+};

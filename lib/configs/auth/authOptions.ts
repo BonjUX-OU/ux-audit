@@ -90,7 +90,7 @@ export const authOptions: NextAuthOptions = {
       if (account) {
         token.accessToken = account.access_token;
         token.access_token = account.access_token;
-        
+
         token.id = user._id;
         token.name = user.name;
         token.role = user.role;
@@ -118,12 +118,11 @@ export const authOptions: NextAuthOptions = {
       session.user.createdAt = token.createdAt;
       session.user.isNewUser = token.isNewUser; // Flag to indicate new user
       session.user.hasRights = token.hasRights;
-      
 
       return session;
     },
     async redirect({ url, baseUrl, token }: any) {
-      // This is where you control where to send the user
+      // This is where you control where to send the user after login
       if (token?.isNewUser === true) {
         return `${baseUrl}/onboarding`;
       }

@@ -6,10 +6,18 @@ import Report from "@/models/Report";
 import ReportIssue from "@/models/ReportIssue";
 import { ReportType } from "@/types/report.types";
 import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/configs/auth/authOptions";
 
 export const revalidate = 0;
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
