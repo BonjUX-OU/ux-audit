@@ -8,10 +8,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-03-31.basil", // or latest supported version
 });
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const cookieStore = await cookies();
-    const hasSession = cookieStore.get("register_session")?.value;
 
     // this is reportId value send to customers for preview
     const registerReportRef = cookieStore.get("register_ref")?.value; // 68b1fabf17cd199ed7137d26
@@ -38,11 +37,10 @@ export async function POST(request: Request) {
           },
         });
 
-        session.url ? await VerifyCustomerEmailAndRedirect(request, hasSession, session.url) : null;
         return NextResponse.redirect(session.url!);
       } else {
         // Redirect to Dashboard.
-        await VerifyCustomerEmailAndRedirect(request, hasSession, "/dashboard");
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`);
       }
     }
   } catch (error: any) {
