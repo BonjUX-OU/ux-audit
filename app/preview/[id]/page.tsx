@@ -198,7 +198,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
           onRegisterClick={handleRegisterClick}
         />
       )}
-      {showShareButton && (
+      {!showShareButton && (
         <div className="w-screen sticky bottom-0 bg-[#FFF1E0] z-50">
           <div className="container flex gap-2 mx-auto p-4">
             <div className="w-4/5 text-left">
