@@ -5,10 +5,12 @@ import Link from "next/link";
 import { ChevronLeft, CheckCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { STORAGE_KEY_FOR_PAYMENT } from "@/constants/common.constants";
+import { useSession } from "next-auth/react";
 
 function PaymentPage() {
+  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const paymentLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || "";
+  const [reportId, setReportId] = useState("");
 
   useEffect(() => {
     const sessionItem = window.sessionStorage.getItem(STORAGE_KEY_FOR_PAYMENT);
@@ -16,18 +18,42 @@ function PaymentPage() {
       const parsedItem = JSON.parse(sessionItem);
       parsedItem.comesFromRegisterAndPay = false;
 
+      setReportId(parsedItem.reportId);
+
       window.sessionStorage.setItem(STORAGE_KEY_FOR_PAYMENT, JSON.stringify(parsedItem));
     }
   }, []);
 
   const handlePayment = async () => {
     setIsLoading(true);
-    if (!paymentLink) {
-      alert("No Payment Link available. Please contact support.");
-      return;
-    }
 
-    window.location.href = paymentLink;
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reportId,
+          userId: session?.user?._id,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create checkout session");
+      }
+
+      // The redirection is now handled in the API route
+      // const data = await res.json();
+      if (res.url) {
+        window.location.href = res.url;
+      } else {
+        throw new Error("No URL returned from checkout session");
+      }
+    } catch (error) {
+      console.error("Payment initiation error:", error);
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -32,9 +32,14 @@ const RaitingBar = ({ score, issues }: RaitingBarProps) => {
           <div className="absolute top-0 left-0 flex justify-center align-middle w-full inset-0 text-white text-sm font-bold">{`${issues} issues identified`}</div>
         )}
       </div>
-      <div className="flex justify-between text-xs text-gray-600 mt-1">
+      <div className="block relative text-xs text-gray-600 mt-1">
         {Ratings.map((rating) => (
-          <span key={rating.key}>{`${rating.label} (${rating.min}-${rating.max})`}</span>
+          <span
+            key={rating.key}
+            style={{
+              position: "absolute",
+              left: `${rating.min}%`,
+            }}>{`${rating.label} (${rating.min}-${rating.max})`}</span>
         ))}
       </div>
     </div>

@@ -1,86 +1,9 @@
 "use client";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BarChart3, Settings, GitCompare, FileSpreadsheet, Radar, BadgeCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-
-// A reusable JoinForm component to handle email submissions and feedback.
-function JoinForm() {
-  const [email, setEmail] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleJoin = async () => {
-    if (!email) {
-      setFeedback("Please enter your email.");
-      return;
-    }
-    if (!validateEmail(email)) {
-      setFeedback("Please enter a valid email address.");
-      return;
-    }
-    setIsLoading(true);
-    setFeedback("");
-
-    try {
-      const res = await fetch("/api/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      await res.json();
-
-      if (res.status === 200) {
-        setFeedback("Email already subscribed ✅");
-      } else if (res.status === 201) {
-        setFeedback("You're In! 🎉");
-      } else {
-        setFeedback("Something went wrong 😥");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setFeedback("An unexpected error occurred.");
-    } finally {
-      setIsLoading(false);
-      setEmail("");
-    }
-  };
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="flex max-w-md mx-auto gap-2">
-        <Input
-          type="email"
-          placeholder="Enter your email"
-          className="bg-white w-80 md:w-96"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <div className="px-2">
-          <Button
-            className="bg-[#B04E34] hover:bg-[#963F28] text-white -ml-36 w-28"
-            onClick={handleJoin}
-            disabled={isLoading}>
-            {isLoading ? "Joining..." : "Join"}
-          </Button>
-        </div>
-      </div>
-      {feedback && <p className="mt-2 text-sm text-gray-500 font-semibold">{feedback}</p>}
-    </div>
-  );
-}
 
 export default function LandingPage() {
   return (
@@ -100,7 +23,7 @@ export default function LandingPage() {
               </Button>
             </Link>
             <Link href="/signup">
-              <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white">Join us as a Beta User</Button>
+              <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white">Join Us</Button>
             </Link>
           </div>
         </div>
@@ -109,31 +32,30 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="bg-[#FFF1E0]">
         <div className="container mx-auto px-4 py-12 text-center">
-          <h1 className="text-[#2D3648] text-4xl md:text-5xl font-bold mt-10 mb-4">Ensure User-Friendly Experiences</h1>
+          <h1 className="text-[#2D3648] text-4xl md:text-5xl font-bold mt-10 mb-4">
+            Wondering how your design really feels to users?
+          </h1>
           <p className="text-gray-600 max-w-2xl mx-auto mb-8">
-            Discover how your design choices impact user experience and keep improving with actionable insights for your
-            website. UXMust provides ways to design user-friendly solutions.
+            UXMust gives you another point of view from real UX professional who spot what you might miss and guide you
+            toward smarter design decisions.
           </p>
-          {/* TODO: REMOVED BETA USERS FLOW TEMPRORARELY
+
           <div className="mb-2">
             <Link href="/signup">
               <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white px-6 py-3 font-semibold">
-                Join us as a Beta User*
+                Register and Request an Audit
               </Button>
             </Link>
           </div>
-          <p className="text-sm text-gray-500 italic mb-12">
-            *Get the chance to subscribe only for 4.99 € valid for 6 months
-          </p> */}
+          <p className="text-sm text-gray-500 italic mb-12">No payment until the report generation</p>
 
-          {/* Dashboard Previews */}
-          <div className="relative w-full max-w-5xl mx-auto">
-            <div className="flex justify-center items-center md:space-x-[-30px]">
+          <div className="relative w-full max-w-5xl mx-auto h-[140px]">
+            <div className="absolute flex justify-center items-center md:space-x-[-30px]">
               <Image
-                src="/images/image1.jpeg"
+                src="/images/image1.png"
                 alt="UXMust Dashboard View 1"
                 width={390}
-                height={175}
+                height={243}
                 className="hidden md:flex rounded-lg shadow-xl relative z-10"
               />
               <Image
@@ -144,10 +66,10 @@ export default function LandingPage() {
                 className="rounded-lg shadow-xl relative z-20 md:-ml-24"
               />
               <Image
-                src="/images/image3.jpeg"
+                src="/images/image3.png"
                 alt="UXMust Dashboard View 3"
                 width={390}
-                height={175}
+                height={243}
                 className="hidden md:flex rounded-lg shadow-xl relative z-10 -ml-24"
               />
             </div>
@@ -179,13 +101,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-24 text-center">
-        <h2 className="text-[#2D3648] text-3xl md:text-4xl font-bold mb-4">Stay tuned, coming soon!</h2>
-        <p className="text-gray-600 mb-8">Join our list and be the first to know.</p>
-        <JoinForm />
-      </section>
-
       {/* FAQ Section */}
       <section className="bg-stone-100">
         <div className="container mx-auto px-4 py-24">
@@ -196,21 +111,21 @@ export default function LandingPage() {
               <AccordionItem value="item-1" className="mb-4 bg-white p-4 rounded-md">
                 <AccordionTrigger>How long does it take to generate a report?</AccordionTrigger>
                 <AccordionContent>
-                  We try our best to ensure a good quality report which can take some time to generate. However, you can
-                  expect to receive your report in less than 2 minutes!
+                  To ensure the accuracy and depth of your report, generation time may vary. We prioritize quality, so
+                  please allow some time for the process to complete.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2" className="mb-4 bg-white p-4 rounded-md">
-                <AccordionTrigger>Can I export reports in different formats?</AccordionTrigger>
+                <AccordionTrigger>Can I share reports with my teammates?</AccordionTrigger>
                 <AccordionContent>
-                  Yes! Besides viewing it on your dashboard, you can export the report as PDF.
+                  Not at the moment but we are working on it. You will be able to invite your teammates to view and
+                  collaborate on the report directly.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3" className="mb-4 bg-white p-4 rounded-md">
-                <AccordionTrigger>I reached my report limits for this month, can I get more?</AccordionTrigger>
+                <AccordionTrigger>How much does it cost?</AccordionTrigger>
                 <AccordionContent>
-                  If you have ran extensive evaluations but still need more, you can purchase tokens that will allow you
-                  to generate additional reports.
+                  Get comprehensive UX feedback just €14.90 per page. We use stripe for payments.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
