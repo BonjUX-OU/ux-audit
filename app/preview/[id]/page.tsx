@@ -1,57 +1,56 @@
 "use client";
 import { useEffect, useState, useRef, use } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AppBar from "@/components/layout/AppBar";
-import { ChevronLeft } from "lucide-react";
+import { Share } from "lucide-react";
 import ScoreBar from "@/components/templates/ScoreBar/ScoreBar";
 import { ReportType } from "@/types/report.types";
 import LoadingOverlay from "@/components/layout/LoadingOverlay";
-import { ReportIssueType } from "@/types/reportIssue.types";
+import { PreviewIssueType, ReportIssueType } from "@/types/reportIssue.types";
 import { ConstantsBundleResponseType, OptionType } from "@/types/common.types";
 import IssuesContainer from "@/components/templates/ScreenshotView/IssuesContainer";
 import IssueListView from "@/components/templates/IssueListView/IssueListView";
 import IssueDetailModal from "@/components/organisms/IssueDetailModal/IssueDetailModal";
 import { getOption } from "@/helpers/optionArrayFunctions";
-import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
-import { useSession } from "next-auth/react";
+import RegisterAndPayModal from "@/components/organisms/RegisterAndPayModal/RegisterAndPayModal";
+import { useToast } from "@/hooks/useToast";
 
-export default function AnalysisView({ params }: { params: Promise<{ id: string }> }) {
-  const { data: session, status } = useSession();
+export default function PreviewView({ params }: { params: Promise<{ id: string }> }) {
   const { id: reportId } = use(params);
-  const router = useRouter();
   const containerRef = useRef(null);
+  const { toast } = useToast();
 
   const [report, setReport] = useState<ReportType | null>(null);
   const [reportIssues, setReportIssues] = useState<ReportIssueType[]>([]);
+  const [previewIssues, setPreviewIssues] = useState<PreviewIssueType[]>([]);
   const [selectedIssue, setSelectedIssue] = useState<ReportIssueType | null>(null);
+  const [selectedPreviewIssue, setSelectedPreviewIssue] = useState<PreviewIssueType | null>();
+  const [showShareButton, setShowShareButton] = useState(false);
 
   // Constants states
   const [pageType, setPageType] = useState<OptionType>();
   const [sector, setSector] = useState<OptionType>();
 
-  const fetchReport = async () => {
+  const fetchPreviewIssues = async () => {
     try {
-      const res = await fetch(`/api/report?id=${reportId}`);
-      if (!res.ok) throw new Error("Failed to fetch report");
-      const data = await res.json();
-      setReport(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchReportIssues = async () => {
-    try {
-      const res = await fetch(`/api/report/issue?reportId=${reportId}`);
+      const res = await fetch(`/api/report/preview-issues?reportId=${reportId}`);
 
       if (!res.ok) throw new Error("Failed to fetch report issues");
 
-      const data: ReportIssueType[] = await res.json();
-      setReportIssues(data);
+      const data: {
+        report: ReportType;
+        issues: ReportIssueType[];
+        previewIssues: PreviewIssueType[];
+        shareAvailable: boolean;
+      } = await res.json();
+
+      setReport(data.report);
+      setReportIssues(data.issues);
+      setPreviewIssues(data.previewIssues);
+      setShowShareButton(data.shareAvailable);
     } catch (error) {
       console.error(error);
     }
@@ -65,40 +64,35 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
     setSector(getOption(data.sectors, report!.sector!));
   };
 
+  const handleRegisterClick = () => {
+    alert("register");
+    // TODO: Implement registration and payment flow here
+  };
+
   useEffect(() => {
-    if (report) {
-      if (report.status !== ReportStatus.Completed) {
-        router.push("/dashboard");
-      } else {
-        getConstants();
-      }
+    if (reportId) {
+      fetchPreviewIssues();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reportId]);
+
+  useEffect(() => {
+    if (report) getConstants();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report]);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/signin");
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (session && reportId) {
-      fetchReport()
-        .then(() => {
-          fetchReportIssues();
-        })
-        .catch((error) => {
-          console.error("Error fetching report:", error);
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, reportId]);
 
   if (!report) return <LoadingOverlay message="Loading report for editing..." />;
 
   const overallScore = report.score;
   const totalIssues = reportIssues.length;
+
+  const handleShareClick = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({
+      title: "Success",
+      description: "Link copied to clipboard!",
+    });
+  };
 
   return (
     <>
@@ -109,26 +103,21 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
           <Card className="mt-4 mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
             <CardHeader className="pb-0">
               <div className="mb-6 flex flex-col flex-wrap gap-4 border-b">
-                <div className="flex items-center">
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => router.push(`/dashboard`)}
-                    className="flex items-center gap-1">
-                    <ChevronLeft className="h-4 w-4" />
-                    Dashboard
-                  </Button>
-                </div>
                 <div className="flex items-center justify-between pb-2">
                   <div>
                     <h3 className="text-lg font-medium">Heuristic Evaluation Report Summary</h3>
                     <p className="text-sm text-gray-700">{report.url}</p>
                   </div>
-                  {/* !!! IMPORTANT: Hidden temprorarly until pdf functionallity added
-                  <Button className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1" size="sm">
-                    <Download className="h-4 w-4" />
-                    <span>Download the report (.pdf)</span>
-                  </Button> */}
+
+                  {showShareButton && (
+                    <Button
+                      onClick={handleShareClick}
+                      className="bg-[#B04E34] hover:bg-[#963F28] text-white flex items-center gap-1"
+                      size="sm">
+                      <Share className="h-4 w-4" />
+                      <span>Share the report</span>
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -185,7 +174,9 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
                       hideIssues={false}
                       imgUrl={report.screenshotImgUrl}
                       reportIssues={reportIssues}
+                      previewIssues={previewIssues}
                       onIssueClick={setSelectedIssue}
+                      onPreviewIssueClick={setSelectedPreviewIssue}
                     />
                   </div>
                 </TabsContent>
@@ -199,6 +190,35 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
         </div>
       </div>
       {selectedIssue && <IssueDetailModal isOpen issue={selectedIssue!} onClose={() => setSelectedIssue(null)} />}
+      {selectedPreviewIssue && (
+        <RegisterAndPayModal
+          issue={selectedPreviewIssue}
+          issueCount={previewIssues.length + reportIssues.length}
+          onClose={() => setSelectedPreviewIssue(null)}
+          onRegisterClick={handleRegisterClick}
+        />
+      )}
+      {showShareButton && (
+        <div className="w-screen sticky bottom-0 bg-[#FFF1E0] z-50">
+          <div className="container flex gap-2 mx-auto p-4">
+            <div className="w-4/5 text-left">
+              <h1 className="text-[#B04E34] text-3xl font-extrabold my-4">
+                Reveal {previewIssues.length + reportIssues.length} more issues by purchasing this report just €14.90
+              </h1>
+              <p className="text-md font-[300] text-[#B04E34]">
+                To access the full report, you’ll need to register and complete the payment. Once registered, you’ll be
+                redirected to the Stripe page to finalize your purchase.
+              </p>
+            </div>
+
+            <div className="w-1/5 flex items-center">
+              <Button onClick={handleRegisterClick} className="w-full py-6 bg-[#B04E34] hover:bg-[#963F28] text-white">
+                Register & Purchase full report
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

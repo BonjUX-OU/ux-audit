@@ -2,7 +2,6 @@
 
 import React, { useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
-import { CircleUser } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,14 +14,17 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 function AccountMenu() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (!session) {
+    if (status === "unauthenticated") {
       redirect("/signin");
     }
-    console.log("session", session);
-  }, [session]);
+  }, [status]);
+
+  if (status === "loading") {
+    return <p>Loading...</p>; // or a spinner
+  }
 
   return (
     <>
