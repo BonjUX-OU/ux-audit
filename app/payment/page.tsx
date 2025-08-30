@@ -9,16 +9,16 @@ import { STORAGE_KEY_FOR_PAYMENT } from "@/constants/common.constants";
 function PaymentPage() {
   const [isLoading, setIsLoading] = useState(false);
   const paymentLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || "";
-  const sessionItem = window.sessionStorage.getItem(STORAGE_KEY_FOR_PAYMENT);
 
   useEffect(() => {
+    const sessionItem = window.sessionStorage.getItem(STORAGE_KEY_FOR_PAYMENT);
     if (sessionItem) {
       const parsedItem = JSON.parse(sessionItem);
       parsedItem.comesFromRegisterAndPay = false;
 
       window.sessionStorage.setItem(STORAGE_KEY_FOR_PAYMENT, JSON.stringify(parsedItem));
     }
-  }, [sessionItem]);
+  }, []);
 
   const handlePayment = async () => {
     setIsLoading(true);
