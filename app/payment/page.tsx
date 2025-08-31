@@ -9,7 +9,6 @@ import { useSession } from "next-auth/react";
 
 function PaymentPage() {
   const { data: session } = useSession();
-  const [isLoading, setIsLoading] = useState(false);
   const [reportId, setReportId] = useState("");
 
   useEffect(() => {
@@ -23,38 +22,6 @@ function PaymentPage() {
       window.sessionStorage.setItem(STORAGE_KEY_FOR_PAYMENT, JSON.stringify(parsedItem));
     }
   }, []);
-
-  const handlePayment = async () => {
-    setIsLoading(true);
-
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          reportId,
-          userId: session?.user?._id,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to create checkout session");
-      }
-
-      // The redirection is now handled in the API route
-      // const data = await res.json();
-      if (res.url) {
-        window.location.href = res.url;
-      } else {
-        throw new Error("No URL returned from checkout session");
-      }
-    } catch (error) {
-      console.error("Payment initiation error:", error);
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="bg-gray-100 p-8 h-screen">
@@ -125,13 +92,16 @@ function PaymentPage() {
                     </div>
                   </div>
 
-                  <Button
-                    onClick={handlePayment}
-                    disabled={isLoading}
-                    className="w-full bg-[#C25B3F] hover:bg-[#A04A32] text-white flex items-center justify-center">
-                    {isLoading ? "Processing..." : "Accept the offer & Pay"}
-                    {!isLoading && <ExternalLink className="h-4 w-4 ml-2" />}
-                  </Button>
+                  <form action="/api/checkout" method="POST">
+                    <input type="hidden" name="reportId" defaultValue={reportId} />
+                    <input type="hidden" name="userId" defaultValue={session?.user?._id} />
+                    <Button
+                      type="submit"
+                      className="w-full bg-[#C25B3F] hover:bg-[#A04A32] text-white flex items-center justify-center">
+                      Accept the offer & Pay
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </Button>
+                  </form>
 
                   <p className="text-center text-sm text-gray-500 mt-4">
                     You will be directed to the Stripe for payment.

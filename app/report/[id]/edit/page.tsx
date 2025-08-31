@@ -259,7 +259,8 @@ export default function EditReportPage() {
               {originalReport.predefinedIssues && originalReport.predefinedIssues.length > 0
                 ? originalReport.predefinedIssues.map((preDefinedIssue, index) => (
                     <p className="text-sm mb-4" key={`user-defined-issue-${index}`}>
-                      {preDefinedIssue}
+                      {customerIssues?.find((customerIssues) => customerIssues.value === preDefinedIssue)?.label ??
+                        "Not specified"}
                     </p>
                   ))
                 : "Not specified"}

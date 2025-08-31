@@ -55,12 +55,12 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
     getConstants();
   }, []);
 
-  const createUntitledProject = async (): Promise<ProjectType> => {
+  const createUntitledProject = async (url: string): Promise<ProjectType> => {
     const response = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: "Untitled Project",
+        name: url.split("//")[1].split("/")[0],
         description: "",
       }),
     });
@@ -88,7 +88,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
     setIsLoading(true);
 
     try {
-      const targetProject = !project ? await createUntitledProject() : project;
+      const targetProject = !project ? await createUntitledProject(url) : project;
 
       const payload: ReportType = {
         createdBy: session?.user,

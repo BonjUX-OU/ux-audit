@@ -136,6 +136,7 @@ const ValidatorReportsList = forwardRef<ValidatorReportsListHandle, ValidatorRep
         title: "Success",
         description: "Report has been updated successfully!",
       });
+      setIsCompleteModalOpen(false);
     } catch (error) {
       console.log(error);
     }
