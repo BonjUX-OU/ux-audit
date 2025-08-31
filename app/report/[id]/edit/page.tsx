@@ -135,6 +135,7 @@ export default function EditReportPage() {
   useEffect(() => {
     if (originalReport) {
       if (originalReport.status === ReportStatus.InReview) {
+        setReportNotes(originalReport.contributorNotes ?? "");
         setIsReportInReview(true);
         setSummaryMode(true);
       } else if (originalReport.status === ReportStatus.Completed) {
@@ -164,10 +165,9 @@ export default function EditReportPage() {
   };
 
   const saveReportAnalysis = async () => {
-    // TODO: handle save report analysis here
     const response = await fetch(`/api/report?id=${reportId}`, {
       method: "PUT",
-      body: JSON.stringify({ status: ReportStatus.InReview, score: currentReportScore }),
+      body: JSON.stringify({ status: ReportStatus.InReview, score: currentReportScore, contributorNotes: reportNotes }),
     });
 
     if (!response.ok) {

@@ -8,11 +8,12 @@ import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 type CreateIssueModalProps = {
   isOpen: boolean;
   issue: ReportIssueType;
+  previewMode?: boolean;
   onClose: (isOpen: boolean) => void;
   onDeleteIssueSuccess?: () => void;
 };
 
-const IssueDetailModal = ({ isOpen, issue, onClose, onDeleteIssueSuccess }: CreateIssueModalProps) => {
+const IssueDetailModal = ({ isOpen, issue, previewMode, onClose, onDeleteIssueSuccess }: CreateIssueModalProps) => {
   const issueOptionNumber = `Issue ${issue.heuristic.code}.${issue.order}`;
   const [confirmationOpen, setConfirmationOpen] = useState(false);
 
@@ -73,26 +74,30 @@ const IssueDetailModal = ({ isOpen, issue, onClose, onDeleteIssueSuccess }: Crea
               ))}
             </div>
 
-            <div className="flex">
-              <Button
-                onClick={() => setConfirmationOpen(true)}
-                className="w-full py-6 bg-[#B04E34] hover:bg-[#963F28] text-white">
-                Delete Issue
-              </Button>
-            </div>
+            {!previewMode && (
+              <div className="flex">
+                <Button
+                  onClick={() => setConfirmationOpen(true)}
+                  className="w-full py-6 bg-[#B04E34] hover:bg-[#963F28] text-white">
+                  Delete Issue
+                </Button>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
 
-      <ConfirmationModal
-        variant="danger"
-        title="Delete Report"
-        description="Are you sure you want to delete this issue? This action cannot be undone."
-        isOpen={confirmationOpen}
-        confirmButtonTitle="Delete"
-        onConfirm={confirmDeleteIssue}
-        onCancel={() => setConfirmationOpen(false)}
-      />
+      {!previewMode && (
+        <ConfirmationModal
+          variant="danger"
+          title="Delete Report"
+          description="Are you sure you want to delete this issue? This action cannot be undone."
+          isOpen={confirmationOpen}
+          confirmButtonTitle="Delete"
+          onConfirm={confirmDeleteIssue}
+          onCancel={() => setConfirmationOpen(false)}
+        />
+      )}
     </>
   );
 };

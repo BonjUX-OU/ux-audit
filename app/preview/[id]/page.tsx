@@ -20,8 +20,7 @@ import { useToast } from "@/hooks/useToast";
 import { useSession } from "next-auth/react";
 // import { useRouter } from "next/router";
 import { redirect } from "next/navigation";
-import { STORAGE_KEY_FOR_PAYMENT } from "@/constants/common.constants";
-import PreviewIssueListView from "@/components/templates/PreviewIssueListView/PreviewIssueListView";
+import { customerIssues, STORAGE_KEY_FOR_PAYMENT } from "@/constants/common.constants";
 
 export default function PreviewView({ params }: { params: Promise<{ id: string }> }) {
   const { id: reportId } = use(params);
@@ -40,7 +39,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
 
   // Constants states
   const [pageType, setPageType] = useState<OptionType>();
-  const [sector, setSector] = useState<OptionType>();
+  // const [sector, setSector] = useState<OptionType>();
 
   const fetchPreviewIssues = async () => {
     try {
@@ -77,7 +76,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
     const data = (await response.json()) as ConstantsBundleResponseType;
 
     setPageType(getOption(data.pageTypeOptions, report!.pageType));
-    setSector(getOption(data.sectors, report!.sector!));
+    // setSector(getOption(data.sectors, report!.sector!));
   };
 
   const handleRegisterClick = () => {
@@ -150,18 +149,32 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-4 w-full">
+              <div className="grid grid-cols-5 w-full">
+                <div className="flex flex-col">
+                  <h5>Contributor</h5>
+                  <p className="text-sm text-gray-600">{`[CONTRIBUTOR_NAME_GOES_HERE]`}</p>
+                </div>
                 <div className="flex flex-col">
                   <h5>Website</h5>
                   <p className="text-sm text-gray-600">{report.url}</p>
                 </div>
-                <div>
+                {/* <div>
                   <h5>Industry</h5>
                   <p className="text-sm text-gray-600">{sector?.label}</p>
-                </div>
+                </div> */}
                 <div>
                   <h5>Page Type</h5>
                   <p className="text-sm text-gray-600">{pageType?.label}</p>
+                </div>
+                <div>
+                  <h5>Issues</h5>
+                  <p className="text-sm text-gray-600">
+                    {customerIssues?.find((customerIssue) => customerIssue.value === report.predefinedIssues?.[0])
+                      ?.label ?? "Not specified"}
+                    {report.predefinedIssues &&
+                      report.predefinedIssues.length > 1 &&
+                      `+${report.predefinedIssues?.length - 1} more issues`}
+                  </p>
                 </div>
                 <div>
                   <h5>Report Generated</h5>
@@ -210,26 +223,44 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
                 </TabsContent>
                 <TabsContent value="list" className="mt-4">
                   <h3 className="text-center text-lg font-[500] mb-4">Issues Listed Preview</h3>
-                  <IssueListView issues={reportIssues} />
-                  {previewIssues.length && (
-                    <PreviewIssueListView issues={previewIssues} onRegisterClick={handleRegisterClick} />
-                  )}
+                  <IssueListView
+                    issues={reportIssues}
+                    previewIssues={previewIssues}
+                    isPaidReport={report.isPaid}
+                    onRegisterClick={handleRegisterClick}
+                  />
                 </TabsContent>
               </CardContent>
             </Tabs>
           </Card>
         </div>
       </div>
-      {selectedIssue && <IssueDetailModal isOpen issue={selectedIssue!} onClose={() => setSelectedIssue(null)} />}
+      {selectedIssue && (
+        <IssueDetailModal previewMode isOpen issue={selectedIssue!} onClose={() => setSelectedIssue(null)} />
+      )}
       {selectedPreviewIssue && (
         <RegisterAndPayModal
           issue={selectedPreviewIssue}
           issueCount={previewIssues.length + reportIssues.length}
           onClose={() => setSelectedPreviewIssue(null)}
           onRegisterClick={handleRegisterClick}
+          hasPaid={report.isPaid}
         />
       )}
-      {!showShareButton && (
+      {report.isPaid && (
+        <div className="w-screen sticky bottom-0 bg-[#FFF1E0] z-50">
+          <div className="container flex gap-2 mx-auto p-4">
+            <div className="w-full flex items-center justify-center gap-4">
+              <h1 className="text-[#B04E34] text-3xl bold my-4">Purchased already!</h1>
+              <span className="text-md font-[300] text-[#B04E34]">
+                This audit has been already purchased by someone else! If you know the owner you can request an access
+                by the owner.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+      {!report.isPaid && previewIssues.length > 0 && (
         <div className="w-screen sticky bottom-0 bg-[#FFF1E0] z-50">
           <div className="container flex gap-2 mx-auto p-4">
             <div className="w-4/5 text-left">

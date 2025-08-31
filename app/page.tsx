@@ -4,8 +4,15 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { BarChart3, Settings, GitCompare, FileSpreadsheet, Radar, BadgeCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function LandingPage() {
+  const { status } = useSession();
+
+  if (status === "authenticated") {
+    window.location.href = window.location.origin + "/dashboard";
+  }
+
   return (
     <div className="min-h-screen bg-[#FFF1E0] flex flex-col">
       {/* Header */}
@@ -32,9 +39,8 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="bg-[#FFF1E0]">
         <div className="container mx-auto px-4 py-12 text-center">
-          <h1 className="text-[#2D3648] text-4xl md:text-5xl font-bold mt-10 mb-4">
-            Wondering how your design really feels to users?
-          </h1>
+          <h1 className="text-[#2D3648] text-4xl md:text-5xl font-bold mt-10 mb-2">Wondering how your design really</h1>
+          <h1 className="text-[#2D3648] text-4xl md:text-5xl font-bold mt-2 mb-4">feels to users?</h1>
           <p className="text-gray-600 max-w-2xl mx-auto mb-8">
             UXMust gives you another point of view from real UX professional who spot what you might miss and guide you
             toward smarter design decisions.
@@ -92,8 +98,8 @@ export default function LandingPage() {
               <div
                 key={index}
                 className="flex flex-col bg-white px-4 py-10 rounded-lg shadow-md items-center justify-center text-center">
-                <feature.icon className="w-8 h-8 text-gray-800" />
-                <h3 className="text-gray-700 text-lg font-semibold mb-2">{feature.title}</h3>
+                {feature.icon}
+                <h3 className="text-gray-700 text-lg font-semibold my-3">{feature.title}</h3>
                 <p className="text-gray-600 text-sm">{feature.description}</p>
               </div>
             ))}
@@ -143,34 +149,38 @@ export default function LandingPage() {
 
 const features = [
   {
-    icon: BarChart3,
-    title: "Effortless Usability Evaluation",
+    icon: <BarChart3 />,
+    title: "✅ Quick, Expert UX Evaluation",
     description:
-      "No need for lengthy audits - get clear feedback to understand how your website can better serve your users.",
+      "No bloated audits. Just focused, professional feedback to help you instantly see what’s working and what’s not.",
   },
   {
-    icon: FileSpreadsheet,
-    title: "Extensive Report for Every Page",
-    description: "Each page gets a detailed usability score, pin-pointing the exact location of error.",
+    icon: <FileSpreadsheet />,
+    title: "📊 Page-by-Page Insight",
+    description:
+      "Every page gets a clear usability score and pinpointed feedback, so you know exactly where the friction lives.",
   },
   {
-    icon: Settings,
-    title: "Design Recommendations",
-    description: "Suggestions are crucial for improvements. Iterate your designs intelligently.",
+    icon: <Settings />,
+    title: "✍️ Actionable Recommendations",
+    description: "No vague advice—just smart, practical suggestions from UX pros to help you iterate with purpose.",
   },
   {
-    icon: BadgeCheck,
-    title: "Proven Methodological Effectiveness",
-    description: "Nielsen Norman's 10 Usability Heuristics have proven, effective, and extensive practical use.",
+    icon: <BadgeCheck />,
+    title: "🧠 Proven Methodology",
+    description:
+      "We use Nielsen Norman’s 10 Usability Heuristics,  a time-tested framework trusted by UX teams around the world.",
   },
   {
-    icon: GitCompare,
-    title: "Benchmarking",
-    description: "Compare how well your design stands within your domain.",
+    icon: <GitCompare />,
+    title: "👁️ Fresh Perspective, Every Time",
+    description:
+      "You know your product too well. We bring an outside view to catch usability issues that internal teams often overlook.",
   },
   {
-    icon: Radar,
-    title: "Track Evolution",
-    description: "Design is a continuous process. Keep track on how your design iterations evolve throughout time.",
+    icon: <Radar />,
+    title: "📈 Track Your Design’s Evolution",
+    description:
+      "UX is never done. Monitor how your experience improves with each iteration and build a better product over time.",
   },
 ];
