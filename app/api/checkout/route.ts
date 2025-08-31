@@ -39,7 +39,11 @@ export async function POST(req: Request) {
       throw new Error("No session URL");
     }
   } catch (err: any) {
-    console.error("Stripe checkout session error:", err.message);
+    if (err instanceof Error) {
+      console.error("Stripe checkout session error:", err.message);
+    } else {
+      console.error("Stripe checkout session unknown error:", err);
+    }
     return new NextResponse("Error creating checkout session", { status: 500 });
   }
 }
@@ -61,8 +65,12 @@ export async function GET(req: Request) {
     });
 
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/preview/${reportId}`, 303);
-  } catch (err) {
-    console.error("Stripe checkout session error:", err.message);
+  } catch (err: any) {
+    if (err instanceof Error) {
+      console.error("Stripe checkout session error:", err.message);
+    } else {
+      console.error("Stripe checkout session unknown error:", err);
+    }
     return new NextResponse("Error creating checkout session", { status: 500 });
   }
 }

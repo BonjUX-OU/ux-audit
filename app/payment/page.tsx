@@ -85,7 +85,7 @@ function PaymentPage() {
 
                   <div className="flex flex-col items-center mb-4">
                     <span className="text-gray-500 line-through">19.99 €</span>
-                    <span className="text-[#00C48C] text-5xl font-bold">4.99 €</span>
+                    <span className="text-[#00C48C] text-5xl font-bold">14.99 €</span>
                     <div className="text-gray-500 text-sm mt-1">
                       <span>per month</span>
                       <div>valid for upcoming 6 months</div>
