@@ -3,14 +3,15 @@ import { PreviewIssueType } from "@/types/reportIssue.types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-type CreateIssueModalProps = {
+type RegisterAndPayModalProps = {
   issue: PreviewIssueType;
   issueCount: number;
+  hasPaid?: boolean;
   onClose: () => void;
   onRegisterClick: () => void;
 };
 
-const RegisterAndPayModal = ({ issue, issueCount, onClose, onRegisterClick }: CreateIssueModalProps) => {
+const RegisterAndPayModal = ({ issue, issueCount, hasPaid, onClose, onRegisterClick }: RegisterAndPayModalProps) => {
   const issueOptionNumber = `Issue ${issue.heuristic.code}.${issue.order}`;
 
   return (
@@ -29,23 +30,43 @@ const RegisterAndPayModal = ({ issue, issueCount, onClose, onRegisterClick }: Cr
             </div>
           </DialogHeader>
 
-          <div className="p-4 h-auto flex flex-col items-center text-center gap-5 bg-[#FFF1E0]">
-            <div className="w-full flex items-center justify-center">
-              <h1 className="text-[#B04E34] text-3xl bold my-4">Get your full report just €14.90</h1>
-            </div>
-            <div className="w-full">
-              <span className="text-md font-[300] text-[#B04E34]">
-                We have found {issueCount} issues for this page. If you want to get the full report you need to pay
-                first. You will be directed to the Stripe page.
-              </span>
-            </div>
+          {hasPaid ? (
+            <div className="p-4 h-auto flex flex-col items-center text-center gap-5 bg-[#FFF1E0]">
+              <div className="w-full flex items-center justify-center">
+                <h1 className="text-[#B04E34] text-3xl bold my-4">Purchased already!</h1>
+              </div>
+              <div className="w-full">
+                <span className="text-md font-[300] text-[#B04E34]">
+                  This audit has been already purchased by someone else! If you know the owner you can request an access
+                  by the owner.
+                </span>
+              </div>
 
-            <div className="flex">
-              <Button onClick={onRegisterClick} className="w-full py-6 bg-[#B04E34] hover:bg-[#963F28] text-white">
-                Register & Purchase full report
-              </Button>
+              <div className="flex w-3/5">
+                <Button onClick={onClose} className="w-full m-2 py-6 bg-[#B04E34] hover:bg-[#963F28] text-white">
+                  Close
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="p-4 h-auto flex flex-col items-center text-center gap-5 bg-[#FFF1E0]">
+              <div className="w-full flex items-center justify-center">
+                <h1 className="text-[#B04E34] text-3xl bold my-4">Get your full report just €14.90</h1>
+              </div>
+              <div className="w-full">
+                <span className="text-md font-[300] text-[#B04E34]">
+                  We have found {issueCount} issues for this page. If you want to get the full report you need to pay
+                  first. You will be directed to the Stripe page.
+                </span>
+              </div>
+
+              <div className="flex">
+                <Button onClick={onRegisterClick} className="w-full py-6 bg-[#B04E34] hover:bg-[#963F28] text-white">
+                  Register & Purchase full report
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

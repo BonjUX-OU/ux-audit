@@ -1,13 +1,13 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { PreviewIssueListViewProps } from "./PreviewIssueListView";
 import { Button } from "@/components/ui/button";
+import { IssueListViewProps } from "./IssueListView";
 
 const PreviewIssueListGroup = ({
   issues,
   onRegisterClick,
   issueCount,
   title,
-}: PreviewIssueListViewProps & { title: string; issueCount: number }) => {
+}: IssueListViewProps & { title: string; issueCount: number }) => {
   return (
     <div className="flex flex-col gap-2">
       <div className="p-2 text-center font-[500] border bg-[#FFF1E0]">

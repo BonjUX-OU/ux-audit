@@ -22,7 +22,11 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
   return (
     <TableRow className="hover:bg-gray-50 transition-colors duration-200">
       <TableCell className="font-medium max-w-[300px] truncate">
-        <Link href={`/report/${report._id}`}>{report.url}</Link>
+        {report.status === ReportStatus.Completed ? (
+          <Link href={`/report/${report._id}`}>{report.url}</Link>
+        ) : (
+          <span className="text-md">{report.url}</span>
+        )}
       </TableCell>
       <TableCell className="text-gray-500">
         <div className="flex items-center">
@@ -31,12 +35,16 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
         </div>
       </TableCell>
       <TableCell>
-        <Badge
-          className={`${getRatingColor(report.score ?? 100)} hover:${getRatingColor(
-            report.score ?? 100
-          )} shadow-sm transition-all duration-200`}>
-          {getRatingLabel(report.score ?? 100)}
-        </Badge>
+        {report.score ? (
+          <Badge
+            className={`${getRatingColor(report.score ?? 100)} hover:${getRatingColor(
+              report.score ?? 100
+            )} shadow-sm transition-all duration-200`}>
+            {getRatingLabel(report.score ?? 100)}
+          </Badge>
+        ) : (
+          <span className="text-gray-400">N/A</span>
+        )}
       </TableCell>
       <TableCell className="text-gray-600">{report.project.name}</TableCell>
       <TableCell className="text-gray-600">{ReportStatusLabels[report.status]}</TableCell>

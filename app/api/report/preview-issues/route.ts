@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const report = await Report.findById(reportId);
+    const report = await Report.findById(reportId).populate("assignedTo");
 
     const reportIssues = await ReportIssue.find({ report: reportId }).sort({ createdAt: -1 });
     const serializedIssues = JSON.parse(JSON.stringify(reportIssues)) as ReportIssueType[];
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     if (session) {
       // If the user is a customer, ensure they own the report
       if (session.user?.role === UserRoleType.Customer) {
-        const ownsReport = report?.owner?.toString() === session.user._id;
+        const ownsReport = report?.createdBy?.toString() === session.user._id;
 
         if (!ownsReport) {
           return NextResponse.json({ error: "Unauthorized access to report issues" }, { status: 403 });

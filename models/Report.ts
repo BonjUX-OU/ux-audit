@@ -46,6 +46,8 @@ const ReportSchema = new mongoose.Schema<ReportType>(
       type: Boolean,
       default: false,
     },
+    paidAt: { type: Date },
+    paidBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

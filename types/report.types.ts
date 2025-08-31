@@ -20,4 +20,6 @@ export type ReportType = DataObjectType & {
   contributorNotes?: string;
   hasRights?: boolean;
   isPaid?: boolean;
+  paidAt?: Date;
+  paidBy?: UserType;
 };
