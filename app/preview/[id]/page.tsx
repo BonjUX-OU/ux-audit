@@ -265,7 +265,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
           <div className="container flex gap-2 mx-auto p-4">
             <div className="w-4/5 text-left">
               <h1 className="text-[#B04E34] text-3xl font-extrabold my-4">
-                Reveal {previewIssues.length + reportIssues.length} more issues by purchasing this report just €14.90
+                Reveal {previewIssues.length + reportIssues.length} more issues by purchasing this report just €14.99
               </h1>
               <p className="text-md font-[300] text-[#B04E34]">
                 To access the full report, you’ll need to register and complete the payment. Once registered, you’ll be

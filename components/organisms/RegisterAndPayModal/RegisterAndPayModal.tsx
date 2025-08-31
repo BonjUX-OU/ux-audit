@@ -51,7 +51,7 @@ const RegisterAndPayModal = ({ issue, issueCount, hasPaid, onClose, onRegisterCl
           ) : (
             <div className="p-4 h-auto flex flex-col items-center text-center gap-5 bg-[#FFF1E0]">
               <div className="w-full flex items-center justify-center">
-                <h1 className="text-[#B04E34] text-3xl bold my-4">Get your full report just €14.90</h1>
+                <h1 className="text-[#B04E34] text-3xl bold my-4">Get your full report just €14.99</h1>
               </div>
               <div className="w-full">
                 <span className="text-md font-[300] text-[#B04E34]">
