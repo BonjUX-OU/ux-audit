@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const report = await Report.findById(reportId);
+    const report = await Report.findById(reportId).populate("assignedTo");
 
     const reportIssues = await ReportIssue.find({ report: reportId }).sort({ createdAt: -1 });
     const serializedIssues = JSON.parse(JSON.stringify(reportIssues)) as ReportIssueType[];

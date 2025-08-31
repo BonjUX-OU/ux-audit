@@ -17,13 +17,13 @@ const StepperProgressBar = ({ steps, activeStepIndex }: StepperProgressBarProps)
     <div className="flex items-center gap-4 mb-4">
       {steps.map((step, index) => (
         <>
-          <div className="flex items-center">
+          <div key={index} className="flex items-center">
             <div
               className={clsx(
                 "bg-[#C25B3F] rounded-full w-6 h-6 flex items-center justify-center",
                 index > activeStepIndex && "bg-[#c25b3f7a]"
               )}>
-              {index < lastCompletedIndex ? (
+              {index <= lastCompletedIndex ? (
                 <CheckCircle className="h-4 w-4 text-white" />
               ) : (
                 <span className="text-white text-xs">{index + 1}</span>

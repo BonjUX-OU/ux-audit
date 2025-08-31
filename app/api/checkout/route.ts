@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
-          price: "price_1S1xKzGdJIInQY0MVMGuY5EQ",
+          price: process.env.STRIPE_PRICE_ID,
           quantity: 1,
         },
       ],

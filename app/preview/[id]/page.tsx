@@ -152,7 +152,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
               <div className="grid grid-cols-5 w-full">
                 <div className="flex flex-col">
                   <h5>Contributor</h5>
-                  <p className="text-sm text-gray-600">{`[CONTRIBUTOR_NAME_GOES_HERE]`}</p>
+                  <p className="text-sm text-gray-600">{report.assignedTo?.name}</p>
                 </div>
                 <div className="flex flex-col">
                   <h5>Website</h5>
