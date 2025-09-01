@@ -14,6 +14,7 @@ import { STORAGE_KEY_FOR_PAYMENT } from "@/constants/common.constants";
 import StepperProgressBar from "@/components/layout/StepperProgressBar";
 import googleIcon from "@/public/google.svg";
 import Image from "next/image";
+import { StorageItemType } from "@/types/common.types";
 
 function SignupPage() {
   const [error, setError] = useState("");
@@ -22,7 +23,7 @@ function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   // const [isVerificationEmailSent, setIsVerificationEmailSent] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
-  const [showProgressBar, setShowProgressBar] = useState(false);
+  const [storedItem, setStoredItem] = useState<StorageItemType | null>();
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -31,8 +32,9 @@ function SignupPage() {
   }, [status, router]);
 
   useEffect(() => {
-    const storedItem = window.sessionStorage.getItem(STORAGE_KEY_FOR_PAYMENT);
-    setShowProgressBar(!!storedItem);
+    const storageItem = window.sessionStorage.getItem(STORAGE_KEY_FOR_PAYMENT);
+    const serializedItem = storageItem ? (JSON.parse(storageItem) as StorageItemType) : null;
+    setStoredItem(serializedItem);
   }, []);
 
   const isValidEmail = (email: string) => {
@@ -108,9 +110,11 @@ function SignupPage() {
         <div className="grid grid-cols-2 gap-4 w-full max-w-5xl">
           {/* Left Section */}
           <div className="flex-grow flex flex-col justify-start items-center md:items-start">
-            <Link href="/" className="flex items-center text-[#C25B3F] mb-12">
+            <Link
+              href={storedItem ? `/preview/${storedItem.reportId}` : "/"}
+              className="flex items-center text-[#C25B3F] mb-12">
               <ChevronLeft className="h-4 w-4 mr-2" />
-              <span>Back to landing</span>
+              <span>{storedItem ? "Back to preview" : "Back to landing"}</span>
             </Link>
 
             <Logo_O />
@@ -141,7 +145,7 @@ function SignupPage() {
             </div>
           ) : ( */}
           <div className="flex flex-col justify-start mt-6 px-4">
-            {showProgressBar && (
+            {storedItem && (
               <StepperProgressBar steps={[{ label: "Register" }, { label: "Report Payment" }]} activeStepIndex={0} />
             )}
             <div className="p-6 w-full max-w-md bg-white">

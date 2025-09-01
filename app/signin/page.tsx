@@ -11,6 +11,9 @@ import LoadingOverlay from "@/components/layout/LoadingOverlay";
 import Logo_O from "@/components/layout/Logo_O";
 import googleIcon from "@/public/google.svg";
 import Image from "next/image";
+import { STORAGE_KEY_FOR_PAYMENT } from "@/constants/common.constants";
+import { StorageItemType } from "@/types/common.types";
+import StepperProgressBar from "@/components/layout/StepperProgressBar";
 
 function LoginPage() {
   const [error, setError] = useState("");
@@ -18,6 +21,13 @@ function LoginPage() {
   const { status } = useSession();
 
   const [requesting, setRequesting] = useState(false);
+  const [storedItem, setStoredItem] = useState<StorageItemType | null>();
+
+  useEffect(() => {
+    const storageItem = window.sessionStorage.getItem(STORAGE_KEY_FOR_PAYMENT);
+    const serializedItem = storageItem ? (JSON.parse(storageItem) as StorageItemType) : null;
+    setStoredItem(serializedItem);
+  }, []);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -71,7 +81,9 @@ function LoginPage() {
         <div className="grid grid-cols-2 gap-4 w-full max-w-5xl">
           {/* Left Section */}
           <div className="flex-grow flex flex-col justify-start items-center md:items-start">
-            <Link href="/" className="flex items-center text-[#C25B3F] mb-12">
+            <Link
+              href={storedItem ? `/preview/${storedItem.reportId}` : "/"}
+              className="flex items-center text-[#C25B3F] mb-12">
               <ChevronLeft className="h-4 w-4 mr-2" />
               <span>Back to landing</span>
             </Link>
@@ -89,7 +101,10 @@ function LoginPage() {
             </Link>
           </div>
           {/* Right Section */}
-          <div className="flex justify-center mt-6 px-4">
+          <div className="flex flex-col justify-start mt-6 px-4">
+            {storedItem && (
+              <StepperProgressBar steps={[{ label: "Register" }, { label: "Report Payment" }]} activeStepIndex={0} />
+            )}
             <div className="p-6 w-full max-w-md bg-white">
               <h1 className="text-xl  font-bold mt-4 mb-3">Lets sign you in</h1>
 

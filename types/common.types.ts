@@ -17,3 +17,9 @@ export type ConstantsBundleResponseType = {
   pageTypeOptions: OptionType[];
   sectors: OptionType[];
 };
+
+export type StorageItemType = {
+  reportId: string;
+  comesFromRegisterAndPay: boolean;
+  hasPaid: boolean;
+};
