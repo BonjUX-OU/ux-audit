@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { CheckCircle } from "lucide-react";
+import { Fragment } from "react";
 
 export type StepObject = {
   label: string;
@@ -16,8 +17,8 @@ const StepperProgressBar = ({ steps, activeStepIndex }: StepperProgressBarProps)
   return (
     <div className="flex items-center gap-4 mb-4">
       {steps.map((step, index) => (
-        <>
-          <div key={index} className="flex items-center">
+        <Fragment key={index}>
+          <div className="flex items-center">
             <div
               className={clsx(
                 "bg-[#C25B3F] rounded-full w-6 h-6 flex items-center justify-center",
@@ -32,7 +33,7 @@ const StepperProgressBar = ({ steps, activeStepIndex }: StepperProgressBarProps)
             <span className={clsx("ml-2 text-sm", index > activeStepIndex && "text-gray-400")}>{step.label}</span>
           </div>
           {index < steps.length - 1 && <div className="h-px bg-[#C25B3F] flex-grow mx-2"></div>}
-        </>
+        </Fragment>
       ))}
     </div>
   );

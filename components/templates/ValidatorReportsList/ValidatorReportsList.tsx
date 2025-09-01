@@ -37,6 +37,7 @@ const ValidatorReportsList = forwardRef<ValidatorReportsListHandle, ValidatorRep
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
+  const [isSendBackModalOpen, setIsSendBackModalOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<UserType["_id"] | null>();
   const [selectedReportId, setSelectedReportId] = useState<string>();
   const [contributors, setContributors] = useState<UserType[]>();
@@ -101,6 +102,11 @@ const ValidatorReportsList = forwardRef<ValidatorReportsListHandle, ValidatorRep
     setIsCompleteModalOpen(true);
   };
 
+  const handleSendBackReport = (reportId: string) => {
+    setSelectedReportId(reportId);
+    setIsSendBackModalOpen(true);
+  };
+
   const clearStates = async () => {
     setIsUploadModalOpen(false);
     setIsAssignModalOpen(false);
@@ -143,7 +149,11 @@ const ValidatorReportsList = forwardRef<ValidatorReportsListHandle, ValidatorRep
   };
 
   const onAssignReportConfirm = async () => {
-    const targetUser = contributors?.filter((contributor) => contributor._id === assignTarget)[0];
+    let targetUser = contributors?.filter((contributor) => contributor._id === assignTarget)[0];
+
+    if (!targetUser) {
+      targetUser = session?.user;
+    }
 
     const payload: Pick<ReportType, "assignedTo" | "status"> = {
       assignedTo: targetUser,
@@ -211,6 +221,7 @@ const ValidatorReportsList = forwardRef<ValidatorReportsListHandle, ValidatorRep
                     handleUploadImage={handleUploadImage}
                     handleAssignReport={handleAssignReport}
                     handleCompleteReport={handleCompleteReportAnalysis}
+                    handleSendBackReport={handleSendBackReport}
                     handleDeleteReport={props.onDeleteReport}
                   />
                 </TableBody>
@@ -262,6 +273,18 @@ const ValidatorReportsList = forwardRef<ValidatorReportsListHandle, ValidatorRep
           setIsCompleteModalOpen(false);
         }}
         onConfirm={() => handleUpdateReport({ status: ReportStatus.Completed })}
+      />
+
+      {/* SendBack report confirmation */}
+      <ConfirmationModal
+        title="Confirm sending back to analysis"
+        description="Once you send this report back to analysis, the contributor should send back this report to review after updates. Are you sure to continue?"
+        isOpen={isSendBackModalOpen}
+        onCancel={() => {
+          setSelectedReportId(undefined);
+          setIsSendBackModalOpen(false);
+        }}
+        onConfirm={() => handleUpdateReport({ status: ReportStatus.InProgres })}
       />
     </>
   );
