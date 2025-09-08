@@ -104,7 +104,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
     <>
       <AppBar />
       <div className="min-h-screen bg-gray-50 pt-16">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-6 w-[1280px] min-w-[1280px] max-w-[1280px]">
           {/* Header */}
           <Card className="mt-4 mb-6 border-none shadow-lg bg-white transition-all duration-300 hover:shadow-xl">
             <CardHeader className="pb-0">
