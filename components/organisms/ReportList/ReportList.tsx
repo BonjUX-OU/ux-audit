@@ -1,15 +1,15 @@
 import React from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AnalysisReportType } from "./ReportList.types";
 import ReportListItem from "./ReportListItem";
 import { FileIcon, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ReportType } from "@/types/report.types";
 
 type ReportListProps = {
-  reports: AnalysisReportType[];
+  reports: ReportType[];
   isLoading?: boolean;
   onAddNewReport?: () => void;
-  onDeleteReportClick: (report: AnalysisReportType) => void;
+  onDeleteReportClick: (report: ReportType) => void;
 };
 
 const ReportList = ({ reports, isLoading, onAddNewReport, onDeleteReportClick }: ReportListProps) => {
@@ -48,6 +48,7 @@ const ReportList = ({ reports, isLoading, onAddNewReport, onDeleteReportClick }:
           <TableHead>Date Created</TableHead>
           <TableHead>Score</TableHead>
           <TableHead>Project</TableHead>
+          <TableHead>Status</TableHead>
           <TableHead className="w-[120px]"></TableHead>
         </TableRow>
       </TableHeader>

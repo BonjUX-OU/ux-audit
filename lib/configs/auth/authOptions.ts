@@ -1,15 +1,11 @@
 //lib/configs/auth/authOptions.ts
-import NextAuth, { NextAuthOptions, User as NextAuthUser } from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
 import dbConnect from "@/lib/dbConnect";
-
-// Define custom types for the NextAuth user
-interface UserSession extends NextAuthUser {
-  isProfileCompleted?: boolean;
-}
+import { RegisteredByType, UserRoleType } from "@/types/user.types";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -30,10 +26,7 @@ export const authOptions: NextAuthOptions = {
         try {
           const user = await User.findOne({ email: credentials.email });
           if (user) {
-            const isPasswordCorrect = await bcrypt.compare(
-              credentials.password,
-              user.password || ""
-            );
+            const isPasswordCorrect = await bcrypt.compare(credentials.password, user.passwordHash || "");
             if (isPasswordCorrect) {
               return user;
             }
@@ -52,7 +45,7 @@ export const authOptions: NextAuthOptions = {
     // ...add more providers here
   ],
   callbacks: {
-    async signIn({ user, account, session }: any) {
+    async signIn({ user, account }: any) {
       await dbConnect();
 
       if (account.provider === "google") {
@@ -64,25 +57,30 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             isProfileCompleted: false,
-            role: "user",
+            role: UserRoleType.Customer,
             subscribed: false,
             usedAnalyses: 0,
+            image: user.image,
+            registeredBy: RegisteredByType.Google,
           });
           //console.log("New user created:", newUser);
           //change newuser._id from objectId to string
-          user.id = newUser._id;
+          user._id = newUser._id;
           user.role = newUser.role;
           user.subscribed = newUser.subscribed;
           user.usedAnalyses = newUser.usedAnalyses;
           user.createdAt = newUser.createdAt;
           user.isNewUser = true; // Flag to indicate new user
+          user.hasRights = false;
         } else {
-          user.id = existingUser._id;
+          user._id = existingUser._id;
           user.role = existingUser.role;
           user.subscribed = existingUser.subscribed;
           user.usedAnalyses = existingUser.usedAnalyses;
           user.createdAt = existingUser.createdAt;
           user.isNewUser = false;
+          user.hasRights = existingUser.hasRights;
+          user.access_token = user.access_token;
         }
       }
       return user;
@@ -91,7 +89,9 @@ export const authOptions: NextAuthOptions = {
       // Persist the OAuth access_token and or the user id to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
-        token.id = user._id || user.id;
+        token.access_token = account.access_token;
+
+        token.id = user._id;
         token.name = user.name;
         token.role = user.role;
         token.subscribed = user.subscribed;
@@ -101,23 +101,28 @@ export const authOptions: NextAuthOptions = {
         token.image = user.image;
         token.expires = account.expires_at;
         token.isNewUser = user.isNewUser; // Flag to indicate new user
+        token.hasRights = user.hasRights;
       }
       return token;
     },
     async session({ session, token, user }: any) {
       // Send properties to the client, like an access_token and user id from a provider.
       session.accessToken = token.accessToken;
-      session.user.id = token.id;
+      session.access_token = token.accessToken;
+
+      session.user._id = token.id;
       session.user.name = token.name;
       session.user.role = token.role;
       session.user.subscribed = token.subscribed;
       session.user.usedAnalyses = token.usedAnalyses;
       session.user.createdAt = token.createdAt;
       session.user.isNewUser = token.isNewUser; // Flag to indicate new user
+      session.user.hasRights = token.hasRights;
+
       return session;
     },
     async redirect({ url, baseUrl, token }: any) {
-      // This is where you control where to send the user
+      // This is where you control where to send the user after login
       if (token?.isNewUser === true) {
         return `${baseUrl}/onboarding`;
       }

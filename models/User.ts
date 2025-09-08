@@ -1,9 +1,10 @@
 // models/User.ts
+import { RegisteredByType, UserRoleType, UserType } from "@/types/user.types";
 import mongoose from "mongoose";
 /**
  * The UserSchema stores all key fields:
  * - `email`, `password`: standard user credentials (password hashed).
- * - `role`: "user", "admin", or "tester".
+ * - `role`: "customer", "validator", or "contributor".
  * - `subscribed`: if they've paid for the subscription.
  * - `usedAnalyses`: how many total analyses the user has run.
  * - `trialStart`: optional custom field if you want a separate date for trial start (not used below).
@@ -13,25 +14,25 @@ import mongoose from "mongoose";
  * - `preferences` or other fields for expansions (commented out).
  * - Timestamps: we rely on `createdAt` for the 7-day trial logic.
  */
-const UserSchema = new mongoose.Schema(
+const UserSchema = new mongoose.Schema<UserType>(
   {
+    name: {
+      type: String,
+      default: "",
+    },
     email: {
       type: String,
       required: true,
       unique: true,
     },
-    password: {
-      type: String,
-      required: false,
-    },
-    name: {
-      type: String,
-      default: "",
-    },
+    passwordHash: {
+      type: String
+      },
     role: {
       type: String,
-      enum: ["user", "admin", "tester"],
-      default: "user",
+      enum: UserRoleType,
+      default: UserRoleType.Customer,
+      required: true,
     },
     subscribed: {
       type: Boolean,
@@ -41,9 +42,9 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    trialStart: {
-      type: Date,
-      default: null, // not used in the example below, but available if needed
+    trialStartDate: {
+      type: String,
+      default: null,
     },
     stripeCustomerId: {
       type: String,
@@ -53,23 +54,29 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    // Example future expansions:
-    // preferences: {
-    //   type: Object,
-    //   default: {},
-    // },
-    // notificationsEnabled: {
-    //   type: Boolean,
-    //   default: true,
-    // },
-    // avatarUrl: {
-    //   type: String,
-    //   default: "",
-    // },
-    profile_image: {
+    profileImgUrl: {
       type: String,
       default: "",
     },
+    hasRights: {
+      type: Boolean,
+      default: false
+    },
+    registeredBy: {
+      type: String,
+      enum: RegisteredByType,
+      required: true,
+    },
+    verified: {
+      type: Boolean
+    },
+    verificationToken: {
+      type: String
+    },
+    verificationTokenExpires: {
+      type: Date
+    },
+
   },
   { timestamps: true }
 );

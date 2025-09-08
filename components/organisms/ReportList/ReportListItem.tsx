@@ -3,20 +3,30 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import Link from "next/link";
 import { Calendar, ExternalLink, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { AnalysisReportType } from "./ReportList.types";
 import { Button } from "@/components/ui/button";
 import { getRatingColor, getRatingLabel } from "./ReportList.helpers";
+import { ReportType } from "@/types/report.types";
+import { ReportStatus } from "./ReportList.types";
+import { useSession } from "next-auth/react";
+import { UserRoleType } from "@/types/user.types";
+import { ReportStatusLabels } from "./ReportList.constants";
 
 type ReportListItemProps = {
-  report: AnalysisReportType;
-  onDeleteReportClick: (report: AnalysisReportType) => void;
+  report: ReportType;
+  onDeleteReportClick: (report: ReportType) => void;
 };
 
 const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) => {
+  const { data: session } = useSession();
+
   return (
     <TableRow className="hover:bg-gray-50 transition-colors duration-200">
       <TableCell className="font-medium max-w-[300px] truncate">
-        <Link href={`/report/${report._id}`}>{report.url}</Link>
+        {report.status === ReportStatus.Completed ? (
+          <Link href={`/report/${report._id}`}>{report.url}</Link>
+        ) : (
+          <span className="text-md">{report.url}</span>
+        )}
       </TableCell>
       <TableCell className="text-gray-500">
         <div className="flex items-center">
@@ -25,32 +35,52 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
         </div>
       </TableCell>
       <TableCell>
-        <Badge
-          className={`${getRatingColor(report.overallScore)} hover:${getRatingColor(
-            report.overallScore
-          )} shadow-sm transition-all duration-200`}>
-          {getRatingLabel(report.overallScore)}
-        </Badge>
+        {report.score ? (
+          <Badge
+            className={`${getRatingColor(report.score ?? 100)} hover:${getRatingColor(
+              report.score ?? 100
+            )} shadow-sm transition-all duration-200`}>
+            {getRatingLabel(report.score ?? 100)}
+          </Badge>
+        ) : (
+          <span className="text-gray-400">N/A</span>
+        )}
       </TableCell>
       <TableCell className="text-gray-600">{report.project.name}</TableCell>
+      <TableCell className="text-gray-600">{ReportStatusLabels[report.status]}</TableCell>
       <TableCell className="flex space-x-1">
-        <Link href={`/report/${report._id}`}>
+        {session?.user?.role === UserRoleType.Contributor && (
+          <Link href={`/report/${report._id}/edit`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200">
+              <ExternalLink className="h-4 w-4" />
+              <span className="sr-only">View Report</span>
+            </Button>
+          </Link>
+        )}
+        {session?.user?.role === UserRoleType.Customer && report.status === ReportStatus.Completed && (
+          <Link href={`/report/${report._id}`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200">
+              <ExternalLink className="h-4 w-4" />
+              <span className="sr-only">View Report</span>
+            </Button>
+          </Link>
+        )}
+        {(report.status === ReportStatus.Unassigned || report.status === ReportStatus.NotStarted) && (
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 hover:bg-[#FFF1E0] hover:text-[#B04E34] transition-colors duration-200">
-            <ExternalLink className="h-4 w-4" />
-            <span className="sr-only">View Report</span>
+            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+            onClick={() => onDeleteReportClick(report)}>
+            <Trash2 className="h-4 w-4" />
+            <span className="sr-only">Delete Report</span>
           </Button>
-        </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-          onClick={() => onDeleteReportClick(report)}>
-          <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Delete Report</span>
-        </Button>
+        )}
       </TableCell>
     </TableRow>
   );

@@ -1,9 +1,10 @@
 // models/Projects.ts
+import { ProjectType } from "@/types/project.types";
 import mongoose from "mongoose";
 
-const ProjectSchema = new mongoose.Schema(
+const ProjectSchema = new mongoose.Schema<ProjectType>(
   {
-    owner: {
+    createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -19,5 +20,4 @@ const ProjectSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.Project ||
-  mongoose.model("Project", ProjectSchema);
+export default mongoose.models.Project || mongoose.model("Project", ProjectSchema);

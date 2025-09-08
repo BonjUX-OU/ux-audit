@@ -1,0 +1,34 @@
+import { DataObjectType } from "./common.types";
+
+export type UserType = DataObjectType & {
+  email: string;
+  passwordHash: string;
+  name: string;
+  role: UserRoleType;
+  subscribed?: boolean;
+  usedAnalyses?: number;
+  trialStartDate?: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  profileImgUrl?: string;
+  createdAt: string;
+  isProfileCompleted?: boolean;
+  isNewUser?: boolean;
+  hasRights?: boolean;
+  image?:string;
+  registeredBy?: RegisteredByType;
+  verified: boolean;
+  verificationToken: string | null;
+  verificationTokenExpires: Date | null;
+};
+
+export enum UserRoleType {
+  Customer = "CUSTOMER",
+  Validator = "VALIDATOR",
+  Contributor = "CONTRIBUTOR",
+}
+
+export enum RegisteredByType {
+  Email = "EMAIL",
+  Google = "GOOGLE"
+}

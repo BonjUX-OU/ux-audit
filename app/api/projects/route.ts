@@ -3,18 +3,36 @@ import dbConnect from "@/lib/dbConnect";
 import Project from "@/models/Project";
 import { NextResponse } from "next/server";
 import Report from "@/models/Report";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/configs/auth/authOptions";
+import mongoose from "mongoose";
 
 /**
  * GET /api/apps - Get all apps
  */
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
     await dbConnect();
-    const apps = await Project.find().populate("owner").sort({ createdAt: -1 });
+
+    const userId = new mongoose.Types.ObjectId(session.user?._id);
+
+    const apps = await Project.find({ createdBy: userId }).populate("createdBy").sort({ createdAt: -1 });
+
     return NextResponse.json(apps, { status: 200 });
-  } catch (error: any) {
-    console.error("Error fetching apps:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error fetching apps:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }
 
@@ -23,11 +41,19 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
     await dbConnect();
-    const { owner, name, description } = await request.json();
+    const { name, description } = await request.json();
+
+    const objId = new mongoose.Types.ObjectId(session.user?._id);
 
     const app = new Project({
-      owner,
+      createdBy: objId,
       name,
       description,
     });
@@ -35,9 +61,14 @@ export async function POST(request: Request) {
     await app.save();
 
     return NextResponse.json(app, { status: 201 });
-  } catch (error: any) {
-    console.error("Error creating app:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error creating app:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }
 
@@ -62,9 +93,14 @@ export async function PUT(request: Request) {
     }
 
     return NextResponse.json(updatedApp, { status: 200 });
-  } catch (error: any) {
-    console.error("Error updating app:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error updating app:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }
 
@@ -77,10 +113,7 @@ export async function DELETE(request: Request) {
   const id = searchParams.get("id");
 
   if (!id) {
-    return NextResponse.json(
-      { error: "Project ID is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
   }
 
   try {
@@ -95,12 +128,14 @@ export async function DELETE(request: Request) {
     // Delete all reports associated with this project
     await Report.deleteMany({ project: id });
 
-    return NextResponse.json(
-      { message: "Project and associated reports deleted successfully" },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error("Error deleting project:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ message: "Project and associated reports deleted successfully" }, { status: 200 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error deleting project:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }

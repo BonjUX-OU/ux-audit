@@ -4,23 +4,20 @@ export type RatingLabelType = {
   color: string;
 };
 
-export type ProjectType = {
-  _id: string;
-  owner?: string;
-  name: string;
-  description?: string;
-  createdAt?: string;
-};
-
-export type HeuristicType = any;
-
-export type AnalysisReportType = {
-  _id: string;
-  url: string;
-  sector?: string;
-  overallScore: number;
-  createdAt?: string;
-  heuristics?: HeuristicType[];
-  project: ProjectType;
-  pageType?: string;
-};
+export enum ReportStatus {
+  Unassigned = "UNASSIGNED",
+  Assigned = "ASSIGNED",
+  NotStarted = "NOT_STARTED",
+  InProgres = "IN_PROGRESS",
+  InReview = "IN_REVIEW",
+  Completed = "COMPLETED",
+}
+interface Page {
+  pageNumber: number;
+  pageItemsCount: number;
+}
+export interface ReportRequestType {
+  userId: string;
+  reportStatus: ReportStatus;
+  page: Page;
+}

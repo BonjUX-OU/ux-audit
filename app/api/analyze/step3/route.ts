@@ -42,10 +42,7 @@ export async function POST(request: Request) {
   try {
     const { truncatedHTML, screenshot, rawHTML } = await request.json();
     if (!truncatedHTML || !screenshot || !rawHTML) {
-      return NextResponse.json(
-        { message: "Missing required data" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Missing required data" }, { status: 400 });
     }
 
     const analysisSystemInstruction = `
@@ -70,6 +67,7 @@ export async function POST(request: Request) {
       model: "gpt-4o-2024-08-06",
       messages: [
         { role: "system", content: analysisSystemInstruction },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         { role: "user", content: analysisUserContent as any },
       ],
       response_format: zodResponseFormat(AnalysisSchema, "analysis"),
@@ -82,10 +80,7 @@ export async function POST(request: Request) {
 
     const parsedAnalysis = analysisResponse.choices[0].message.parsed;
     if (!parsedAnalysis) {
-      return NextResponse.json(
-        { message: "Failed to parse analysis from GPT" },
-        { status: 500 }
-      );
+      return NextResponse.json({ message: "Failed to parse analysis from GPT" }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -93,11 +88,9 @@ export async function POST(request: Request) {
       snapshotHtml: rawHTML,
       message: "New analysis generated successfully.",
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error in step3:", error);
-    return NextResponse.json(
-      { message: error.message || "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
   }
 }

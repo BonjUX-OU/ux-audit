@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { getServerSession } from "next-auth";
 import SessionProvider from "@/utils/SessionProvider";
 import { Work_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
@@ -36,17 +35,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession();
   return (
     <html lang="en">
-      <SessionProvider session={session}>
-        <body
-          className={`${workSans.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          {children} <Toaster />
+      <body
+        className={`${workSans.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning>
+        <SessionProvider>
+          {children}
+          <Toaster />
           <Analytics />
-        </body>
-      </SessionProvider>
+        </SessionProvider>
+      </body>
     </html>
   );
 }

@@ -11,10 +11,14 @@ export async function GET() {
     return new NextResponse(JSON.stringify(emails), {
       status: 200,
     });
-  } catch (error: any) {
-    return new NextResponse(error.message, {
-      status: 500,
-    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error fetching admin user details:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }
 
@@ -35,9 +39,13 @@ export async function POST(request: Request) {
     return new NextResponse(JSON.stringify(newEmail), {
       status: 201,
     });
-  } catch (error: any) {
-    return new NextResponse(error.message, {
-      status: 500,
-    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error updating admin user details:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }

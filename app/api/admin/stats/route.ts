@@ -5,6 +5,7 @@ import User from "@/models/User";
 import Email from "@/models/Email";
 import Project from "@/models/Project";
 import Report from "@/models/Report";
+import { Model, Schema } from "mongoose";
 
 // Helper: returns a date "days" days ago
 function getPastDate(days: number) {
@@ -18,7 +19,7 @@ function getPastYears(years: number) {
 
 // Daily counts for the last X days
 // We'll do a simple day-by-day loop, counting docs each day.
-async function getDailyCounts(Model: any, days: number): Promise<number[]> {
+async function getDailyCounts(Model: Model<Schema>, days: number): Promise<number[]> {
   const counts: number[] = [];
   // We'll go from "today - days" up to "today - 1 day"
   // Then for the last iteration, it's "today"
@@ -119,10 +120,7 @@ export async function GET() {
     ]);
 
     // 4) Page type, sector distribution, heuristic stats
-    const allReports = await Report.find(
-      {},
-      { heuristics: 1, scores: 1, pageType: 1, sector: 1 }
-    );
+    const allReports = await Report.find({}, { heuristics: 1, scores: 1, pageType: 1, sector: 1 });
 
     const pageTypeIssueCount: Record<string, number> = {};
     const sectorIssueCount: Record<string, number> = {};
@@ -142,8 +140,7 @@ export async function GET() {
       for (const h of rep.heuristics || []) {
         heuristicNamesMap[h.id] = h.name;
         const issueCount = h.issues ? h.issues.length : 0;
-        heuristicIssueCountMap[h.id] =
-          (heuristicIssueCountMap[h.id] || 0) + issueCount;
+        heuristicIssueCountMap[h.id] = (heuristicIssueCountMap[h.id] || 0) + issueCount;
         reportIssueCount += issueCount;
       }
 
@@ -179,22 +176,18 @@ export async function GET() {
       .sort((a, b) => b.totalIssues - a.totalIssues);
 
     const mostIssues = heuristicsSorted.length ? heuristicsSorted[0] : null;
-    const leastIssues = heuristicsSorted.length
-      ? heuristicsSorted[heuristicsSorted.length - 1]
-      : null;
+    const leastIssues = heuristicsSorted.length ? heuristicsSorted[heuristicsSorted.length - 1] : null;
 
     // Average heuristic scores
-    const heuristicScoreAverages = Object.entries(heuristicScoreMap).map(
-      ([idStr, data]) => {
-        const idNum = parseInt(idStr, 10);
-        const avg = data.count ? data.totalScore / data.count : 0;
-        return {
-          id: idNum,
-          name: heuristicNamesMap[idNum] || `Heuristic ${idNum}`,
-          averageScore: avg,
-        };
-      }
-    );
+    const heuristicScoreAverages = Object.entries(heuristicScoreMap).map(([idStr, data]) => {
+      const idNum = parseInt(idStr, 10);
+      const avg = data.count ? data.totalScore / data.count : 0;
+      return {
+        id: idNum,
+        name: heuristicNamesMap[idNum] || `Heuristic ${idNum}`,
+        averageScore: avg,
+      };
+    });
     heuristicScoreAverages.sort((a, b) => a.id - b.id);
 
     // 5) Actual daily counts for last 30 days for line chart
@@ -274,8 +267,13 @@ export async function GET() {
     };
 
     return NextResponse.json(data, { status: 200 });
-  } catch (error: any) {
-    console.error("Error fetching admin stats:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error fetching admin stats:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else {
+      console.log(error);
+      return NextResponse.json({ error }, { status: 500 });
+    }
   }
 }

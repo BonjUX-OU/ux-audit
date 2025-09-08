@@ -1,66 +1,53 @@
 // models/Report.ts
+import { ReportStatus } from "@/components/organisms/ReportList/ReportList.types";
+import { ReportType } from "@/types/report.types";
 import mongoose from "mongoose";
 
-const OccurrenceSchema = new mongoose.Schema({
-  id: String,
-  selector: String,
-});
-
-const IssueSchema = new mongoose.Schema({
-  issue_id: String,
-  description: String,
-  solution: String,
-  occurrences: [OccurrenceSchema],
-});
-
-const HeuristicSchema = new mongoose.Schema({
-  id: Number,
-  name: String,
-  issues: [IssueSchema],
-});
-
-const ScoreSchema = new mongoose.Schema({
-  id: Number,
-  score: String,
-});
-
-const ReportSchema = new mongoose.Schema(
+const ReportSchema = new mongoose.Schema<ReportType>(
   {
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
       required: true,
     },
-    owner: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     url: {
       type: String,
       required: true,
     },
-    sector: {
-      type: String,
-    },
     pageType: {
       type: String,
     },
-    scores: [ScoreSchema],
-    overallScore: {
-      type: Number,
+    status: {
+      type: String,
+      enum: ReportStatus,
+      default: ReportStatus.Unassigned,
       required: true,
     },
-    heuristics: [HeuristicSchema],
-    snapshotHtml: {
-      type: String, // store the entire HTML string
-      required: true,
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-    // New field for human-edited reports:
-    humanEdited: {
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    assignedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    sector: {
+      type: String,
+    },
+    score: { type: Number },
+    screenshotImgUrl: { type: String },
+    predefinedIssues: { type: [String] },
+    contributorNotes: { type: String },
+    isPaid: {
       type: Boolean,
       default: false,
     },
+    paidAt: { type: Date },
+    paidBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
