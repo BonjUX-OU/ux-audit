@@ -1,28 +1,14 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
 import SessionProvider from "@/utils/SessionProvider";
 import { Work_Sans } from "next/font/google";
-import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@vercel/analytics/react";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
 
 const workSans = Work_Sans({
   weight: ["300", "400", "500", "700"],
   subsets: ["latin"],
   display: "swap",
   fallback: ["Helvetica", "Arial", "sans-serif"],
-});
-
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
 });
 
 export const metadata: Metadata = {
@@ -37,12 +23,9 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${workSans.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
-        suppressHydrationWarning>
+      <body className={`${workSans.className} antialiased`} suppressHydrationWarning>
         <SessionProvider>
           {children}
-          <Toaster />
           <Analytics />
         </SessionProvider>
       </body>
