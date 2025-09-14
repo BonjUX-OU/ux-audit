@@ -49,7 +49,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Close
         className={clsx(
           "data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
-          "absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none",
+          "absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none",
         )}>
         <X className="h-6 w-6" />
         <span className="sr-only">Close</span>

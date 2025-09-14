@@ -51,11 +51,11 @@ function PaymentPage() {
               activeStepIndex={1}
             />
 
-            <h2 className="text-2xl font-[500] my-4">Before the full report, time to pay</h2>
+            <h2 className="text-2xl font-medium my-4">Before the full report, time to pay</h2>
 
             <div className="border rounded-lg overflow-hidden bg-[#F8F8F8]">
               <div className="p-6">
-                <h2 className="text-xl font-[500] my-2">Welcome {session?.user?.name} 👋</h2>
+                <h2 className="text-xl font-medium my-2">Welcome {session?.user?.name} 👋</h2>
                 <p className="text-gray-600 mb-8">
                   Here is a summary for your purchase. Once you complete payment, you will reach the full report.
                 </p>

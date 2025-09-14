@@ -114,10 +114,10 @@ const FileUploader = ({ isOpen, targetReportId, onClose, onSuccess }: FileUpload
           onSubmit={handleSubmitImage}
           className={clsx("flex w-full flex-col gap-2", isLoading && "hidden")}>
           <div
-            className="mt-2 flex h-[3rem] w-full items-center justify-between rounded-md border"
+            className="mt-2 flex h-12 w-full items-center justify-between rounded-md border"
             onClick={() => inputFileRef.current?.click()}>
             <input
-              className="h-full w-[75%] rounded-md border-none px-4 text-sm outline-none"
+              className="h-full w-[75%] rounded-md border-none px-4 text-sm outline-hidden"
               placeholder="Upload your file"
               type="text"
               readOnly

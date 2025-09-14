@@ -35,10 +35,10 @@ export const MultiSelect = ({ label, options, placeholder = "Select...", selecte
     <>
       {label && <label className="block text-sm font-medium mb-1.5">{label}</label>}
       <DropdownMenu>
-        <DropdownMenuTrigger className="focus-within:outline-none" ref={triggerRef} asChild>
+        <DropdownMenuTrigger className="focus-within:outline-hidden" ref={triggerRef} asChild>
           <Button
             variant="outline"
-            className="w-full h-10 justify-between shadow-sm border border-input bg-background px-3 py-2 focus:ring-2 focus:ring-[#B04E34] focus-visible:ring-0 focus:ring-opacity-50">
+            className="w-full h-10 justify-between shadow-xs border border-input bg-background px-3 py-2 focus:ring-2 focus:ring-[#B04E34] focus-visible:ring-0 focus:ring-opacity-50">
             <span className="text-sm font-normal">{selected.length ? `${selected.length} selected` : placeholder}</span>
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
@@ -49,7 +49,7 @@ export const MultiSelect = ({ label, options, placeholder = "Select...", selecte
             return (
               <DropdownMenuItem
                 key={option.value}
-                className="flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer rounded hover:bg-gray-100 focus-within:outline-none"
+                className="flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer rounded hover:bg-gray-100 focus-within:outline-hidden"
                 onClick={(e) => {
                   e.preventDefault();
                   toggleOption(option.value);

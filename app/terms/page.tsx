@@ -68,7 +68,7 @@ export default function TermsPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <div className="lg:w-1/4">
-            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-20">
+            <div className="bg-white rounded-xl shadow-xs p-6 sticky top-20">
               <div className="flex items-center mb-6">
                 <div className="bg-[#E84C30] rounded-full w-12 h-12 flex items-center justify-center">
                   <span className="text-white text-lg font-bold">0.0</span>
@@ -127,7 +127,7 @@ export default function TermsPage() {
 
           {/* Main content */}
           <div className="lg:w-3/4">
-            <div className="bg-white rounded-xl shadow-sm p-8 md:p-12">
+            <div className="bg-white rounded-xl shadow-xs p-8 md:p-12">
               <h1 className="text-3xl md:text-4xl font-bold mb-6">Terms and Conditions</h1>
               <p className="text-gray-600 mb-8">Last updated: April 16, 2025</p>
 

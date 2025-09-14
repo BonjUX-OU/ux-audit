@@ -113,7 +113,7 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
         placeholder="Project name"
         value={confirmedProjectName}
         onChange={(e) => setConfirmedProjectName(e.target.value)}
-        className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
+        className="shadow-xs focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50"
       />
     </div>
   );
@@ -129,7 +129,7 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
           placeholder="Enter project name"
           value={confirmedProjectName}
           onChange={(e) => setConfirmedProjectName(e.target.value)}
-          className="shadow-sm focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
+          className="shadow-xs focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
         />
       </div>
     </>
@@ -147,13 +147,13 @@ const ProjectsNavBar = forwardRef<ProjectsNavBarHandle, ProjectsNavBarProps>(({ 
                   className={clsx(
                     "flex items-center text-left px-3 py-2 rounded-md w-full transition-all duration-200",
                     selectedProject?._id === project._id
-                      ? "bg-[#FFF1E0] text-[#B04E34] font-medium shadow-sm"
+                      ? "bg-[#FFF1E0] text-[#B04E34] font-medium shadow-xs"
                       : "hover:bg-gray-100 text-gray-700"
                   )}>
                   {!project ? (
-                    <Layers className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <Layers className="h-4 w-4 mr-2 shrink-0" />
                   ) : (
-                    <FileIcon className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <FileIcon className="h-4 w-4 mr-2 shrink-0" />
                   )}
                   <span className="truncate">{project.name}</span>
                 </button>

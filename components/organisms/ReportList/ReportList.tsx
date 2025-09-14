@@ -24,7 +24,7 @@ const ReportList = ({ reports, isLoading, onAddNewReport, onDeleteReportClick }:
 
   if (!reports.length && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-gray-500 bg-gray-50 rounded-lg shadow-sm">
+      <div className="flex flex-col items-center justify-center py-12 text-gray-500 bg-gray-50 rounded-lg shadow-xs">
         <FileIcon className="h-16 w-16 mb-4 text-gray-300" />
         <p className="text-center text-lg font-medium mb-2">No reports yet</p>
         <p className="text-center text-gray-400 mb-6">Generate your first report using the form above</p>

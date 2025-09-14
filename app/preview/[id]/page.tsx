@@ -189,7 +189,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
           </Card>
 
           {/* Score Card */}
-          <Card className="mb-6 border-none shadow-sm max-w-[1248px]">
+          <Card className="mb-6 border-none shadow-xs max-w-[1248px]">
             <Tabs defaultValue="screenshot" className="w-full">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2">
@@ -209,7 +209,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
                 <ScoreBar overallScore={overallScore ?? 0} totalIssues={totalIssues} />
 
                 <TabsContent value="screenshot" className="mt-4">
-                  <h3 className="text-center text-lg font-[500] mb-4">Screenshot/Website Preview</h3>
+                  <h3 className="text-center text-lg font-medium mb-4">Screenshot/Website Preview</h3>
                   <div ref={containerRef} className="w-full h-max border-none relative" style={{ zIndex: 45 }}>
                     <IssuesContainer
                       hideIssues={false}
@@ -222,7 +222,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
                   </div>
                 </TabsContent>
                 <TabsContent value="list" className="mt-4">
-                  <h3 className="text-center text-lg font-[500] mb-4">Issues Listed Preview</h3>
+                  <h3 className="text-center text-lg font-medium mb-4">Issues Listed Preview</h3>
                   <IssueListView
                     issues={reportIssues}
                     previewIssues={previewIssues}
@@ -252,7 +252,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
           <div className="container flex gap-2 mx-auto p-4">
             <div className="w-full flex items-center justify-center gap-4">
               <h1 className="text-[#B04E34] text-3xl bold my-4">Purchased already!</h1>
-              <span className="text-md font-[300] text-[#B04E34]">
+              <span className="text-md font-light text-[#B04E34]">
                 This audit has been already purchased by someone else! If you know the owner you can request an access
                 by the owner.
               </span>
@@ -267,7 +267,7 @@ export default function PreviewView({ params }: { params: Promise<{ id: string }
               <h1 className="text-[#B04E34] text-3xl font-extrabold my-4">
                 Reveal {previewIssues.length + reportIssues.length} more issues by purchasing this report just €14.90
               </h1>
-              <p className="text-md font-[300] text-[#B04E34]">
+              <p className="text-md font-light text-[#B04E34]">
                 To access the full report, you’ll need to register and complete the payment. Once registered, you’ll be
                 redirected to the Stripe page to finalize your purchase.
               </p>

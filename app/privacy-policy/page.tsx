@@ -72,7 +72,7 @@ export default function PrivacyPolicyPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <div className="lg:w-1/4">
-            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-20">
+            <div className="bg-white rounded-xl shadow-xs p-6 sticky top-20">
               <div className="flex items-center mb-6">
                 <div className="bg-[#E84C30] rounded-full w-12 h-12 flex items-center justify-center">
                   <span className="text-white text-lg font-bold">0.0</span>
@@ -137,7 +137,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Main content */}
           <div className="lg:w-3/4">
-            <div className="bg-white rounded-xl shadow-sm p-8 md:p-12">
+            <div className="bg-white rounded-xl shadow-xs p-8 md:p-12">
               <h1 className="text-3xl md:text-4xl font-bold mb-6">
                 Privacy Policy
               </h1>
@@ -242,7 +242,7 @@ export default function PrivacyPolicyPage() {
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-6 my-8">
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-xs hover:shadow-md transition-shadow">
                     <h3 className="text-xl font-semibold mb-3">
                       Information You Give Us
                     </h3>
@@ -256,7 +256,7 @@ export default function PrivacyPolicyPage() {
                     </p>
                   </div>
 
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-xs hover:shadow-md transition-shadow">
                     <h3 className="text-xl font-semibold mb-3">
                       Information From Cookies & Technologies
                     </h3>
@@ -324,19 +324,19 @@ export default function PrivacyPolicyPage() {
                 <div className="grid md:grid-cols-2 gap-4 my-6">
                   <ul className="list-none space-y-2">
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>To fulfill your order</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>To provide you with a personalized experience</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>
@@ -344,13 +344,13 @@ export default function PrivacyPolicyPage() {
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>To provide you with customer service</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>
@@ -361,7 +361,7 @@ export default function PrivacyPolicyPage() {
                   </ul>
                   <ul className="list-none space-y-2">
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>
@@ -369,25 +369,25 @@ export default function PrivacyPolicyPage() {
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>To improve our products and services</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>For marketing purposes</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>To provide to third party service providers</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 flex-shrink-0">
+                      <div className="bg-[#E84C30] rounded-full w-5 h-5 flex items-center justify-center mt-0.5 mr-2 shrink-0">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <span>
@@ -405,7 +405,7 @@ export default function PrivacyPolicyPage() {
                 </h2>
 
                 <div className="space-y-6 my-8">
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-xs">
                     <h3 className="text-xl font-semibold mb-3">
                       Our Corporate Affiliates
                     </h3>
@@ -420,7 +420,7 @@ export default function PrivacyPolicyPage() {
                     </p>
                   </div>
 
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-xs">
                     <h3 className="text-xl font-semibold mb-3">
                       Our Service Providers
                     </h3>
@@ -435,7 +435,7 @@ export default function PrivacyPolicyPage() {
                     </p>
                   </div>
 
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-xs">
                     <h3 className="text-xl font-semibold mb-3">
                       Other Business Partners
                     </h3>
@@ -495,7 +495,7 @@ export default function PrivacyPolicyPage() {
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-6 my-8">
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-xs">
                     <h3 className="text-xl font-semibold mb-3">
                       Right to be Forgotten
                     </h3>
@@ -509,7 +509,7 @@ export default function PrivacyPolicyPage() {
                     </p>
                   </div>
 
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-xs">
                     <h3 className="text-xl font-semibold mb-3">
                       Right to Your Information
                     </h3>

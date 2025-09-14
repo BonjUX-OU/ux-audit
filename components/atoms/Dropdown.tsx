@@ -18,7 +18,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={clsx(
-        "bg-popover bg-background border-border text-popover-foreground z-50 min-w-[8rem] cursor-pointer overflow-hidden rounded-md border p-1 shadow-md",
+        "bg-popover bg-background border-border text-popover-foreground z-50 min-w-32 cursor-pointer overflow-hidden rounded-md border p-1 shadow-md",
         className,
       )}
       {...props}
@@ -34,7 +34,7 @@ const DropdownMenuItem = React.forwardRef<
   <RadixDropdown.Item
     ref={ref}
     className={clsx(
-      "focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50",
       inset && "pl-8",
       className,
     )}
@@ -51,7 +51,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <RadixDropdown.SubTrigger
     ref={ref}
     className={clsx(
-      "focus:bg-accent focus:text-accent-foreground flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none [&_svg]:pointer-events-none",
+      "focus:bg-accent focus:text-accent-foreground flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden [&_svg]:pointer-events-none",
       inset && "pl-8",
       className,
     )}
@@ -69,7 +69,7 @@ const DropdownMenuSubContent = React.forwardRef<
   <RadixDropdown.SubContent
     ref={ref}
     className={clsx(
-      "bg-popover text-popover-foreground z-50 min-w-[8rem] overflow-hidden rounded-md border p-1 shadow-lg",
+      "bg-popover text-popover-foreground z-50 min-w-32 overflow-hidden rounded-md border p-1 shadow-lg",
       className,
     )}
     {...props}
@@ -84,7 +84,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <RadixDropdown.CheckboxItem
     ref={ref}
     className={clsx(
-      "focus:bg-accent focus:text-accent-foreground flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-none select-none",
+      "focus:bg-accent focus:text-accent-foreground flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none",
       className,
     )}
     {...props}>
@@ -103,7 +103,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   <RadixDropdown.RadioItem
     ref={ref}
     className={clsx(
-      "focus:bg-accent focus:text-accent-foreground flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-none select-none",
+      "focus:bg-accent focus:text-accent-foreground flex cursor-default items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none",
       className,
     )}
     {...props}>

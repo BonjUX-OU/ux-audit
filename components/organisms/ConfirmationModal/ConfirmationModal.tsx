@@ -42,7 +42,7 @@ const ConfirmationModal = ({
           <Button
             variant="outline"
             onClick={onCancel}
-            className="bg-white hover:bg-gray-100 shadow-sm hover:shadow transition-all duration-200">
+            className="bg-white hover:bg-gray-100 shadow-xs hover:shadow-sm transition-all duration-200">
             {cancelButtonTitle}
           </Button>
           {onConfirm && (

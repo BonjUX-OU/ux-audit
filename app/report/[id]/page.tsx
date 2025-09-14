@@ -159,7 +159,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
           </Card>
 
           {/* Score Card */}
-          <Card className="mb-6 border-none shadow-sm">
+          <Card className="mb-6 border-none shadow-xs">
             <Tabs defaultValue="screenshot" className="w-full">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2">
@@ -179,7 +179,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
                 <ScoreBar overallScore={overallScore ?? 0} totalIssues={totalIssues} />
 
                 <TabsContent value="screenshot" className="mt-4">
-                  <h3 className="text-center text-lg font-[500] mb-4">Screenshot/Website Preview</h3>
+                  <h3 className="text-center text-lg font-medium mb-4">Screenshot/Website Preview</h3>
                   <div ref={containerRef} className="w-full h-max border-none relative" style={{ zIndex: 45 }}>
                     <IssuesContainer
                       hideIssues={false}
@@ -190,7 +190,7 @@ export default function AnalysisView({ params }: { params: Promise<{ id: string 
                   </div>
                 </TabsContent>
                 <TabsContent value="list" className="mt-4">
-                  <h3 className="text-center text-lg font-[500] mb-4">Issues Listed Preview</h3>
+                  <h3 className="text-center text-lg font-medium mb-4">Issues Listed Preview</h3>
                   <IssueListView issues={reportIssues} />
                 </TabsContent>
               </CardContent>

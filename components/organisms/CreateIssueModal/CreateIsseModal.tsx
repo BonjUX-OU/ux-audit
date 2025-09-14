@@ -183,7 +183,7 @@ const CreateIsseModal = ({
           <h3 className="p-4 text-md font-semibold">Select Heuristic Criteria Related to Issue</h3>
         </DialogHeader>
 
-        <div className="p-4 h-[32rem] overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
+        <div className="p-4 h-128 overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
           {issueStep === "heuristic" ? (
             Heuristics.map((heuristic) => (
               <div
@@ -263,9 +263,9 @@ const CreateIsseModal = ({
               </div>
               <div className="w-full text-md">
                 <b>Add Tags</b>
-                <div className=" w-full h-[3rem] flex items-center border rounded-md mt-2">
+                <div className=" w-full h-12 flex items-center border rounded-md mt-2">
                   <input
-                    className="w-[80%] h-full px-4 text-sm outline-none border-none rounded-md"
+                    className="w-[80%] h-full px-4 text-sm outline-hidden border-none rounded-md"
                     placeholder="ex. Button"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}

@@ -95,10 +95,10 @@ export default function ImageUploader({ isOpen, targetReportId, onClose, onSucce
         )}
         <form onSubmit={handleSubmit} className={clsx("flex flex-col gap-2 w-full", isLoading && "hidden")}>
           <div
-            className=" w-full h-[3rem] flex justify-between items-center border rounded-md mt-2"
+            className=" w-full h-12 flex justify-between items-center border rounded-md mt-2"
             onClick={() => inputFileRef.current?.click()}>
             <input
-              className="w-[75%] h-full px-4 text-sm outline-none border-none rounded-md"
+              className="w-[75%] h-full px-4 text-sm outline-hidden border-none rounded-md"
               placeholder="Upload your file"
               type="text"
               readOnly

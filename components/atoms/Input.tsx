@@ -33,7 +33,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               "border-input bg-background",
               "file:text-foreground placeholder:text-muted-foreground",
               "flex h-10 w-full rounded-md border px-3 py-2 text-sm",
-              "focus:border-primary/50 focus-visible:outline-none",
+              "focus:border-primary/50 focus-visible:outline-hidden",
               "disabled:cursor-not-allowed disabled:opacity-50",
               icon && "pl-10", // add padding if icon exists
               error && "border-red-500",

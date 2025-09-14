@@ -68,7 +68,7 @@ const CreateProjectButton = ({ onCreateSuccess }: CreateProjectButtonProps) => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
+            className="shadow-xs focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
           />
         </div>
         <div>
@@ -78,7 +78,7 @@ const CreateProjectButton = ({ onCreateSuccess }: CreateProjectButtonProps) => {
             placeholder="Optional"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
+            className="shadow-xs focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
           />
         </div>
       </ConfirmationModal>

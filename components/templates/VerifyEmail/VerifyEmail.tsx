@@ -46,7 +46,7 @@ const VerifyEmail = () => {
         <div className="grid grid-cols-12 gap-12 w-full max-w-5xl">
           {/* Left Section */}
           <div className="col-span-12 md:col-span-6 lg:col-span-6 flex flex-col justify-start items-start">
-            <div className="flex-grow flex flex-col justify-center items-center md:items-start">
+            <div className="grow flex flex-col justify-center items-center md:items-start">
               <div className="bg-[#E84C30] rounded-full w-32 h-32 flex items-center justify-center mb-8">
                 <span className="text-white text-4xl font-bold">0.0</span>
               </div>

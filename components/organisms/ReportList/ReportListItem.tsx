@@ -39,7 +39,7 @@ const ReportListItem = ({ report, onDeleteReportClick }: ReportListItemProps) =>
           <Badge
             className={`${getRatingColor(report.score ?? 100)} hover:${getRatingColor(
               report.score ?? 100
-            )} shadow-sm transition-all duration-200`}>
+            )} shadow-xs transition-all duration-200`}>
             {getRatingLabel(report.score ?? 100)}
           </Badge>
         ) : (

@@ -31,7 +31,7 @@ const TabsTrigger = React.forwardRef<
     className={clsx(
       "data-[state=active]:bg-background data-[state=active]:text-foreground",
       "inline-flex items-center justify-center rounded-sm px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all",
-      "focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm",
+      "focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-xs",
       className,
     )}
     {...props}
@@ -45,7 +45,7 @@ const TabsContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}
-    className={clsx("mt-2 focus-visible:outline-none", className)}
+    className={clsx("mt-2 focus-visible:outline-hidden", className)}
     {...props}
   />
 ));

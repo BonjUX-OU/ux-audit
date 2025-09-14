@@ -131,7 +131,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="flex flex-col min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
         <AppBar />
         <div className="flex flex-1 pt-16 px-4 md:px-6 lg:px-8 pb-8">
           {/* Sidebar */}
@@ -219,7 +219,7 @@ export default function DashboardPage() {
                   ) : (
                     <>
                       {!pageTypes.length && !loadingReports && (
-                        <div className="flex flex-col items-center justify-center py-12 text-gray-500 bg-gray-50 rounded-lg shadow-sm">
+                        <div className="flex flex-col items-center justify-center py-12 text-gray-500 bg-gray-50 rounded-lg shadow-xs">
                           <FolderPlus className="h-16 w-16 mb-4 text-gray-300" />
                           <p className="text-center text-lg font-medium mb-2">No reports in this project</p>
                           <p className="text-center text-gray-400 mb-6">Generate your first report for this project</p>
@@ -238,9 +238,9 @@ export default function DashboardPage() {
                               <TabsTrigger
                                 key={pt}
                                 value={pt}
-                                className="px-4 rounded-md data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-sm transition-all duration-200">
+                                className="px-4 rounded-md data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-xs transition-all duration-200">
                                 {pt}{" "}
-                                <Badge variant="outline" className="ml-2 bg-white shadow-sm">
+                                <Badge variant="outline" className="ml-2 bg-white shadow-xs">
                                   {reportsByPageType[pt].length}
                                 </Badge>
                               </TabsTrigger>

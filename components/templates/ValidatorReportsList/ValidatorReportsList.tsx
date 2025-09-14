@@ -252,7 +252,7 @@ const ValidatorReportsList = forwardRef<ValidatorReportsListHandle, ValidatorRep
         }}
         onConfirm={onAssignReportConfirm}>
         {mappedContributors && (
-          <div className="min-h-[10rem]">
+          <div className="min-h-40">
             <SelectElement
               label="Contributors"
               options={mappedContributors}

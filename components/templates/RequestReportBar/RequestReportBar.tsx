@@ -139,7 +139,7 @@ const RequestReportBar = ({ project, onRequestComplete }: RequestReportBarProps)
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 required
-                className="pl-9 shadow-sm focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
+                className="pl-9 shadow-xs focus:ring-2 focus:ring-[#B04E34] focus:ring-opacity-50 transition-all duration-200"
               />
               <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             </div>

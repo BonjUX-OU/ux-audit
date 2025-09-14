@@ -14,10 +14,10 @@ const RaitingBar = ({ score, issues }: RaitingBarProps) => {
       <div className="w-full relative h-5 bg-gray-100 rounded-full overflow-hidden">
         <div className="absolute w-full inset-0 flex">
           <div
-            className={`w-1/2 bg-gradient-to-r from-${Ratings[0].color} via-${Ratings[1].color} to-${Ratings[2].color}`}
+            className={`w-1/2 bg-linear-to-r from-${Ratings[0].color} via-${Ratings[1].color} to-${Ratings[2].color}`}
           />
           <div
-            className={`w-1/2 bg-gradient-to-r from-${Ratings[2].color} via-${Ratings[3].color} to-${Ratings[4].color}`}
+            className={`w-1/2 bg-linear-to-r from-${Ratings[2].color} via-${Ratings[3].color} to-${Ratings[4].color}`}
           />
         </div>
 

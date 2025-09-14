@@ -14,7 +14,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         style={{ resize }}
         className={clsx(
           "border-input bg-background focus:border-primary/50 placeholder:text-muted-foreground",
-          "flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none",
+          "flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-hidden",
           "disabled:cursor-not-allowed disabled:opacity-50",
           className,
         )}

@@ -109,7 +109,7 @@ function SignupPage() {
       <div className="bg-white flex justify-center py-8 px-4 h-full rounded-lg">
         <div className="grid grid-cols-2 gap-4 w-full max-w-5xl">
           {/* Left Section */}
-          <div className="flex-grow flex flex-col justify-start items-center md:items-start">
+          <div className="grow flex flex-col justify-start items-center md:items-start">
             <Link
               href={storedItem ? `/preview/${storedItem.reportId}` : "/"}
               className="flex items-center text-[#C25B3F] mb-12">
@@ -205,9 +205,9 @@ function SignupPage() {
                 </Button>
 
                 <div className="flex items-center my-6">
-                  <div className="flex-grow h-px bg-gray-300"></div>
+                  <div className="grow h-px bg-gray-300"></div>
                   <span className="px-4 text-gray-500">or</span>
-                  <div className="flex-grow h-px bg-gray-300"></div>
+                  <div className="grow h-px bg-gray-300"></div>
                 </div>
 
                 <div className="flex justify-center">

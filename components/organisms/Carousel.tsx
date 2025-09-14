@@ -74,12 +74,12 @@ const ImageCarousel: React.FC<CarouselProps> = ({
         {/* Navigation */}
         <button
           onClick={goToPrevious}
-          className="absolute left-4 z-40 cursor-pointer rounded-full p-3 backdrop-blur-sm transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50">
+          className="absolute left-4 z-40 cursor-pointer rounded-full p-3 backdrop-blur-xs transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50">
           <ChevronLeft className="h-6 w-6 text-gray-800" />
         </button>
         <button
           onClick={goToNext}
-          className="absolute right-4 z-40 cursor-pointer rounded-full p-3 backdrop-blur-sm transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50">
+          className="absolute right-4 z-40 cursor-pointer rounded-full p-3 backdrop-blur-xs transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50">
           <ChevronRight className="h-6 w-6 text-gray-800" />
         </button>
 

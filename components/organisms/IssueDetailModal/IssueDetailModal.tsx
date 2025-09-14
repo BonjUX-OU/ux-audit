@@ -34,10 +34,10 @@ const IssueDetailModal = ({ isOpen, issue, previewMode, onClose, onDeleteIssueSu
           <DialogHeader className="border-b">
             <DialogTitle></DialogTitle>
             <div className="flex items-center gap-2">
-              <span className="p-4 text-lg font-[500]">{issueOptionNumber}</span>
+              <span className="p-4 text-lg font-medium">{issueOptionNumber}</span>
               <Badge
                 variant="outline"
-                className="p-2 bg-[#FFF1E0] border-[#B04E34] rounded-lg text-sm font-[500] flex items-center gap-2">
+                className="p-2 bg-[#FFF1E0] border-[#B04E34] rounded-lg text-sm font-medium flex items-center gap-2">
                 ⁉️ {issue.severityLevel.name}
               </Badge>
             </div>
@@ -51,15 +51,15 @@ const IssueDetailModal = ({ isOpen, issue, previewMode, onClose, onDeleteIssueSu
                 className="rounded-lg border border-[#B04E34] shadow-md"
               />
             </div>
-            <span className="text-md font-[500]">
+            <span className="text-md font-medium">
               {issue.heuristic.name} ({issue.heuristic.code})
             </span>
             <div className="w-full">
-              <span className="text-lg font-[500]">{issueOptionNumber} description</span>
+              <span className="text-lg font-medium">{issueOptionNumber} description</span>
               <p className="text-md font-light">{issue.description}</p>
             </div>
             <div className="w-full">
-              <span className="text-lg font-[500]">Suggested Fix for {issueOptionNumber}</span>
+              <span className="text-lg font-medium">Suggested Fix for {issueOptionNumber}</span>
               <p className="text-md font-light">{issue.suggestedFix}</p>
             </div>
 

@@ -32,7 +32,7 @@ const StepperProgressBar = ({ steps, activeStepIndex }: StepperProgressBarProps)
             </div>
             <span className={clsx("ml-2 text-sm", index > activeStepIndex && "text-gray-400")}>{step.label}</span>
           </div>
-          {index < steps.length - 1 && <div className="h-px bg-[#C25B3F] flex-grow mx-2"></div>}
+          {index < steps.length - 1 && <div className="h-px bg-[#C25B3F] grow mx-2"></div>}
         </Fragment>
       ))}
     </div>

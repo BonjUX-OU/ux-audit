@@ -18,7 +18,7 @@ const IssueListGroup = ({
 }: IssueListGroupProps) => {
   return (
     <div className="flex flex-col gap-2">
-      <div className="p-2 text-center font-[500] border bg-[#FFF1E0]">
+      <div className="p-2 text-center font-medium border bg-[#FFF1E0]">
         {title} ({issues.length})
       </div>
       <Accordion type="single" collapsible>
@@ -78,10 +78,10 @@ const IssueListGroup = ({
               {isPaidReport ? (
                 <div className="p-3 h-auto flex flex-col items-center gap-3">
                   <div className="w-full flex items-center justify-center">
-                    <h1 className="w-full text-lg font-[500] text-[#B04E34]">Purchased already!</h1>
+                    <h1 className="w-full text-lg font-medium text-[#B04E34]">Purchased already!</h1>
                   </div>
                   <div className="w-full">
-                    <span className="text-md font-[400]">
+                    <span className="text-md font-normal">
                       This audit has been already purchased by someone else! If you know the owner you can request an
                       access by the owner.
                     </span>
@@ -89,14 +89,14 @@ const IssueListGroup = ({
                 </div>
               ) : (
                 <div className="p-3 h-auto flex flex-col items-center gap-3">
-                  <h1 className="w-full text-md font-[500]">
+                  <h1 className="w-full text-md font-medium">
                     Reveal {previewIssuesCount} more issues by purchasing this report
                   </h1>
-                  <span className="text-md font-[400]">
+                  <span className="text-md font-normal">
                     To access the full report, you’ll need to register and complete the payment. Once registered, you’ll
                     be redirected to the Stripe page to finalize your purchase.
                   </span>
-                  <h1 className="w-full text-2xl font-[600]">Just €14.90</h1>
+                  <h1 className="w-full text-2xl font-semibold">Just €14.90</h1>
                   <Button onClick={onRegisterClick} className="w-full py-6 bg-[#B04E34] hover:bg-[#963F28] text-white">
                     Register & Purchase full report
                   </Button>

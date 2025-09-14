@@ -46,7 +46,7 @@ const ScreenshotOverlay: React.FC<FocusOverlayProps> = ({ targetRef, onCancel })
     <>
       <button
         onClick={onCancel}
-        className="w-[3rem] h-[3rem] bg-transparent rounded-full flex items-center justify-center"
+        className="w-12 h-12 bg-transparent rounded-full flex items-center justify-center"
         style={{
           position: "fixed",
           top: 60,

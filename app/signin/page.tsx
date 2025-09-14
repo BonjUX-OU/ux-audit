@@ -80,7 +80,7 @@ function LoginPage() {
       <div className="bg-white flex justify-center py-8 px-4 h-full rounded-lg">
         <div className="grid grid-cols-2 gap-4 w-full max-w-5xl">
           {/* Left Section */}
-          <div className="flex-grow flex flex-col justify-start items-center md:items-start">
+          <div className="grow flex flex-col justify-start items-center md:items-start">
             <Link
               href={storedItem ? `/preview/${storedItem.reportId}` : "/"}
               className="flex items-center text-[#C25B3F] mb-12">
@@ -136,9 +136,9 @@ function LoginPage() {
                 </div>
                 <p className="text-sm text-red-500 text-center mt-2">{error && error}</p>
                 <div className="flex items-center mb-4">
-                  <div className="flex-grow h-px bg-gray-300" />
+                  <div className="grow h-px bg-gray-300" />
                   <span className="text-sm text-gray-500 mx-2">or continue with</span>
-                  <div className="flex-grow h-px bg-gray-300" />
+                  <div className="grow h-px bg-gray-300" />
                 </div>
                 <div className="flex justify-center">
                   <Button
