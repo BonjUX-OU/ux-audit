@@ -96,7 +96,7 @@ const IssueListGroup = ({
                     To access the full report, you’ll need to register and complete the payment. Once registered, you’ll
                     be redirected to the Stripe page to finalize your purchase.
                   </span>
-                  <h1 className="w-full text-2xl font-[600]">Just €14.90</h1>
+                  <h1 className="w-full text-2xl font-[600]">Just €14.99</h1>
                   <Button onClick={onRegisterClick} className="w-full py-6 bg-[#B04E34] hover:bg-[#963F28] text-white">
                     Register & Purchase full report
                   </Button>
